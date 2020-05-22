@@ -35,6 +35,7 @@ int uf_init(union_find *uf, uint64_t size) {
 
     uf->arr = arr;
     uf->size = size;
+    uf->num_sets = size;
     return 0;
 }
 
@@ -83,6 +84,9 @@ void uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
             bn->parent = ar;
             an->size += bn->size;
         }
+
+        // two sets have joined, meaning there is 1 less set
+        uf->num_sets--;
     }
 }
 

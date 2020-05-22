@@ -48,6 +48,9 @@ typedef uint64_t uf_node_t;
 typedef struct union_find {
     uint64_t size;
 
+    // tracks total number of unique sets
+    uint64_t num_sets;
+
     // array of elements
     union_node *arr;
 } union_find;
@@ -72,6 +75,11 @@ uf_node_t uf_find(union_find *uf, uf_node_t node);
 // unions the two sets that a and b are in (noop if are already in the same
 // set)
 void uf_union(union_find *uf, uf_node_t a, uf_node_t b);
+
+
+static uint64_t uf_num_sets(union_find *uf) {
+    return uf->num_sets;
+}
 
 
 #endif /* _UNION_FIND_H */
