@@ -98,6 +98,14 @@ heap_node * heap_extract_min(heap_t *h);
  */
 int heap_insert(heap_t *h, heap_node * node);
 
+
+/*
+ * joins heaps h1 and h2 into one heap, which is stored in the h1 struct. Both
+ * heaps h1 and h2 are corrupted by this operation, i.e. they would need to be
+ * cloned if you wanted to access them after doing this operation
+ */
+int heap_meld(heap_t *h1, heap_t *h2);
+
 /*
  * decreases key value of node to the new key value
  */

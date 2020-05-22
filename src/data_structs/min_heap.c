@@ -59,6 +59,12 @@ static heap_node * _right_child(heap_node * node) {
 }
 
 
+static void _make_root(heap_t * h, heap_node * root) {
+    h->root = root;
+    root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+}
+
+
 
 int heap_init(heap_t *h) {
     // root is an alias for lchild, so when empty, we set it to itself
@@ -290,6 +296,9 @@ static void _unlink(heap_node * node) {
  * key value of all heap nodes)
  */
 heap_node * heap_find_min(heap_t *h) {
+    if (h->root == (heap_node *) h) {
+        return NULL;
+    }
     return h->root;
 }
 
@@ -366,8 +375,7 @@ void heap_delete_min(heap_t *h) {
     root = _delete_root(root);
 
     if (root != NULL) {
-        h->root = root;
-        root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+        _make_root(h, root);
     }
     else {
         h->root = (heap_node *) h;
@@ -379,7 +387,9 @@ void heap_delete_min(heap_t *h) {
  */
 heap_node * heap_extract_min(heap_t *h) {
     heap_node * min = heap_find_min(h);
-    heap_delete_min(h);
+    if (min != NULL) {
+        heap_delete_min(h);
+    }
     return min;
 }
 
@@ -403,8 +413,8 @@ int heap_insert(heap_t *h, heap_node * node) {
     if (root != (heap_node *) h) {
         // pass node as second argument, as it is less likely for node < root
         root = _link(root, node);
-        h->root = root;
-        root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+
+        _make_root(h, root);
     }
     else {
         // if the heap is empty, we want to set the node we are inserting as
@@ -415,6 +425,31 @@ int heap_insert(heap_t *h, heap_node * node) {
 
     return 0;
 }
+
+
+/*
+ * joins heaps h1 and h2 into one heap, which is stored in the h1 struct. Both
+ * heaps h1 and h2 are corrupted by this operation, i.e. they would need to be
+ * cloned if you wanted to access them after doing this operation
+ */
+int heap_meld(heap_t *h1, heap_t *h2) {
+    heap_node * r1 = heap_find_min(h1);
+    heap_node * r2 = heap_find_min(h2);
+
+    if (r2 == NULL) {
+        // do nothing if h2 is empty
+    }
+    else if (r1 == NULL) {
+        _make_root(h1, r1);
+    }
+    else {
+        r1 = _link(r1, r2);
+        _make_root(h1, r1);
+    }
+
+    return 0;
+}
+
 
 
 /*
@@ -436,8 +471,8 @@ int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key) {
     heap_node * root = h->root;
     if (root != (heap_node *) h) {
         root = _link(root, node);
-        h->root = root;
-        root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+
+        _make_root(h, root);
     }
     else {
         // if the heap is now empty, then node was the root
@@ -469,11 +504,14 @@ int heap_delete(heap_t *h, heap_node * node) {
         // heap
         _unlink(node);
         heap_node * new_subtree = _delete_root(node);
-        root = _link(root, new_subtree);
 
-        h->root = root;
-        // parent of root is h, and root is a left child
-        root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+        if (new_subtree != NULL) {
+            // if node had any children, then new subtree will be nonnull, and
+            // we have to reinsert them into the heap
+            root = _link(root, new_subtree);
+        }
+
+        _make_root(h, root);
     }
 
     return 0;

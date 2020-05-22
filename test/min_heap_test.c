@@ -86,7 +86,6 @@ int main(int argc, char *argv[]) {
 
     heap_node * min = heap_extract_min(&h);
     TEST_ASSERT(min == &nodes3[0]);
-    print_heap(&h);
     heap_validate(&h);
 
     min = heap_extract_min(&h);
@@ -118,6 +117,117 @@ int main(int argc, char *argv[]) {
     TEST_ASSERT(min->key == 10);
 
     heap_destroy(&h);
+
+
+#undef N_TESTS
+#define N_TESTS 100
+
+    // test with heapsort
+
+    heap_node * nodes4 = (heap_node *) malloc(N_TESTS * sizeof(heap_node));
+
+    for (int i = 0; i < N_TESTS; i++) {
+        nodes4[i].key = i;
+    }
+
+    heap_init(&h);
+
+    for (int i = 0; i < N_TESTS; i++) {
+        heap_insert(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < N_TESTS; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == i);
+    }
+
+    TEST_ASSERT(heap_extract_min(&h) == NULL);
+
+    heap_destroy(&h);
+
+
+    // test with deleting random nodes
+
+    heap_init(&h);
+
+    for (int i = 0; i < N_TESTS; i++) {
+        heap_insert(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    // delete every other node
+    for (int i = 0; i < N_TESTS; i += 2) {
+        heap_delete(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 25; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == 1 + i * 2);
+    }
+
+    // delete every other remaining node
+    for (int i = 51; i < N_TESTS; i += 4) {
+        heap_delete(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 12; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == 53 + i * 4);
+    }
+
+    TEST_ASSERT(heap_extract_min(&h) == NULL);
+
+    heap_destroy(&h);
+
+
+    // test with decreasing random nodes
+
+    heap_init(&h);
+
+    for (int i = 0; i < N_TESTS; i++) {
+        heap_insert(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    // decrease every other node 
+    for (int i = 1; i < N_TESTS; i += 2) {
+        heap_decrease_key(&h, &nodes4[i], i / 2);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 75; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == (2 * i) / 3);
+    }
+
+    // now just 50, 52, ... 98 remain
+
+    for (int i = 52; i < N_TESTS; i += 4) {
+        heap_decrease_key(&h, &nodes4[i], i - 2);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 25; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == 50 + 4 * (i / 2));
+    }
+
+    TEST_ASSERT(heap_extract_min(&h) == NULL);
+
+
+    heap_destroy(&h);
+
+
+    free(nodes4);
+
 
     return 0;
 }

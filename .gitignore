@@ -2,3 +2,4 @@ bin
 .obj
 *.[od]
 lib
+.DS_Store
