@@ -46,7 +46,7 @@
 // returns the right child of node if is has one, NULL otherwise
 static heap_node * _right_child(heap_node * node) {
     heap_node * child = node->lchild;
-    if (child != NULL) {
+    if (child != node) {
         heap_node * rsib = RSIB(child);
         if (rsib != node) {
             return rsib;
@@ -299,6 +299,8 @@ heap_node * heap_find_min(heap_t *h) {
 
 
 
+
+
 /*
  * deletes node from its subtree, returning a new subtree without node
  *
@@ -321,11 +323,15 @@ static heap_node * _delete_root(heap_node * node) {
 
     // to track the list of combined subtree pairs, we link them in a list
     // using the rsib field of each, as this field will be unused
-
     do {
         heap_node * child2 = _right_child(child);
         if (child2 != NULL) {
             next_subtree = _right_child(child2);
+
+            // need to remove both child and child2 from list
+            __unlink_from_rchild(child);
+            __unlink_from_rchild(child2);
+
             // combine child and child2 into one subtree
             child = _link(child, child2);
         }
@@ -346,6 +352,7 @@ static heap_node * _delete_root(heap_node * node) {
     // the head pointer to list of subtrees is prev_subtree
     child = prev_subtree->rsib;
     while (child != NULL) {
+        HEAP_ASSERT((((uint64_t) child) & 0x1) == 0);
         next_subtree = child->rsib;
         prev_subtree = _link(prev_subtree, child);
         child = next_subtree;
@@ -362,6 +369,7 @@ void heap_delete_min(heap_t *h) {
     heap_node * root = h->root;
     root = _delete_root(root);
     h->root = root;
+    root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
 }
 
 /*
