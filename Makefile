@@ -26,7 +26,7 @@ all: $(SLIB) tests
 
 .PHONY: tests
 tests:
-	(make -C $(TEST_DIR) BASE_DIR=$(BASE_DIR) SLIB=$(SLIB))
+	(make -C $(TEST_DIR) BASE_DIR=$(BASE_DIR) SLIB=$(SLIB) LIBUTIL=$(SLIB))
 
 
 $(SLIB): $(OBJ)

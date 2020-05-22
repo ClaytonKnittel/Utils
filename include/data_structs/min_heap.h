@@ -103,7 +103,18 @@ int heap_insert(heap_t *h, heap_node * node);
  */
 int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key);
 
+/*
+ * deletes a node from the heap, assuming the node is actually in the heap.
+ * returns 0 on success, nonzero if fails
+ *
+ * note: undefined behavior of node is not in the heap
+ */
+int heap_delete(heap_t *h, heap_node * node);
 
+
+
+
+void print_heap(heap_t *h);
 
 /*
  * validates the heap, aborting on failure and returning on success

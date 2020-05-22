@@ -17,7 +17,7 @@ DEPFILES=$(SRC:%.c=$(ODIR)/%.d)
 .PHONY: all
 all: $(EXE)
 
-$(BIN_DIR)/%: $(ODIR)/%.o
+$(BIN_DIR)/%: $(ODIR)/%.o $(LIBUTIL)
 	$(CC) $(CFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
 $(ODIR)/%.o: %.c
