@@ -83,12 +83,39 @@ int main(int argc, char *argv[]) {
         heap_insert(&h, &nodes3[i]);
         heap_validate(&h);
     }
-    print_heap(&h);
 
     heap_node * min = heap_extract_min(&h);
     TEST_ASSERT(min == &nodes3[0]);
     print_heap(&h);
     heap_validate(&h);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 2);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 3);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 4);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 5);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 6);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 8);
+
+    min = heap_extract_min(&h);
+    heap_validate(&h);
+    TEST_ASSERT(min->key == 10);
 
     heap_destroy(&h);
 

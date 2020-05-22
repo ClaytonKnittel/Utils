@@ -153,10 +153,6 @@ static heap_node * _link(heap_node * n1, heap_node * n2) {
 
     // n1 is tree with smaller root
 
-    // can only be joining single trees, not a chain of trees
-    //HEAP_ASSERT(n1->rsib == NULL);
-    //HEAP_ASSERT(n2->rsib == NULL);
-
     _add_child(n1, n2);
 
     // return new tree
@@ -368,8 +364,14 @@ static heap_node * _delete_root(heap_node * node) {
 void heap_delete_min(heap_t *h) {
     heap_node * root = h->root;
     root = _delete_root(root);
-    h->root = root;
-    root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+
+    if (root != NULL) {
+        h->root = root;
+        root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
+    }
+    else {
+        h->root = (heap_node *) h;
+    }
 }
 
 /*
@@ -395,7 +397,6 @@ int heap_insert(heap_t *h, heap_node * node) {
     HEAP_ASSERT(IS_ALIGNED(node));
     // make node a one-node tree, then link it with the current root
     node->lchild = node;
-    node->rsib = NULL;
 
     heap_node * root = h->root;
 
@@ -560,7 +561,7 @@ void print_heap(heap_t *h) {
 void heap_validate(heap_t *h) {
 
 
-    if (h->root != NULL) {
+    if (h->root != (heap_node *) h) {
         heap_node * root = h->root;
         // root cannot have a right sibling
         HEAP_ASSERT(root->rsib == (heap_node *) (((uint64_t) h) | LEFT_CHILD));
