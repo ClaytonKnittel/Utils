@@ -226,6 +226,52 @@ int main(int argc, char *argv[]) {
     heap_destroy(&h);
 
 
+    // test with increasing random nodes
+
+    for (int i = 0; i < N_TESTS; i++) {
+        nodes4[i].key = i;
+    }
+
+    heap_init(&h);
+
+    for (int i = 0; i < N_TESTS; i++) {
+        heap_insert(&h, &nodes4[i]);
+        heap_validate(&h);
+    }
+
+    // increase every other node 
+    for (int i = 1; i < N_TESTS; i += 2) {
+        heap_increase_key(&h, &nodes4[i], i * 2);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 75; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == 2 * ((2 * (i + 2)) / 3 - 1));
+    }
+
+    heap_validate(&h);
+
+    // now just 102, 106, ... 198 remain
+
+    for (int i = 51; i < N_TESTS; i += 4) {
+        assert(nodes4[i].key == i * 2);
+        heap_increase_key(&h, &nodes4[i], i * 2 + 8);
+        heap_validate(&h);
+    }
+
+    for (int i = 0; i < 25; i++) {
+        heap_node * m = heap_extract_min(&h);
+        heap_validate(&h);
+        TEST_ASSERT(m->key == 106 + 4 * i || (i == 24 && m->key == 206));
+    }
+
+    TEST_ASSERT(heap_extract_min(&h) == NULL);
+
+    heap_destroy(&h);
+
+
     free(nodes4);
 
 

@@ -112,6 +112,11 @@ int heap_meld(heap_t *h1, heap_t *h2);
 int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key);
 
 /*
+ * increases key value of node to the new key value
+ */
+int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key);
+
+/*
  * deletes a node from the heap, assuming the node is actually in the heap.
  * returns 0 on success, nonzero if fails
  *

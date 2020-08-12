@@ -485,6 +485,27 @@ int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key) {
 
 
 /*
+ * increases key value of node to the new key value
+ */
+int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key) {
+
+    heap_key_t old_key = node->key;
+
+    // this muse strictly increase the key
+    HEAP_ASSERT(old_key < new_key);
+
+    node->key = new_key;
+
+    int res = heap_delete(h, node);
+    if (res == 0) {
+        res = heap_insert(h, node);
+    }
+    return res;
+}
+
+
+
+/*
  * deletes a node from the heap, assuming the node is actually in the heap.
  * returns 0 on success, nonzero if fails
  *
