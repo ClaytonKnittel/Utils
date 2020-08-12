@@ -3,3 +3,4 @@ bin
 *.[od]
 lib
 .DS_Store
+*.swp
