@@ -274,7 +274,6 @@ int main(int argc, char *argv[]) {
 
     free(nodes4);
 
-
     return 0;
 }
 
