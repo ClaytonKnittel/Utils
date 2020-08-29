@@ -8,22 +8,7 @@
     fprintf((f), __FILE__ ":%d " fmt, __LINE__, __VA_ARGS__)
 
 
-#ifdef __cplusplus
-
-template<typename T>
-constexpr T & min(T a, T b) {
-    return a < b ? a : b;
-}
-
-template<typename T>
-constexpr T & max(T a, T b) {
-    return a < b ? b : a;
-}
-
-
-
-
-#else
+#ifndef __cplusplus
 
 #define MIN(a, b) ((a) < (b) : (a) : (b))
 #define MAX(a, b) ((a) > (b) : (a) : (b))
