@@ -2,6 +2,11 @@
 #define _UNION_FIND_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 
 
@@ -81,5 +86,9 @@ static uint64_t uf_num_sets(union_find *uf) {
     return uf->num_sets;
 }
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _UNION_FIND_H */

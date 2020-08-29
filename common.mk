@@ -1,4 +1,5 @@
 CC=gcc
+PCC=g++
 AR=ar
 
 BASE_DIR=$(shell pwd)
@@ -8,12 +9,16 @@ BIN_DIR=$(BASE_DIR)/bin
 
 IFLAGS=-I$(BASE_DIR)/include
 
+FTEST_MACROS=-D_GNU_SOURCE
+
 DEBUG=1
 
 ifeq ($(DEBUG), 0)
-CFLAGS=-O3 -Wall -Wno-unused-function -MMD -MP
+CFLAGS=-O3 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
+CPPFLAGS=-O3 -std=c++14 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
 else
-CFLAGS=-O0 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG
+CFLAGS=-O0 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG $(FTEST_MACROS)
+CPPFLAGS=-O0 -std=c++14 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG $(FTEST_MACROS)
 endif
 
 LDFLAGS=-flto -L$(LIB_DIR)
