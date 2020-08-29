@@ -11,7 +11,7 @@
 #ifdef __cplusplus
 
 template<typename T>
-constexpr T & min(constexpr T a, constexpr T b) {
+constexpr T & min(T a, T b) {
     return a < b ? a : b;
 }
 
@@ -21,7 +21,7 @@ inline T & min(const T & a, const T & b) {
 }
 
 template<typename T>
-constexpr T & max(constexpr T a, constexpr T b) {
+constexpr T & max(T a, T b) {
     return a < b ? b : a;
 }
 
