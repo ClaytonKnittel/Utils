@@ -8,7 +8,19 @@
     fprintf((f), __FILE__ ":%d " fmt, __LINE__, __VA_ARGS__)
 
 
-#ifndef __cplusplus
+#ifdef __cplusplus
+
+template<typename T>
+constexpr const T & align_up(const T & val, const T & algn) {
+    return (val + algn - 1) & ~(algn - 1);
+}
+
+template<typename T>
+constexpr const T & align_down(const T & val, const T & algn) {
+    return val & ~(algn - 1);
+}
+
+#else
 
 #define MIN(a, b) ((a) < (b) : (a) : (b))
 #define MAX(a, b) ((a) > (b) : (a) : (b))
