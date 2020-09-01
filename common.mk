@@ -15,10 +15,10 @@ DEBUG=1
 
 ifeq ($(DEBUG), 0)
 CFLAGS=-O3 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
-CPPFLAGS=-O3 -std=c++14 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
+CPPFLAGS=-O3 -std=c++17 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
 else
 CFLAGS=-O0 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG $(FTEST_MACROS)
-CPPFLAGS=-O0 -std=c++14 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG $(FTEST_MACROS)
+CPPFLAGS=-O0 -std=c++17 -Wall -Wno-unused-function -MMD -MP -g3 -DDEBUG $(FTEST_MACROS)
 endif
 
 LDFLAGS=-flto -L$(LIB_DIR)
