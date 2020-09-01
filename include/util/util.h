@@ -24,6 +24,7 @@ constexpr const T align_down(const U & val, const T & algn) {
 
 
 
+
 /*
  * returns 1 + index of the first set bit of val, or undefined if val is 0
  */
@@ -74,6 +75,30 @@ constexpr const T fls_safe(const T & val) {
     }
     else {
         return fls_unsafe(val);
+    }
+}
+
+
+/*
+ * returns smallest power of 2 greater than or equal to val, or undefined if
+ * val is 0
+ */
+template<typename T>
+constexpr const T next_pow2_unsafe(const T & val) {
+    return T(1) << (fls_safe(val - 1));
+}
+
+/*
+ * returns smallest power of 2 greater than or equal to val, returning 0 if
+ * val is 0
+ */
+template<typename T>
+constexpr const T next_pow2(const T & val) {
+    if (val == 0) {
+        return 0;
+    }
+    else {
+        return next_pow2_unsafe(val);
     }
 }
 
