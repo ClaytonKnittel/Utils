@@ -47,7 +47,7 @@ void uf_destroy(union_find *uf) {
 }
 
 
-int uf_copy(union_find *dst, union_find *src) {
+int uf_copy(union_find *dst, const union_find *src) {
     dst->size = src->size;
     dst->num_sets = src->num_sets;
     dst->arr = (union_node *) malloc(dst->size * sizeof(union_node));
