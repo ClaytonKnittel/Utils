@@ -26,8 +26,8 @@ extern "C" {
  * element's sets by joining their trees
  *
  * An optimization on this is "weighting" in which we track the size of each
- * tree at the root, and always attach the shorter tree to the larger (thus at
- * most increasing the height of the tallest tree by at most 1). This prevents
+ * tree at the root, and always attach the shorter tree to the larger (thus
+ * increasing the height of the tallest tree by at most 1). This prevents
  * the trees from ever becoming too tall.
  *
  * A second optimization is to update the parent of each visited element to the

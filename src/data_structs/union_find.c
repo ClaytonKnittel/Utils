@@ -20,7 +20,7 @@ struct union_node {
 int uf_init(union_find *uf, uint64_t size) {
 
     union_node * arr = (union_node *) malloc(size * sizeof(union_node));
-    
+
     if (arr == NULL) {
         printerr(stderr, "Unable to malloc %llu bytes\n", size * sizeof(union_node));
         return -1;
