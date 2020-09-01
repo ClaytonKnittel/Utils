@@ -106,7 +106,7 @@ constexpr const T next_pow2(const T & val) {
 
 
 // log10 values for powers of 2
-static constexpr const uint8_t log10_pow2_guess[65] = {
+static const uint8_t log10_pow2_guess[65] = {
     // 1 to 512
     0,  0,  0,  0,  1,  1,  1,  2,  2,  2,
     // 1024 to 524288
@@ -122,7 +122,7 @@ static constexpr const uint8_t log10_pow2_guess[65] = {
     // 1152921504606846976 to 18446744073709551616
     18, 18, 18, 18, 19
 };
-static constexpr const uint64_t log10_ten_to[] = {
+static const uint64_t log10_ten_to[] = {
     1lu, 10lu, 100lu, 1000lu, 10000lu, 100000lu, 1000000lu,
     10000000lu, 100000000lu, 1000000000lu, 10000000000lu,
     100000000000lu, 1000000000000lu, 10000000000000lu,
