@@ -44,7 +44,7 @@ constexpr const int ffs_unsafe(const T & val) {
  * returns 1 + index of the first set bit of val, or 0 if val is 0
  */
 template<typename T>
-constexpr const int ffs_safe(const T & val) {
+constexpr const int ffs(const T & val) {
     if constexpr (sizeof(val) > sizeof(uint32_t)) {
         return __builtin_ffsl(val);
     }
@@ -71,7 +71,7 @@ constexpr const T fls_unsafe(const T & val) {
  * returns 1 + index of the last set bit of val, or 0 if val is 0
  */
 template<typename T>
-constexpr const T fls_safe(const T & val) {
+constexpr const T fls(const T & val) {
     if (val == 0) {
         return 0;
     }
@@ -87,7 +87,7 @@ constexpr const T fls_safe(const T & val) {
  */
 template<typename T>
 constexpr const T next_pow2_unsafe(const T & val) {
-    return T(1) << (fls_safe(val - 1));
+    return T(1) << (fls(val - 1));
 }
 
 /*
@@ -139,7 +139,7 @@ static constexpr const uint64_t log10_ten_to[] = {
 template<typename T>
 constexpr const T log10(const T & val) {
 
-    uint32_t guess = log10_pow2_guess[fls_safe(val)];
+    uint32_t guess = log10_pow2_guess[fls(val)];
     return guess + (val >= log10_ten_to[guess]);
 }
 
