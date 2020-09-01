@@ -2,6 +2,8 @@
 #include <util/util.h>
 #include <timing/timing.h>
 
+using namespace util;
+
 
 int main(int argc, char * argv[]) {
     struct timespec start, end;
@@ -10,6 +12,8 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 30; i++) {
         int fs = fls_safe(i);
         printf("%x -> %d (%d)\n", i, fs, next_pow2(fs));
+
+        printf("floor(log10(%d)) = %d\n", i, log10(i));
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
 
