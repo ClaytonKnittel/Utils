@@ -72,6 +72,11 @@ int uf_init(union_find *uf, uint64_t size);
 
 void uf_destroy(union_find *uf);
 
+/*
+ * deep copies src into dst
+ */
+int uf_copy(union_find *dst, union_find *src);
+
 
 // gives root of tree that node is in
 uf_node_t uf_find(union_find *uf, uf_node_t node);

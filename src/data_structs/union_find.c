@@ -47,6 +47,21 @@ void uf_destroy(union_find *uf) {
 }
 
 
+int uf_copy(union_find *dst, union_find *src) {
+    dst->size = src->size;
+    dst->num_sets = src->num_sets;
+    dst->arr = (union_node *) malloc(dst->size * sizeof(union_node));
+
+    if (dst->arr == NULL) {
+        printerr(stderr, "Unable to malloc %llu bytes\n", dst->size * sizeof(union_node));
+        return -1;
+    }
+
+    __builtin_memcpy(dst->arr, src->arr, dst->size * sizeof(union_node));
+    return 0;
+}
+
+
 static uf_node_t _uf_root(union_find *uf, uf_node_t node) {
     union_node * n = &uf->arr[node];
 
