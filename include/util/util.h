@@ -139,7 +139,8 @@ static const uint64_t log10_ten_to[] = {
 template<typename T>
 constexpr const T log10(const T & val) {
 
-    uint32_t guess = log10_pow2_guess[fls(val)];
+    uint32_t width = fls(val);
+    uint32_t guess = log10_pow2_guess[width];
     return guess + (val >= log10_ten_to[guess]);
 }
 
