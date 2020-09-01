@@ -11,13 +11,13 @@
 
 #ifdef __cplusplus
 
-template<typename T>
-constexpr const T align_up(const T & val, const T & algn) {
+template<typename T, typename U>
+constexpr const T align_up(const U & val, const T & algn) {
     return (val + algn - 1) & ~(algn - 1);
 }
 
-template<typename T>
-constexpr const T align_down(const T & val, const T & algn) {
+template<typename T, typename U>
+constexpr const T align_down(const U & val, const T & algn) {
     return val & ~(algn - 1);
 }
 
