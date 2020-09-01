@@ -42,5 +42,5 @@ $(PODIR)/%.o: %.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(ODIR)
+	rm -rf $(ODIR) $(PODIR)
 

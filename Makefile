@@ -1,7 +1,7 @@
 include common.mk
 
 SDIR=src
-ODIR=.ob
+ODIR=.obj
 PSDIR=src
 PODIR=.pobj
 
@@ -60,7 +60,7 @@ $(PODIR)/%.o: $(SDIR)/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(ODIR)
+	rm -rf $(ODIR) $(PODIR)
 	rm -rf $(LIB_DIR)
 	rm -rf $(BIN_DIR)
 	(make -C $(TEST_DIR) clean)
