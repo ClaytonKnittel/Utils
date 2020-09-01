@@ -59,10 +59,10 @@ constexpr const int ffs(const T & val) {
 template<typename T>
 constexpr const T fls_unsafe(const T & val) {
     if constexpr (sizeof(val) > sizeof(uint32_t)) {
-        return 8 * sizeof(T) - __builtin_clzl(val);
+        return 8 * sizeof(uint64_t) - __builtin_clzl(val);
     }
     else {
-        return 8 * sizeof(T) - __builtin_clz((uint32_t) val);
+        return 8 * sizeof(uint32_t) - __builtin_clz((uint32_t) val);
     }
 }
 
