@@ -41,7 +41,9 @@ int uf_init(union_find *uf, uint64_t size) {
 
 
 void uf_destroy(union_find *uf) {
-    free(uf->arr);
+    if (uf->arr != NULL) {
+        free(uf->arr);
+    }
 }
 
 
