@@ -108,3 +108,9 @@ void uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
 }
 
 
+void uf_disjoin_unsafe(union_find *uf, uf_node_t a) {
+    uf->arr[a].parent = a;
+    uf->arr[a].size = 1lu;
+}
+
+

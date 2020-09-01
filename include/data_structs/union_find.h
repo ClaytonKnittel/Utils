@@ -87,6 +87,15 @@ uf_node_t uf_find(union_find *uf, uf_node_t node);
 void uf_union(union_find *uf, uf_node_t a, uf_node_t b);
 
 
+/*
+ * remove node a from whichever set it is in and place it in its own set,
+ * labeled unsafe because this operation must be performed on every node
+ * in the set a is in before the data structure is gauranteed to be
+ * well-formed again
+ */
+void uf_disjoin_unsafe(union_find *uf, uf_node_t a);
+
+
 static uint64_t uf_num_sets(union_find *uf) {
     return uf->num_sets;
 }
