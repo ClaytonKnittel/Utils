@@ -36,7 +36,7 @@ constexpr const int ffs_unsafe(const T & val) {
         return 1 + __builtin_ctzl(val);
     }
     else {
-        return 1 + __builtin_ctz(val);
+        return 1 + __builtin_ctz((uint32_t) val);
     }
 }
 
@@ -49,7 +49,7 @@ constexpr const int ffs(const T & val) {
         return __builtin_ffsl(val);
     }
     else {
-        return __builtin_ffs(val);
+        return __builtin_ffs((int32_t) val);
     }
 }
 
@@ -62,7 +62,7 @@ constexpr const T fls_unsafe(const T & val) {
         return 8 * sizeof(T) - __builtin_clzl(val);
     }
     else {
-        return 8 * sizeof(T) - __builtin_clz(val);
+        return 8 * sizeof(T) - __builtin_clz((uint32_t) val);
     }
 }
 
