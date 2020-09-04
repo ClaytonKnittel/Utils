@@ -10,10 +10,10 @@ def divvy(n):
         return [divvy(n - (n // 2)), divvy(n // 2)]
 
 def combine_pairs(lis):
-    if isintance(lis, int):
+    if isinstance(lis, int):
         return None
-    if isintance(lis[0], int):
-        if isintance(lis[1], int):
+    if isinstance(lis[0], int):
+        if isinstance(lis[1], int):
             return lis[0] + lis[1]
         else:
             return [lis[0], combine_pairs(lis[1])]
@@ -21,7 +21,7 @@ def combine_pairs(lis):
         if isinstance(lis[1], int):
             return [combine_pairs(lis[0]), lis[1]]
         else:
-            return [combine_pairs(lis[0]), combine_pais(lis[1])]
+            return [combine_pairs(lis[0]), combine_pairs(lis[1])]
 
 def for_each(tre):
     if isinstance(tre, int):
@@ -34,22 +34,24 @@ def next_pow2(n):
     next_pow2 = 1
     while next_pow2 < n:
         next_pow2 *= 2
+    return next_pow2
 
 
 def pb(len):
     n_ops = 0
-    sizes = divvy(len)
-    while True:
-        idx = 0
+    tre = divvy(len)
+    while tre is not None:
+        print(tre)
+        glob_offset = 0
         evn = True
         for l in for_each(tre):
             p2 = next_pow2(l)
             offs = p2 // 2
             while offs > 0:
-                for iter in range(l // 2):
-                    start = idx + (iter // offs) * 2 * offs + (iter % offs)
+                for iter in range(p2 // 2):
+                    start = glob_offset + (iter // offs) * 2 * offs + (iter % offs)
                     end = start + offs
-                    if end >= :
+                    if end - glob_offset >= l:
                         continue
                     n_ops += 1
                     if evn:
@@ -57,12 +59,10 @@ def pb(len):
                     else:
                         print("swap {} and {}".format(end, start))
                 offs //= 2
-            idx += l
+            glob_offset += l
             evn = not evn
 
-        if sizes is None:
-            break
-        sizes = combine_pairs(sizes)
+        tre = combine_pairs(tre)
     return n_ops
 
 
@@ -76,7 +76,7 @@ def sort_lowb(len):
     # number of possible combinations:
     combos = factorial(len)
     # minimum size of tree
-    return ceil(log2(combos))
+    return ceil(log2(2 * combos - 1)) - 1
 
 
 if len(sys.argv) != 2:
