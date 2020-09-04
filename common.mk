@@ -11,7 +11,7 @@ IFLAGS=-I$(BASE_DIR)/include
 
 FTEST_MACROS=-D_GNU_SOURCE
 
-DEBUG=1
+DEBUG=0
 
 ifeq ($(DEBUG), 0)
 CFLAGS=-O3 -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
