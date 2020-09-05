@@ -72,7 +72,8 @@ bool check_correctness() {
 
 int main(int argc, char * argv[]) {
 
-#define NUM_ELS 4
+#define NUM_ELS 8
+    printf("Testing %d\n", NUM_ELS);
 
     /*
     int nums[NUM_ELS];
