@@ -50,7 +50,7 @@ bool check_correctness() {
             perm -= n * fact;
         }
 
-        util::bitonic_sort<int, N>(vals);
+        util::const_sort<int, N>(vals);
         for (int j = 0; j < N; j++) {
             assert(vals[j] == j + 1);
         }
@@ -62,16 +62,16 @@ bool check_correctness() {
 template <size_t N>
 struct ForEach {
 
-  template <size_t I>
-  static void item() {
+    template <size_t I>
+    static void item() {
 
-    printf("testing %zu\n", I);
-    check_correctness<I>();
+        printf("testing %zu\n", I);
+        check_correctness<I>();
 
-    // recurse upwards
-    if constexpr (I+1 < N) ForEach<N>::item<I+1>();
+        // recurse upwards
+        if constexpr (I+1 < N) ForEach<N>::item<I+1>();
 
-  }
+    }
 
 };
 

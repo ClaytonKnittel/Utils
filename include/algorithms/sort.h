@@ -12,7 +12,7 @@
 namespace util {
 
 
-static constexpr const int BITONIC_SORT_MAX = 16;
+static constexpr const int CONST_SORT_MAX = 16;
 
 
 
@@ -503,8 +503,8 @@ void __bitonic_sort16(T els[16]) {
 
 
 template<typename T, uint32_t N>
-void __attribute__((noinline)) bitonic_sort(T els[N]) {
-    static_assert(N <= BITONIC_SORT_MAX);
+void __attribute__((noinline)) const_sort(T els[N]) {
+    static_assert(N <= CONST_SORT_MAX);
     switch (N) {
         case 0:
         case 1:
