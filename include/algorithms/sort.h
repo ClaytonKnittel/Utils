@@ -12,7 +12,7 @@
 namespace util {
 
 
-static constexpr const int BITONIC_SORT_MAX = 8;
+static constexpr const int BITONIC_SORT_MAX = 16;
 
 
 
@@ -27,6 +27,11 @@ void __sort_swap(T & t1, T & t2) {
     t2 = m;
 }
 
+
+/*
+ * base-case bitonic sorts for array sizes 2 - 16, using the best known sorting
+ * networks, taken from https://pages.ripco.net/~jgamble/nw.html
+ */
 
 template<typename T>
 void __bitonic_sort2(T els[2]) {
@@ -524,6 +529,30 @@ void __attribute__((noinline)) bitonic_sort(T els[N]) {
             break;
         case 8:
             __bitonic_sort8(els);
+            break;
+        case 9:
+            __bitonic_sort9(els);
+            break;
+        case 10:
+            __bitonic_sort10(els);
+            break;
+        case 11:
+            __bitonic_sort11(els);
+            break;
+        case 12:
+            __bitonic_sort12(els);
+            break;
+        case 13:
+            __bitonic_sort13(els);
+            break;
+        case 14:
+            __bitonic_sort14(els);
+            break;
+        case 15:
+            __bitonic_sort15(els);
+            break;
+        case 16:
+            __bitonic_sort16(els);
             break;
     }
 }

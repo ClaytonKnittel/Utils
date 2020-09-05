@@ -50,16 +50,6 @@ bool check_correctness() {
             perm -= n * fact;
         }
 
-        /*
-        printf("(");
-        for (int j = 0; j < N; j++) {
-            printf("%d", vals[j]);
-            if (j != N - 1) {
-                printf(", ");
-            }
-        }
-        printf(")\n");*/
-
         util::bitonic_sort<int, N>(vals);
         for (int j = 0; j < N; j++) {
             assert(vals[j] == j + 1);
@@ -69,34 +59,27 @@ bool check_correctness() {
 }
 
 
+template <size_t N>
+struct ForEach {
+
+  template <size_t I>
+  static void item() {
+
+    printf("testing %zu\n", I);
+    check_correctness<I>();
+
+    // recurse upwards
+    if constexpr (I+1 < N) ForEach<N>::item<I+1>();
+
+  }
+
+};
+
+
 
 int main(int argc, char * argv[]) {
 
-#define NUM_ELS 8
-    printf("Testing %d\n", NUM_ELS);
-
-    /*
-    int nums[NUM_ELS];
-    
-    if (argc < NUM_ELS + 1) {
-        fprintf(stderr, "must supply %d numbers\n", NUM_ELS);
-        return -1;
-    }
-
-    for (int i = 1; i <= NUM_ELS; i++) {
-        char * end;
-        nums[i - 1] = (int) strtol(argv[i], &end, 10);
-        if (argv[i][0] == '\0' || *end != '\0') {
-            fprintf(stderr, "input \"%s\" is not a valid number\n", argv[i]);
-            return -1;
-        }
-    }
-
-    util::bitonic_sort<int, NUM_ELS>(nums);
-
-    printf("nums: %d, %d, %d, %d\n", nums[0], nums[1], nums[2], nums[3]);*/
-
-    check_correctness<NUM_ELS>();
+    ForEach<16>::item<2>();
 
     return 0;
 }
