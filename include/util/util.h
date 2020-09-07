@@ -9,6 +9,10 @@
     fprintf((f), __FILE__ ":%d " fmt, __LINE__, __VA_ARGS__)
 
 
+#define _STR(expr) #expr
+#define STR(expr) _STR(expr)
+
+
 #ifdef __cplusplus
 
 namespace util {
