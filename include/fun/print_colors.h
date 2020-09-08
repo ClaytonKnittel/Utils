@@ -23,7 +23,7 @@
 #define P_LBLUE    "\033[0;94m"
 #define P_LMAGENTA "\033[0;95m"
 #define P_LCYAN    "\033[0;96m"
-#define P_WHITE    "\033[0;97m"
+#define P_LWHITE   "\033[0;97m"
 
 #define BOLD    "\033[1m"
 #define NORMAL  "\033[21m"
