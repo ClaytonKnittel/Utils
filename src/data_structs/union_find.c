@@ -82,7 +82,7 @@ uf_node_t uf_find(union_find *uf, uf_node_t node) {
 }
 
 
-void uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
+uf_node_t uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
     union_node *an, *bn;
 
     uf_node_t ar = _uf_root(uf, a);
@@ -96,6 +96,7 @@ void uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
         if (an->size < bn->size) {
             an->parent = br;
             bn->size += an->size;
+            ar = br;
         }
         else {
             bn->parent = ar;
@@ -105,6 +106,7 @@ void uf_union(union_find *uf, uf_node_t a, uf_node_t b) {
         // two sets have joined, meaning there is 1 less set
         uf->num_sets--;
     }
+    return ar;
 }
 
 

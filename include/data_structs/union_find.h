@@ -83,8 +83,8 @@ uf_node_t uf_find(union_find *uf, uf_node_t node);
 
 
 // unions the two sets that a and b are in (noop if are already in the same
-// set)
-void uf_union(union_find *uf, uf_node_t a, uf_node_t b);
+// set), returning the new set index of the two nodes
+uf_node_t uf_union(union_find *uf, uf_node_t a, uf_node_t b);
 
 
 /*
