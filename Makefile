@@ -40,7 +40,7 @@ PDEPFILES=$(PSRC:$(PSDIR)/%.cpp=$(PODIR)/%.d)
 all: $(SLIB) tests
 
 .PHONY: tests
-tests:
+tests: $(SLIB)
 	(make -C $(TEST_DIR) BASE_DIR=$(BASE_DIR) SLIB=$(SLIB) LIBUTIL=$(SLIB))
 
 
