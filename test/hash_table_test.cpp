@@ -20,11 +20,11 @@ int main(int argc, char * argv[]) {
     table[24] = 12;
     table[25] = 13;
 
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+
     for (auto it = table.begin(); it != table.end(); it++) {
         printf("%llu -> %llu\n", it->first, it->second);
     }
-
-    clock_gettime(CLOCK_MONOTONIC, &t2);
 
     double diff = timespec_diff(&t2, &t1);
     printf("Diff: %lf\n", diff);

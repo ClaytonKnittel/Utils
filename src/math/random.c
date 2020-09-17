@@ -75,8 +75,15 @@ static uint32_t _gen_rand(struct rand_state *state) {
 /*
  * generate random number (32 bit)
  */
-uint64_t gen_rand() {
+uint32_t gen_rand() {
     return _gen_rand(&__state);
+}
+
+
+uint64_t gen_rand64() {
+    uint32_t r1 = _gen_rand(&__state);
+    uint32_t r2 = _gen_rand(&__state);
+    return (((uint64_t) r1) << 32) | ((uint64_t) r2);
 }
 
 
