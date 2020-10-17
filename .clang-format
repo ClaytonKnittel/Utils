@@ -67,6 +67,8 @@ IncludeBlocks: Regroup
 IncludeCategories: 
   - Regex:           '^<(util|data_structs|math|timing|algorithms).*\.h>'
     Priority:        3
+  - Regex:           '^<c[^/\.]*>'
+    Priority:        1
   - Regex:           '^<.*\.h>'
     Priority:        1
   - Regex:           '^<.*'
