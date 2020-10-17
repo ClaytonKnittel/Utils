@@ -57,7 +57,7 @@ typedef struct union_find {
     uint64_t num_sets;
 
     // array of elements
-    union_node *arr;
+    union_node * arr;
 } union_find;
 
 
@@ -67,24 +67,24 @@ typedef struct union_find {
  *
  * returns 0 on success and nonzero on failure
  */
-int uf_init(union_find *uf, uint64_t size);
+int uf_init(union_find * uf, uint64_t size);
 
 
-void uf_destroy(union_find *uf);
+void uf_destroy(union_find * uf);
 
 /*
  * deep copies src into dst
  */
-int uf_copy(union_find *dst, const union_find *src);
+int uf_copy(union_find * dst, const union_find * src);
 
 
 // gives root of tree that node is in
-uf_node_t uf_find(union_find *uf, uf_node_t node);
+uf_node_t uf_find(union_find * uf, uf_node_t node);
 
 
 // unions the two sets that a and b are in (noop if are already in the same
 // set), returning the new set index of the two nodes
-uf_node_t uf_union(union_find *uf, uf_node_t a, uf_node_t b);
+uf_node_t uf_union(union_find * uf, uf_node_t a, uf_node_t b);
 
 
 /*
@@ -93,10 +93,10 @@ uf_node_t uf_union(union_find *uf, uf_node_t a, uf_node_t b);
  * in the set a is in before the data structure is gauranteed to be
  * well-formed again
  */
-void uf_disjoin_unsafe(union_find *uf, uf_node_t a);
+void uf_disjoin_unsafe(union_find * uf, uf_node_t a);
 
 
-static uint64_t uf_num_sets(union_find *uf) {
+static uint64_t uf_num_sets(union_find * uf) {
     return uf->num_sets;
 }
 

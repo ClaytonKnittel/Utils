@@ -31,7 +31,7 @@ typedef int64_t heap_key_t;
 
 
 /*
- * Tree is implemented using leftmost child/right-sibling pointers only, and 
+ * Tree is implemented using leftmost child/right-sibling pointers only, and
  * to make deletion possible, right sibling is set to parent for the rightmost
  * child
  *
@@ -58,8 +58,7 @@ typedef struct heap_node {
 
 
 // initialize heap node with key value k
-#define HEAP_NODE_SET(heap_node, k) \
-    ((heap_node)->key = ((heap_key_t) k))
+#define HEAP_NODE_SET(heap_node, k) ((heap_node)->key = ((heap_key_t) k))
 
 
 typedef struct min_heap {
@@ -72,26 +71,26 @@ typedef struct min_heap {
 
 
 
-int heap_init(heap_t *h);
+int heap_init(heap_t * h);
 
-void heap_destroy(heap_t *h);
+void heap_destroy(heap_t * h);
 
 
 /*
  * returns a pointer to the heap node at the top of the heap (having minimum
  * key value of all heap nodes)
  */
-heap_node * heap_find_min(heap_t *h);
+heap_node * heap_find_min(heap_t * h);
 
 /*
  * deletes the min heap node from the heap
  */
-void heap_delete_min(heap_t *h);
+void heap_delete_min(heap_t * h);
 
 /*
  * combines the effect of find_min and delete_min, returning the deleted min
  */
-heap_node * heap_extract_min(heap_t *h);
+heap_node * heap_extract_min(heap_t * h);
 
 
 /*
@@ -100,7 +99,7 @@ heap_node * heap_extract_min(heap_t *h);
  *
  * returns 0 on success, nonzero if fails
  */
-int heap_insert(heap_t *h, heap_node * node);
+int heap_insert(heap_t * h, heap_node * node);
 
 
 /*
@@ -108,17 +107,17 @@ int heap_insert(heap_t *h, heap_node * node);
  * heaps h1 and h2 are corrupted by this operation, i.e. they would need to be
  * cloned if you wanted to access them after doing this operation
  */
-int heap_meld(heap_t *h1, heap_t *h2);
+int heap_meld(heap_t * h1, heap_t * h2);
 
 /*
  * decreases key value of node to the new key value
  */
-int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key);
+int heap_decrease_key(heap_t * h, heap_node * node, heap_key_t new_key);
 
 /*
  * increases key value of node to the new key value
  */
-int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key);
+int heap_increase_key(heap_t * h, heap_node * node, heap_key_t new_key);
 
 /*
  * deletes a node from the heap, assuming the node is actually in the heap.
@@ -126,17 +125,16 @@ int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key);
  *
  * note: undefined behavior of node is not in the heap
  */
-int heap_delete(heap_t *h, heap_node * node);
+int heap_delete(heap_t * h, heap_node * node);
 
 
 
-
-void print_heap(heap_t *h);
+void print_heap(heap_t * h);
 
 /*
  * validates the heap, aborting on failure and returning on success
  */
-void heap_validate(heap_t *h);
+void heap_validate(heap_t * h);
 
 
 #ifdef __cplusplus

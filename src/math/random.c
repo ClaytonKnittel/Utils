@@ -16,15 +16,15 @@ struct rand_state {
  * strong declaration of __seed (default to 0)
  */
 __thread struct rand_state __state = {
-    .state = 0LU,
-    .seq_num = 1LU
+    .state   = 0LU,
+    .seq_num = 1LU,
 };
 
 
 
 uint32_t __rand_hash(uint32_t seed) {
     uint64_t v = (uint64_t) seed;
-    v = (~v) + (v << 18);
+    v          = (~v) + (v << 18);
     v ^= v >> 31;
     v *= 21;
     v &= v >> 11;
@@ -34,12 +34,11 @@ uint32_t __rand_hash(uint32_t seed) {
 }
 
 
-static uint32_t _gen_rand(struct rand_state *state);
+static uint32_t _gen_rand(struct rand_state * state);
 
 
-static void _seed_rand(struct rand_state *state, uint64_t init_seed,
-        uint64_t seq_num) {
-
+static void
+_seed_rand(struct rand_state * state, uint64_t init_seed, uint64_t seq_num) {
     // hash seed 3 times for maximal randomness!
     state->state = 0LU;
     // sequence number must be odd
@@ -52,16 +51,15 @@ static void _seed_rand(struct rand_state *state, uint64_t init_seed,
 
 
 
-
 void seed_rand(uint64_t init_seed, uint64_t seq_num) {
     _seed_rand(&__state, init_seed, seq_num);
 }
 
 
 
-static uint32_t _gen_rand(struct rand_state *state) {
+static uint32_t _gen_rand(struct rand_state * state) {
     uint64_t prev = state->state;
-    state->state = prev * 6364136223846793005ULL + state->seq_num;
+    state->state  = prev * 6364136223846793005ULL + state->seq_num;
 
     // do some xor stuff
     uint32_t xor = ((prev >> 18U) ^ prev) >> 27U;
@@ -88,8 +86,7 @@ uint64_t gen_rand64() {
 
 
 
-static uint32_t _gen_rand_r(struct rand_state *state, uint32_t max) {
-    
+static uint32_t _gen_rand_r(struct rand_state * state, uint32_t max) {
     // mathematically equivalent to 0x100000000lu % max, but is done with
     // 32-bit numbers so is faster
     uint32_t thresh = -max % max;
@@ -111,4 +108,3 @@ static uint32_t _gen_rand_r(struct rand_state *state, uint32_t max) {
 uint32_t gen_rand_r(uint32_t max) {
     return _gen_rand_r(&__state, max);
 }
-

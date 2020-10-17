@@ -2,16 +2,14 @@
 #include <cstdio>
 
 #include <data_structs/flat_hash_map.h>
-
 #include <timing/timing.h>
 
 int main(int argc, char * argv[]) {
-
     struct timespec t1, t2;
 
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
-    //fht_table<uint64_t, uint64_t> table;
+    // fht_table<uint64_t, uint64_t> table;
     ska::flat_hash_map<uint64_t, uint64_t> table;
 
     table[10] = 20;
@@ -31,4 +29,3 @@ int main(int argc, char * argv[]) {
 
     return 0;
 }
-

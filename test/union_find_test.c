@@ -4,14 +4,11 @@
 #include <stdlib.h>
 
 #include <data_structs/union_find.h>
-
 #include <math/random.h>
-
 #include <timing/timing.h>
 
 
-#define TEST_ASSERT(expr) \
-    assert(expr)
+#define TEST_ASSERT(expr) assert(expr)
 
 
 
@@ -53,7 +50,7 @@ double test_alg_1(uint32_t w, uint32_t h) {
     /*
      * each tile of borad is partitioned into four segments, which may or may
      * not be connected to each other, depending on the type of tile
-     * 
+     *
      *  partition of tile:
      *   \  0  /
      *    \   /
@@ -68,8 +65,8 @@ double test_alg_1(uint32_t w, uint32_t h) {
 
     for (uint32_t y = 0; y < h; y++) {
         for (uint32_t x = 0; x < w; x++) {
-            uint32_t idx = y * w + x;
-            char tile = board[idx];
+            uint32_t idx  = y * w + x;
+            char     tile = board[idx];
             // 4 segments per tile
             idx *= 4;
 
@@ -107,7 +104,6 @@ double test_alg_1(uint32_t w, uint32_t h) {
 
 
 int main() {
-
     union_find uf;
 
     uf_init(&uf, 10);
@@ -134,12 +130,26 @@ int main() {
     uf_destroy(&uf);
 
 #define NUM_TRIALS 10
-    uint32_t widths[NUM_TRIALS] = {
-        1000, 1000, 1500, 2000, 2000, 2000, 2500, 2500, 3000, 2500
-    };
-    uint32_t heights[NUM_TRIALS] = {
-        1000, 2000, 2000, 2000, 2500, 3000, 2800, 3200, 3000, 4000
-    };
+    uint32_t widths[NUM_TRIALS]  = { 1000,
+        1000,
+        1500,
+        2000,
+        2000,
+        2000,
+        2500,
+        2500,
+        3000,
+        2500 };
+    uint32_t heights[NUM_TRIALS] = { 1000,
+        2000,
+        2000,
+        2000,
+        2500,
+        3000,
+        2800,
+        3200,
+        3000,
+        4000 };
 
     double times[NUM_TRIALS];
 
@@ -159,4 +169,3 @@ int main() {
 
     return 0;
 }
-

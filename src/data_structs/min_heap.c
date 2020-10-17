@@ -6,8 +6,7 @@
 
 
 
-#define HEAP_ASSERT(expr) \
-    assert(expr)
+#define HEAP_ASSERT(expr) assert(expr)
 
 
 #define LEFT_CHILD 0x1
@@ -17,30 +16,27 @@
 
 
 #define IS_LEFT_CHILD(heap_node) \
-    ((((uint64_t) (heap_node)->rsib) & LEFT_CHILD) != 0)
+    ((((uint64_t)(heap_node)->rsib) & LEFT_CHILD) != 0)
 
 #define IS_RIGHT_CHILD(heap_node) (!IS_LEFT_CHILD(heap_node))
 
 
 #define SET_LEFT_CHILD(node) \
-    ((node)->rsib = (heap_node *) (((uint64_t) (node)->rsib) | LEFT_CHILD))
+    ((node)->rsib = (heap_node *) (((uint64_t)(node)->rsib) | LEFT_CHILD))
 
 #define SET_RIGHT_CHILD(node) \
-    ((node)->rsib = (heap_node *) (((uint64_t) (node)->rsib) & ~LEFT_CHILD))
+    ((node)->rsib = (heap_node *) (((uint64_t)(node)->rsib) & ~LEFT_CHILD))
 
 
 // this node has a parent (i.e. is not the root) if it has a right sibling.
 // Note that the only child bits will not be set for the root, meaning rsib
 // having value (heap_node*) 0x1 or 0x2 is not possible
-#define HAS_PARENT(heap_node) \
-    (((heap_node)->rsib) != NULL)
+#define HAS_PARENT(heap_node) (((heap_node)->rsib) != NULL)
 
-#define RSIB(node) \
-    ((heap_node*) (((uint64_t) (node)->rsib) & ~LEFT_CHILD))
+#define RSIB(node) ((heap_node *) (((uint64_t)(node)->rsib) & ~LEFT_CHILD))
 
 
-#define IS_ALIGNED(ptr) \
-    ((((uint64_t) (ptr)) & 0x7) == 0)
+#define IS_ALIGNED(ptr) ((((uint64_t)(ptr)) & 0x7) == 0)
 
 
 // returns the right child of node if is has one, NULL otherwise
@@ -60,22 +56,20 @@ static heap_node * _right_child(heap_node * node) {
 
 
 static void _make_root(heap_t * h, heap_node * root) {
-    h->root = root;
+    h->root    = root;
     root->rsib = (heap_node *) (((uint64_t) h) | LEFT_CHILD);
 }
 
 
 
-int heap_init(heap_t *h) {
+int heap_init(heap_t * h) {
     // root is an alias for lchild, so when empty, we set it to itself
     h->root = (heap_node *) h;
     return 0;
 }
 
 
-void heap_destroy(heap_t *h) {
-}
-
+void heap_destroy(heap_t * h) {}
 
 
 
@@ -122,7 +116,7 @@ static void _add_child(heap_node * node, heap_node * new_child) {
         // if the node has no children, just add new_child
         node->lchild = new_child;
 
-        // new_child is 
+        // new_child is
         new_child->rsib = (heap_node *) (((uint64_t) node) | LEFT_CHILD);
     }
     else {
@@ -133,11 +127,10 @@ static void _add_child(heap_node * node, heap_node * new_child) {
         __add_right_child(new_child, lchild);
 
         // now just add new_child as a left child of node
-        node->lchild = new_child;
+        node->lchild    = new_child;
         new_child->rsib = (heap_node *) (((uint64_t) node) | LEFT_CHILD);
     }
 }
-
 
 
 
@@ -147,14 +140,13 @@ static void _add_child(heap_node * node, heap_node * new_child) {
  * root. Returns the root of the resultant tree
  */
 static heap_node * _link(heap_node * n1, heap_node * n2) {
-
     HEAP_ASSERT(n1 != NULL);
     HEAP_ASSERT(n2 != NULL);
 
     if (n2->key < n1->key) {
         heap_node * tmp = n1;
-        n1 = n2;
-        n2 = tmp;
+        n1              = n2;
+        n2              = tmp;
     }
 
     // n1 is tree with smaller root
@@ -202,8 +194,8 @@ static heap_node * __unlink_from_rchild(heap_node * node) {
         }
     }
 
-    // otherwise, this node does not have a right child and no work needs to
-    // be done
+    // otherwise, this node does not have a right child and no work needs to be
+    // done
     return NULL;
 }
 
@@ -212,15 +204,14 @@ static heap_node * __unlink_from_rchild(heap_node * node) {
  * removes node from the heap
  */
 static void _unlink(heap_node * node) {
-
     // even the root has a parent (the base of the heap)
     HEAP_ASSERT(HAS_PARENT(node));
 
     // cut the edge connecting node to its parent and link that subtree with
     // the rest of the heap
 
-    int node_is_left_child = IS_LEFT_CHILD(node);
-    heap_node * rsib = RSIB(node);
+    int         node_is_left_child = IS_LEFT_CHILD(node);
+    heap_node * rsib               = RSIB(node);
 
     // regardless of where node is in the heap, we have to unlink it from
     // its right child chain
@@ -250,7 +241,6 @@ static void _unlink(heap_node * node) {
         // right child
 
         if (node_is_left_child) {
-
             HEAP_ASSERT(IS_RIGHT_CHILD(rsib));
 
             // we know LEFT_CHILD bit of rsib is not set, so we can just
@@ -260,7 +250,7 @@ static void _unlink(heap_node * node) {
             // now replace node with rchild
             if (rchild != NULL) {
                 parent->lchild = rchild;
-                rchild->rsib = (heap_node *) (((uint64_t) rsib) | LEFT_CHILD);
+                rchild->rsib   = (heap_node *) (((uint64_t) rsib) | LEFT_CHILD);
             }
             else {
                 // if there was no replacement for node, then rsib is now
@@ -271,13 +261,13 @@ static void _unlink(heap_node * node) {
         else /* IS_RIGHT_CHILD(node) */ {
             // if node is a right child, then rsib is actually the parent
             heap_node * parent = rsib;
-            heap_node * lsib = parent->lchild;
+            heap_node * lsib   = parent->lchild;
 
             HEAP_ASSERT(IS_LEFT_CHILD(lsib));
 
             // now replace node with rchild
             if (rchild != NULL) {
-                lsib->rsib = (heap_node *) (((uint64_t) rchild) | LEFT_CHILD);
+                lsib->rsib   = (heap_node *) (((uint64_t) rchild) | LEFT_CHILD);
                 rchild->rsib = parent;
             }
             else {
@@ -295,14 +285,12 @@ static void _unlink(heap_node * node) {
  * returns a pointer to the heap node at the top of the heap (having minimum
  * key value of all heap nodes)
  */
-heap_node * heap_find_min(heap_t *h) {
+heap_node * heap_find_min(heap_t * h) {
     if (h->root == (heap_node *) h) {
         return NULL;
     }
     return h->root;
 }
-
-
 
 
 
@@ -345,7 +333,7 @@ static heap_node * _delete_root(heap_node * node) {
         }
 
         // append the combined tree to the list of combined trees
-        child->rsib = prev_subtree;
+        child->rsib  = prev_subtree;
         prev_subtree = child;
 
         child = next_subtree;
@@ -360,7 +348,7 @@ static heap_node * _delete_root(heap_node * node) {
         HEAP_ASSERT((((uint64_t) child) & 0x1) == 0);
         next_subtree = child->rsib;
         prev_subtree = _link(prev_subtree, child);
-        child = next_subtree;
+        child        = next_subtree;
     }
 
     return prev_subtree;
@@ -370,9 +358,9 @@ static heap_node * _delete_root(heap_node * node) {
 /*
  * deletes the min heap node from the heap
  */
-void heap_delete_min(heap_t *h) {
+void heap_delete_min(heap_t * h) {
     heap_node * root = h->root;
-    root = _delete_root(root);
+    root             = _delete_root(root);
 
     if (root != NULL) {
         _make_root(h, root);
@@ -385,7 +373,7 @@ void heap_delete_min(heap_t *h) {
 /*
  * combines the effect of find_min and delete_min, returning the deleted min
  */
-heap_node * heap_extract_min(heap_t *h) {
+heap_node * heap_extract_min(heap_t * h) {
     heap_node * min = heap_find_min(h);
     if (min != NULL) {
         heap_delete_min(h);
@@ -395,15 +383,13 @@ heap_node * heap_extract_min(heap_t *h) {
 
 
 
-
 /*
  * inserts a node into the tree. The node must already be initialized, i.e. its
  * key must be set
  *
  * returns 0 on success, nonzero if fails
  */
-int heap_insert(heap_t *h, heap_node * node) {
-
+int heap_insert(heap_t * h, heap_node * node) {
     HEAP_ASSERT(IS_ALIGNED(node));
     // make node a one-node tree, then link it with the current root
     node->lchild = node;
@@ -432,7 +418,7 @@ int heap_insert(heap_t *h, heap_node * node) {
  * heaps h1 and h2 are corrupted by this operation, i.e. they would need to be
  * cloned if you wanted to access them after doing this operation
  */
-int heap_meld(heap_t *h1, heap_t *h2) {
+int heap_meld(heap_t * h1, heap_t * h2) {
     heap_node * r1 = heap_find_min(h1);
     heap_node * r2 = heap_find_min(h2);
 
@@ -455,8 +441,7 @@ int heap_meld(heap_t *h1, heap_t *h2) {
 /*
  * decreases key value of node to the new key value
  */
-int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key) {
-
+int heap_decrease_key(heap_t * h, heap_node * node, heap_key_t new_key) {
     heap_key_t old_key = node->key;
 
     // this must strictly decrease the key
@@ -487,8 +472,7 @@ int heap_decrease_key(heap_t *h, heap_node * node, heap_key_t new_key) {
 /*
  * increases key value of node to the new key value
  */
-int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key) {
-
+int heap_increase_key(heap_t * h, heap_node * node, heap_key_t new_key) {
     heap_key_t old_key = node->key;
 
     // this muse strictly increase the key
@@ -511,7 +495,7 @@ int heap_increase_key(heap_t *h, heap_node * node, heap_key_t new_key) {
  *
  * note: undefined behavior of node is not in the heap
  */
-int heap_delete(heap_t *h, heap_node * node) {
+int heap_delete(heap_t * h, heap_node * node) {
     heap_node * root = h->root;
 
     if (root == node) {
@@ -564,7 +548,7 @@ static void _validate_ptrs(heap_node * node) {
  */
 static void _validate_half_bst(heap_node * node, heap_key_t min) {
     HEAP_ASSERT(node->key >= min);
-    
+
     heap_node * child = node->lchild;
 
     if (child != node) {
@@ -587,7 +571,6 @@ static void _validate_half_bst(heap_node * node, heap_key_t min) {
 
 
 static void __print_nodes(heap_node * node, int is_left, int depth) {
-    
     if (is_left == 2) {
         printf("%*.sRoot (%p)\n", depth, "", node);
     }
@@ -609,7 +592,7 @@ static void __print_nodes(heap_node * node, int is_left, int depth) {
 }
 
 
-void print_heap(heap_t *h) {
+void print_heap(heap_t * h) {
     __print_nodes((heap_node *) h, 2, 0);
 }
 
@@ -617,15 +600,13 @@ void print_heap(heap_t *h) {
 /*
  * validates the heap, aborting on failure and returning on success
  */
-void heap_validate(heap_t *h) {
-
-
+void heap_validate(heap_t * h) {
     if (h->root != (heap_node *) h) {
         heap_node * root = h->root;
         // root cannot have a right sibling
         HEAP_ASSERT(root->rsib == (heap_node *) (((uint64_t) h) | LEFT_CHILD));
 
-        heap_node *root_child = root->lchild;
+        heap_node * root_child = root->lchild;
         if (root_child != root) {
             HEAP_ASSERT(IS_LEFT_CHILD(root_child));
             HEAP_ASSERT(RSIB(root_child) == root);
@@ -635,5 +616,3 @@ void heap_validate(heap_t *h) {
         _validate_half_bst(h->root, 0x8000000000000000L);
     }
 }
-
-

@@ -3,7 +3,6 @@
 
 
 
-
 #ifdef __LP64__
 #ifdef __cplusplus
 
@@ -19,7 +18,6 @@
 
 
 #endif /* __LP64__ */
-
 
 
 

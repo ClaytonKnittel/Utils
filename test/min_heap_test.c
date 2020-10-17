@@ -5,18 +5,16 @@
 #include <data_structs/min_heap.h>
 
 
-#define TEST_ASSERT(expr) \
-    assert(expr)
+#define TEST_ASSERT(expr) assert(expr)
 
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char * argv[]) {
     heap_t h;
 
     heap_node nodes[3] = {
         { .key = 5 },
         { .key = 3 },
-        { .key = 7 }
+        { .key = 7 },
     };
 
     heap_init(&h);
@@ -195,7 +193,7 @@ int main(int argc, char *argv[]) {
         heap_validate(&h);
     }
 
-    // decrease every other node 
+    // decrease every other node
     for (int i = 1; i < N_TESTS; i += 2) {
         heap_decrease_key(&h, &nodes4[i], i / 2);
         heap_validate(&h);
@@ -239,7 +237,7 @@ int main(int argc, char *argv[]) {
         heap_validate(&h);
     }
 
-    // increase every other node 
+    // increase every other node
     for (int i = 1; i < N_TESTS; i += 2) {
         heap_increase_key(&h, &nodes4[i], i * 2);
         heap_validate(&h);
@@ -276,4 +274,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

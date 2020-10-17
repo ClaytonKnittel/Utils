@@ -3,11 +3,11 @@
 #include <utility>
 
 
-template<typename...Ts>
-void ignore_returnvalues(Ts&...) {}
+template<typename... Ts>
+void ignore_returnvalues(Ts &...) {}
 
-template<typename ...T>
-void go(T &...ts) {
+template<typename... T>
+void go(T &... ts) {
     ignore_returnvalues(++ts...);
 }
 
@@ -22,5 +22,3 @@ int main() {
 
     return 0;
 }
-
-
