@@ -400,12 +400,21 @@ static rb_node* rb_find_leftmost_child(rb_node *node) {
     return node;
 }
 
+static rb_node* rb_find_rightmost_child(rb_node *node) {
+    if (node != LEAF) {
+        while (get_right(node) != LEAF) {
+            node = get_right(node);
+        }
+    }
+    return node;
+}
+
 rb_node* rb_find_leftmost(struct __int_rb_tree *tree) {
     rb_node* l = rb_get_root(tree);
     return rb_find_leftmost_child(l);
 }
 
-rb_node* rb_find_successor(rb_node *node) {
+rb_node* rb_find_succ(rb_node *node) {
     rb_node *p;
 
     if (get_right(node) != LEAF) {
@@ -413,6 +422,25 @@ rb_node* rb_find_successor(rb_node *node) {
     }
     else {
         while (!is_root(node) && get_right((p = get_parent(node))) == node) {
+            node = p;
+        }
+        if (is_root(node)) {
+            return LEAF;
+        }
+        else {
+            return p;
+        }
+    }
+}
+
+rb_node* rb_find_pred(rb_node *node) {
+    rb_node *p;
+
+    if (get_left(node) != LEAF) {
+        return rb_find_rightmost_child(get_left(node));
+    }
+    else {
+        while (!is_root(node) && get_left((p = get_parent(node))) == node) {
             node = p;
         }
         if (is_root(node)) {

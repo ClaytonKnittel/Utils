@@ -143,6 +143,45 @@ static rb_node* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node *no
 }
 
 
+/*
+ * returns the largest node which is less than the supplied node
+ */
+#define RB_DEFINE_UPPER_BOUND(name, less_fn) \
+static rb_node* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
+    rb_node * prev_less_node = LEAF;                            \
+    rb_node * root = rb_get_root(tree);                         \
+    while (root != LEAF) {                                      \
+        if (less_fn(root, node)) {                              \
+            prev_less_node = root;                              \
+            root = rb_get_right(root);                          \
+        }                                                       \
+        else {                                                  \
+            root = rb_get_left(root);                           \
+        }                                                       \
+    }                                                           \
+    return prev_less_node;                                      \
+}
+
+/*
+ * returns the smallest node which is greater than or equal to the supplied node
+ */
+#define RB_DEFINE_LOWER_BOUND(name, less_fn) \
+static rb_node* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
+    rb_node * prev_ge_node = LEAF;                              \
+    rb_node * root = rb_get_root(tree);                         \
+    while (root != LEAF) {                                      \
+        if (less_fn(root, node)) {                              \
+            root = rb_get_right(root);                          \
+        }                                                       \
+        else {                                                  \
+            prev_ge_node = root;                               \
+            root = rb_get_left(root);                           \
+        }                                                       \
+    }                                                           \
+    return prev_ge_node;                                        \
+}
+
+
 
 #define RB_DEFINE_CONTAINS_HELPER(name, less_fn) \
 static int _rb_contains_ ## name ## _helper(rb_node *root, rb_node *node) {     \
@@ -227,6 +266,8 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) {   \
 
 #define RB_DEFINE_TYPE(name, less_fn) \
     RB_DEFINE_FIND_LOC(name, less_fn) \
+    RB_DEFINE_UPPER_BOUND(name, less_fn) \
+    RB_DEFINE_LOWER_BOUND(name, less_fn) \
     RB_DEFINE_CONTAINS_HELPER(name, less_fn) \
     RB_DEFINE_CONTAINS(name, less_fn) \
     RB_DEFINE_INSERT(name, less_fn) \
@@ -242,12 +283,13 @@ static int rb_is_empty(struct __int_rb_tree *tree) {
 
 rb_node* rb_find_leftmost(struct __int_rb_tree *tree);
 
-rb_node* rb_find_successor(rb_node *node);
+rb_node* rb_find_succ(rb_node *node);
+rb_node* rb_find_pred(rb_node *node);
 
 
 #define rb_for_each(tree, node) \
     for ((node) = rb_find_leftmost((tree)); (node) != LEAF; \
-            (node) = rb_find_successor(node))
+            (node) = rb_find_succ(node))
 
 
 
