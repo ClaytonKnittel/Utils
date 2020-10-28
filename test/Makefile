@@ -7,15 +7,15 @@ SRC=$(shell find . -type f -name '*.c')
 OBJ=$(patsubst %.c,$(ODIR)/%.o,$(SRC))
 EXE=$(patsubst %.c,$(BIN_DIR)/%,$(SRC))
 
-PSRC=$(shell find . -type f -name '*.cpp')
-POBJ=$(patsubst %.cpp,$(PODIR)/%.o,$(PSRC))
-PEXE=$(patsubst %.cpp,$(BIN_DIR)/%,$(PSRC))
+PSRC=$(shell find . -type f -name '*.cc')
+POBJ=$(patsubst %.cc,$(PODIR)/%.o,$(PSRC))
+PEXE=$(patsubst %.cc,$(BIN_DIR)/%,$(PSRC))
 
 $(shell mkdir -p $(ODIR))
 $(shell mkdir -p $(PODIR))
 
 DEPFILES=$(SRC:%.c=$(ODIR)/%.d)
-PDEPFILES=$(PSRC:%.cpp=$(PODIR)/%.d)
+PDEPFILES=$(PSRC:%.cc=$(PODIR)/%.d)
 
 
 # to prevent files from being auto-deleted by make after build completes
@@ -33,7 +33,7 @@ $(BIN_DIR)/%: $(PODIR)/%.o $(LIBUTIL)
 $(ODIR)/%.o: %.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
 
-$(PODIR)/%.o: %.cpp
+$(PODIR)/%.o: %.cc
 	$(PCC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
 
 
