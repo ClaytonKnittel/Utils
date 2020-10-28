@@ -263,7 +263,7 @@ RB_DEFINE_TYPE(ptr, ptr_less)
 
 
 
-#ifdef __cplusplus
+/*#ifdef __cplusplus
 
 
 template<typename T>
@@ -282,11 +282,11 @@ public:
 };
 
 
-#else
+#else*/
 
 typedef struct __int_rb_tree rb_tree;
 
-#endif /* __cplusplus */
+//#endif /* __cplusplus */
 
 
 
