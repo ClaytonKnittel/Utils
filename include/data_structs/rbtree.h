@@ -144,14 +144,14 @@ static rb_node* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node *no
 
 
 /*
- * returns the largest node which is less than the supplied node
+ * returns the largest node which is less than or equal to the supplied node
  */
 #define RB_DEFINE_UPPER_BOUND(name, less_fn) \
 static rb_node* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
     rb_node * prev_less_node = LEAF;                            \
     rb_node * root = rb_get_root(tree);                         \
     while (root != LEAF) {                                      \
-        if (less_fn(root, node)) {                              \
+        if (!less_fn(node, root)) {                             \
             prev_less_node = root;                              \
             root = rb_get_right(root);                          \
         }                                                       \

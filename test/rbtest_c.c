@@ -32,10 +32,8 @@ int main(int argc, char * argv[]) {
     for (uint64_t addr = (uint64_t) &nodes[0];
          addr < (uint64_t) &nodes[N_NODES];
          addr += 8) {
-        uint64_t upper_bound = addr == ((uint64_t) &nodes[0])
-            ? 0
-            : ((uint64_t) &nodes[0])
-                + ((addr - ((uint64_t) &nodes[0]) - 1) / sizeof(rb_node))
+        uint64_t upper_bound = ((uint64_t) &nodes[0])
+                + ((addr - ((uint64_t) &nodes[0])) / sizeof(rb_node))
                     * sizeof(rb_node);
         uint64_t lower_bound = addr > ((uint64_t) &nodes[N_NODES - 1])
             ? 0
