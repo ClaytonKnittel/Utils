@@ -13,6 +13,13 @@
 #define STR(expr) _STR(expr)
 
 
+#ifdef __LP64__
+typedef uint64_t ptr_int_t;
+#else
+typedef uint32_t ptr_int_t;
+#endif
+
+
 #ifdef __cplusplus
 
 namespace util {
