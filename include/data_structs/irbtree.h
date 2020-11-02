@@ -295,6 +295,27 @@ static irb_idx_t irb_get_idx_ ## name(struct __int_irb_tree *tree, irb_node * n)
     return idx;                                             \
 }
 
+/*
+ * returns the index that node would have were it inserted in the tree,
+ * assuming it will be placed after all copies of it which are already in the
+ * tree
+ */
+#define IRB_DEFINE_GET_INS_IDX(name, less_fn) \
+static irb_idx_t irb_get_ins_idx_ ## name(struct __int_irb_tree *tree, irb_node * n) { \
+    irb_node *root = irb_get_root(tree);                    \
+    irb_idx_t idx = 0;                                      \
+    while (root != ILEAF) {                                 \
+        if (less_fn(n, root)) {                             \
+            root = irb_get_left(root);                      \
+        }                                                   \
+        else {                                              \
+            idx += root->r_off;                             \
+            root = irb_get_right(root);                     \
+        }                                                   \
+    }                                                       \
+    return idx;                                             \
+}
+
 
 
 /*
@@ -339,6 +360,7 @@ static void irb_validate_ ## name(struct __int_irb_tree *tree) {   \
     IRB_DEFINE_REMOVE(name)  \
     IRB_DEFINE_BST_CHECK(name, less_fn) \
     IRB_DEFINE_GET_IDX(name, less_fn) \
+    IRB_DEFINE_GET_INS_IDX(name, less_fn) \
     IRB_DEFINE_VALIDATE(name)
 
 
