@@ -24,8 +24,11 @@ int main(int argc, char * argv[]) {
         irb_validate_ptr(&tree);
     }
 
+    assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[0]) - 1)) == 0);
     for (int i = 0; i < N_NODES; i++) {
-        assert(irb_get_idx(&nodes[i]) == i);
+        assert(irb_get_idx_unsafe(&nodes[i]) == i);
+        assert(irb_get_idx_ptr(&tree, &nodes[i]) == i);
+        assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[i]) + 1)) == i + 1);
     }
 
     for (int i = 0; i < N_NODES - 1; i++) {

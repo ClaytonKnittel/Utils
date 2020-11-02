@@ -479,7 +479,7 @@ void _irb_remove_helper(struct __int_irb_tree *tree, irb_node *node) {
 
 
 
-irb_idx_t irb_get_idx(struct irb_node *node) {
+irb_idx_t irb_get_idx_unsafe(struct irb_node *node) {
     irb_idx_t idx = node->r_off - 1;
     irb_node * prev;
     goto cond;

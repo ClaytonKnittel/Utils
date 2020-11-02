@@ -271,6 +271,33 @@ static void irb_remove_ ## name(struct __int_irb_tree *tree, irb_node *node) {  
 
 
 /*
+ * returns the index of node, which must be in a valid rb tree
+ */
+irb_idx_t irb_get_idx_unsafe(struct irb_node *node);
+
+/*
+ * returns the index of node, if in the tree, otherwise the index node would
+ * have were it inserted in the tree
+ */
+#define IRB_DEFINE_GET_IDX(name, less_fn) \
+static irb_idx_t irb_get_idx_ ## name(struct __int_irb_tree *tree, irb_node * n) { \
+    irb_node *root = irb_get_root(tree);                    \
+    irb_idx_t idx = 0;                                      \
+    while (root != ILEAF) {                                 \
+        if (less_fn(root, n)) {                             \
+            idx += root->r_off;                             \
+            root = irb_get_right(root);                     \
+        }                                                   \
+        else {                                              \
+            root = irb_get_left(root);                      \
+        }                                                   \
+    }                                                       \
+    return idx;                                             \
+}
+
+
+
+/*
  * does generic consistency checks (all besides BST property, which must
  * be generated with macros)
  */
@@ -311,6 +338,7 @@ static void irb_validate_ ## name(struct __int_irb_tree *tree) {   \
     IRB_DEFINE_INSERT(name, less_fn) \
     IRB_DEFINE_REMOVE(name)  \
     IRB_DEFINE_BST_CHECK(name, less_fn) \
+    IRB_DEFINE_GET_IDX(name, less_fn) \
     IRB_DEFINE_VALIDATE(name)
 
 
@@ -318,9 +346,6 @@ static void irb_validate_ ## name(struct __int_irb_tree *tree) {   \
 static int irb_is_empty(struct __int_irb_tree *tree) {
     return irb_get_root(tree) == ILEAF;
 }
-
-
-irb_idx_t irb_get_idx(struct irb_node *node);
 
 
 

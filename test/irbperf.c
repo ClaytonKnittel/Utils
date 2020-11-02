@@ -45,10 +45,10 @@ int main(int argc, char * argv[]) {
     clock_gettime(CLOCK_MONOTONIC, &end);
     fprintf(stderr, "%lf s\n", timespec_diff(&end, &start));
 
-    fprintf(stderr, "finding idxs: ");
+    fprintf(stderr, "finding idxs unsafe: ");
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < N_NODES; i++) {
-        irb_idx_t idx = irb_get_idx(&nodes[i].base);
+        irb_idx_t idx = irb_get_idx_unsafe(&nodes[i].base);
         (void) idx;
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
