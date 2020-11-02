@@ -372,6 +372,7 @@ static int irb_is_empty(struct __int_irb_tree *tree) {
 
 
 irb_node* irb_find_leftmost(struct __int_irb_tree *tree);
+irb_node* irb_find_rightmost(struct __int_irb_tree *tree);
 
 irb_node* irb_find_succ(irb_node *node);
 irb_node* irb_find_pred(irb_node *node);

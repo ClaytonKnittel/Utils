@@ -521,6 +521,11 @@ irb_node* irb_find_leftmost(struct __int_irb_tree *tree) {
     return irb_find_leftmost_child(l);
 }
 
+irb_node* irb_find_rightmost(struct __int_irb_tree *tree) {
+    irb_node* l = irb_get_root(tree);
+    return irb_find_rightmost_child(l);
+}
+
 irb_node* irb_find_succ(irb_node *node) {
     irb_node *p;
 
