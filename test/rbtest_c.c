@@ -47,5 +47,11 @@ int main(int argc, char * argv[]) {
             == (rb_node *) lower_bound);
     }
 
+    // delete some nodes
+    for (int i = 1; i < N_NODES; i += 3) {
+        rb_remove_ptr(&tree, &nodes[i]);
+        rb_validate_ptr(&tree);
+    }
+
     return 0;
 }

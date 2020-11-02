@@ -129,7 +129,6 @@ static void rb_init(struct __int_rb_tree* tree) {
  * Find will return the leftmost node of tree which could be a parent of node
  * without violating the BST property of the tree
  */
-
 #define RB_DEFINE_FIND_LOC(name, less_fn) \
 static rb_node* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node *node) { \
     rb_node *prev_node = LEAF;                                  \
@@ -329,7 +328,6 @@ public:
 typedef struct __int_rb_tree rb_tree;
 
 //#endif /* __cplusplus */
-
 
 
 
