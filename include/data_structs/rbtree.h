@@ -281,6 +281,7 @@ static int rb_is_empty(struct __int_rb_tree *tree) {
 
 
 rb_node* rb_find_leftmost(struct __int_rb_tree *tree);
+rb_node* rb_find_rightmost(struct __int_rb_tree *tree);
 
 rb_node* rb_find_succ(rb_node *node);
 rb_node* rb_find_pred(rb_node *node);

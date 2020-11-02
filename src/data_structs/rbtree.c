@@ -485,6 +485,11 @@ rb_node* rb_find_leftmost(struct __int_rb_tree *tree) {
     return rb_find_leftmost_child(l);
 }
 
+rb_node* rb_find_rightmost(struct __int_rb_tree *tree) {
+    rb_node* l = rb_get_root(tree);
+    return rb_find_rightmost_child(l);
+}
+
 rb_node* rb_find_succ(rb_node *node) {
     rb_node *p;
 
