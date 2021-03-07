@@ -1,21 +1,19 @@
 include ../common.mk
 
 ODIR=.obj
-PODIR=.pobj
 
 SRC=$(shell find . -type f -name '*.c')
-OBJ=$(patsubst %.c,$(ODIR)/%.o,$(SRC))
+OBJ=$(patsubst %.c,$(ODIR)/%_c.o,$(SRC))
 EXE=$(patsubst %.c,$(BIN_DIR)/%,$(SRC))
 
 PSRC=$(shell find . -type f -name '*.cc')
-POBJ=$(patsubst %.cc,$(PODIR)/%.o,$(PSRC))
+POBJ=$(patsubst %.cc,$(ODIR)/%_cc.o,$(PSRC))
 PEXE=$(patsubst %.cc,$(BIN_DIR)/%,$(PSRC))
 
 $(shell mkdir -p $(ODIR))
-$(shell mkdir -p $(PODIR))
 
 DEPFILES=$(SRC:%.c=$(ODIR)/%.d)
-PDEPFILES=$(PSRC:%.cc=$(PODIR)/%.d)
+PDEPFILES=$(PSRC:%.cc=$(ODIR)/%.d)
 
 
 # to prevent files from being auto-deleted by make after build completes
@@ -24,16 +22,19 @@ PDEPFILES=$(PSRC:%.cc=$(PODIR)/%.d)
 .PHONY: all
 all: $(EXE) $(PEXE)
 
-$(BIN_DIR)/%: $(ODIR)/%.o $(LIBUTIL)
+run_all:
+	for exe in $(EXE) $(PEXE); do $$exe; done
+
+$(BIN_DIR)/%: $(ODIR)/%_c.o $(LIBUTIL)
 	$(CC) $(CFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
-$(BIN_DIR)/%: $(PODIR)/%.o $(LIBUTIL)
+$(BIN_DIR)/%: $(ODIR)/%_cc.o $(LIBUTIL)
 	$(PCC) $(CPPFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
-$(ODIR)/%.o: %.c
+$(ODIR)/%_c.o: %.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
 
-$(PODIR)/%.o: %.cc
+$(ODIR)/%_cc.o: %.cc
 	$(PCC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
 
 
@@ -42,5 +43,5 @@ $(PODIR)/%.o: %.cc
 
 .PHONY: clean
 clean:
-	rm -rf $(ODIR) $(PODIR)
+	rm -rf $(ODIR)
 

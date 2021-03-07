@@ -3,13 +3,12 @@ include common.mk
 SDIR=src
 ODIR=.obj
 PSDIR=src
-PODIR=.pobj
 
 SLIB=$(LIB_DIR)/libutil.a
 
 
 SRC=$(shell find $(SDIR) -type f -name '*.c')
-OBJ=$(patsubst $(SDIR)/%.c,$(ODIR)/%.o,$(SRC))
+OBJ=$(patsubst $(SDIR)/%.c,$(ODIR)/%_c.o,$(SRC))
 DEP=$(wildcard $(SDIR)/*.h)
 
 DIRS=$(shell find $(SDIR) -type d)
@@ -20,39 +19,48 @@ $(shell mkdir -p $(ODIR))
 $(shell mkdir -p $(OBJDIRS))
 $(shell mkdir -p $(BIN_DIR))
 
-DEPFILES=$(SRC:$(SDIR)/%.c=$(ODIR)/%.d)
+DEPFILES=$(SRC:$(SDIR)/%.c=$(ODIR)/%_c.d)
 
 
 PSRC=$(shell find $(PSDIR) -type f -name '*.cpp')
-POBJ=$(patsubst $(PSDIR)/%.cpp,$(PODIR)/%.o,$(PSRC))
+POBJ=$(patsubst $(PSDIR)/%.cpp,$(ODIR)/%_cc.o,$(PSRC))
 PDEP=$(wildcard $(PSDIR)/*.h)
 
 PDIRS=$(shell find $(PSDIR) -type d)
-POBJDIRS=$(patsubst $(PSDIR)/%,$(PODIR)/%,$(PDIRS))
+POBJDIRS=$(patsubst $(PSDIR)/%,$(ODIR)/%,$(PDIRS))
 
-$(shell mkdir -p $(PODIR))
 $(shell mkdir -p $(POBJDIRS))
 
-PDEPFILES=$(PSRC:$(PSDIR)/%.cpp=$(PODIR)/%.d)
+PDEPFILES=$(PSRC:$(PSDIR)/%.cpp=$(PODIR)/%_cc.d)
+
+ASM=$(shell find $(SDIR) -type f -name '*.s')
+ASM_OBJ=$(patsubst $(SDIR)/%.s,$(ODIR)/%_s.o,$(ASM))
 
 
 .PHONY: all
-all: $(SLIB) tests
+all: $(SLIB)
 
-.PHONY: tests
-tests: $(SLIB)
+.PHONY: test
+test: $(SLIB)
 	(make -C $(TEST_DIR) BASE_DIR=$(BASE_DIR) SLIB=$(SLIB) LIBUTIL=$(SLIB))
 
+.PHONY: run_tests
+run_tests:
+	(make run_all -C $(TEST_DIR) BASE_DIR=$(BASE_DIR))
 
-$(SLIB): $(OBJ) $(POBJ)
+
+$(SLIB): $(OBJ) $(POBJ) $(ASM_OBJ)
 	$(AR) -rcs $@ $^
 
 
-$(ODIR)/%.o: $(SDIR)/%.c
+$(ODIR)/%_c.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
 
-$(PODIR)/%.o: $(SDIR)/%.cpp
+$(PODIR)/%_cc.o: $(SDIR)/%.cpp
 	$(PCC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
+
+$(ODIR)/%_s.o: $(SDIR)/%.s
+	$(CC) $(CFLAGS) $< -c -o $@
 
 
 -include $(wildcard $(DEPFILES))
@@ -60,7 +68,7 @@ $(PODIR)/%.o: $(SDIR)/%.cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(ODIR) $(PODIR)
+	rm -rf $(ODIR)
 	rm -rf $(LIB_DIR)
 	rm -rf $(BIN_DIR)
 	(make -C $(TEST_DIR) clean)
