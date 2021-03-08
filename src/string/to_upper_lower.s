@@ -13,10 +13,10 @@ upper_offset_array:
 	.quad 0x0505050505050505
 # to shift all uppercase letters to the highest signed-byte range
 lower_offset_array:
-	.quad 0x0505050505050505
-	.quad 0x0505050505050505
-	.quad 0x0505050505050505
-	.quad 0x0505050505050505
+	.quad 0x2525252525252525
+	.quad 0x2525252525252525
+	.quad 0x2525252525252525
+	.quad 0x2525252525252525
 # 1 - the value of a after being shifted by offset_array
 range_min:
 	.quad 0x6565656565656565
@@ -58,11 +58,11 @@ _up_loop_init:
 	jmp _up_beg_loop_cond
 
 _up_beg_loop:
-	movzx rax, byte ptr [rdi]
-	lea rbx, [rax - 0x61]
-	lea rdx, [rax - 0x20]
-	cmp rbx, 26
-	cmovb rax, rdx
+	movzx eax, byte ptr [rdi]
+	lea ebx, [rax - 0x61]
+	lea edx, [rax - 0x20]
+	cmp ebx, 26
+	cmovb eax, edx
 	mov byte ptr [rdi], al
 
 	inc rdi
@@ -97,11 +97,11 @@ _up_remainder_loop_cond_1:
 	je _up_finished
 
 _up_remainder_loop:
-	movzx rax, byte ptr [rdi]
-	lea rbx, [rax - 0x61]
-	lea rdx, [rax - 0x20]
-	cmp rbx, 26
-	cmovb rax, rdx
+	movzx eax, byte ptr [rdi]
+	lea ebx, [rax - 0x61]
+	lea edx, [rax - 0x20]
+	cmp ebx, 26
+	cmovb eax, edx
 	mov byte ptr [rdi], al
 
 	inc rdi
@@ -136,11 +136,11 @@ _lo_loop_init:
 	jmp _lo_beg_loop_cond
 
 _lo_beg_loop:
-	movzx rax, byte ptr [rdi]
-	lea rbx, [rax - 0x61]
-	lea rdx, [rax - 0x20]
-	cmp rbx, 26
-	cmovb rax, rdx
+	movzx eax, byte ptr [rdi]
+	lea ebx, [rax - 0x41]
+	lea edx, [rax + 0x20]
+	cmp ebx, 26
+	cmovb eax, edx
 	mov byte ptr [rdi], al
 
 	inc rdi
@@ -175,11 +175,11 @@ _lo_remainder_loop_cond_1:
 	je _lo_finished
 
 _lo_remainder_loop:
-	movzx rax, byte ptr [rdi]
-	lea rbx, [rax - 0x61]
-	lea rdx, [rax - 0x20]
-	cmp rbx, 26
-	cmovb rax, rdx
+	movzx eax, byte ptr [rdi]
+	lea ebx, [rax - 0x41]
+	lea edx, [rax + 0x20]
+	cmp ebx, 26
+	cmovb eax, edx
 	mov byte ptr [rdi], al
 
 	inc rdi

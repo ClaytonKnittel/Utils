@@ -20,17 +20,33 @@ void gen_rand_str(char* rand_str, uint64_t len) {
 
 void __attribute__((noinline)) naive_to_upper(char* s, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		if (s[i] >= 'a' && s[i] <= 'z') {
+		/*if (s[i] >= 'a' && s[i] <= 'z') {
 			s[i] += 'A' - 'a';
-		}
+		}*/
+		int8_t rotated = s[i];
+		rotated += 0x05;
+		rotated &= 0x7f;
+		rotated += 0x1a;
+		rotated &= ~s[i];
+		rotated >>= 2;
+		rotated &= 0xe0;
+		s[i] += rotated;
 	}
 }
 
 void __attribute__((noinline)) naive_to_lower(char* s, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		if (s[i] >= 'A' && s[i] <= 'Z') {
+		/*if (s[i] >= 'A' && s[i] <= 'Z') {
 			s[i] += 'a' - 'A';
-		}
+		}*/
+		uint8_t rotated = s[i];
+		rotated += 0x25;
+		rotated &= 0x7f;
+		rotated += 0x1a;
+		rotated &= ~s[i];
+		rotated >>= 2;
+		rotated &= 0x20;
+		s[i] += rotated;
 	}
 }
 
@@ -209,19 +225,34 @@ void calc_avg_times_lower(uint64_t len, uint32_t n_trials, float* naive_s,
 int main() {
 	srand(time(NULL));
 	float naive_s, my_s;
-	calc_avg_times_upper(100000, 200, &naive_s, &my_s, true, 31);
 
-	printf("upper:\n");
-	printf("average naive: %f\n", naive_s);
-	printf("average mine:  %f\n", my_s);
-	printf("speedup:       %f\n", naive_s / my_s);
+	uint64_t max = 20;
+	printf("{");
 
-	calc_avg_times_upper(100000, 200, &naive_s, &my_s, true, 31);
+	int sz = max;
+	//for (int sz = 1; sz < max; sz++) {
+		calc_avg_times_upper(sz, 2000000, &naive_s, &my_s, true, 0);
 
-	printf("lower:\n");
-	printf("average naive: %f\n", naive_s);
-	printf("average mine:  %f\n", my_s);
-	printf("speedup:       %f\n", naive_s / my_s);
+		printf("upper:\n");
+		printf("average naive: %f\n", naive_s);
+		printf("average mine:  %f\n", my_s);
+		printf("speedup:       %f\n", naive_s / my_s);
+
+		/*printf("{%d, %f}", sz, (naive_s / my_s));
+		if (sz < max - 1) {
+			printf(",");
+		}
+		fflush(stdout);*/
+
+		calc_avg_times_lower(sz, 2000000, &naive_s, &my_s, true, 0);
+
+		printf("lower:\n");
+		printf("average naive: %f\n", naive_s);
+		printf("average mine:  %f\n", my_s);
+		printf("speedup:       %f\n", naive_s / my_s);
+
+	//}
+	printf("}\n");
 	return 0;
 }
 
