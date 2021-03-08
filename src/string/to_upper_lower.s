@@ -44,7 +44,7 @@ _to_upper:
 	push rbx
 
 	lea rbx, [rdi + rsi]
-	cmp rsi, 32
+	cmp rsi, 16
 	jb _up_remainder_loop
 
 	vmovdqa  ymm0, ymmword ptr upper_offset_array[rip]
@@ -52,7 +52,7 @@ _to_upper:
 	vmovdqa  ymm2, ymmword ptr lower_to_upper[rip]
 
 	mov rcx, rsi
-	and rcx, 0xffffffffffffffe0
+	and rcx, 0xfffffffffffffff0
 	add rcx, rdi
 
 	cmp rsi, 128
@@ -99,14 +99,14 @@ _up_vector_loop_cond_1:
 	je _up_remainder_loop_cond_2
 
 _up_vector_loop:
-	vmovdqu  ymm3, ymmword ptr [rdi]
-	vpaddb   ymm4, ymm3, ymm0
-	vpcmpgtb ymm4, ymm4, ymm1
-	vpand    ymm4, ymm4, ymm2
-	vpaddb   ymm3, ymm4, ymm3
-	vmovdqu  ymmword ptr [rdi], ymm3
+	vmovdqu  xmm3, xmmword ptr [rdi]
+	vpaddb   xmm4, xmm3, xmm0
+	vpcmpgtb xmm4, xmm4, xmm1
+	vpand    xmm4, xmm4, xmm2
+	vpaddb   xmm3, xmm4, xmm3
+	vmovdqu  xmmword ptr [rdi], xmm3
 
-	add rdi, 32
+	add rdi, 16
 
 _up_vector_loop_cond_2:
 	cmp rdi, rcx
@@ -122,6 +122,13 @@ _up_remainder_loop:
 	lea edx, [rax - 0x20]
 	cmp ecx, 26
 	cmovb eax, edx
+	#lea ecx, [eax + 0x05]
+	#and cl, 0x7f
+	#add cl, 0x1a
+	#andn ecx, eax, ecx
+	#sar cl, 2
+	#and cl, 0xe0
+	#add al, cl
 	mov byte ptr [rdi], al
 
 	inc rdi
@@ -143,7 +150,7 @@ _to_lower:
 	push rbx
 
 	lea rbx, [rdi + rsi]
-	cmp rsi, 32
+	cmp rsi, 16
 	jb _lo_remainder_loop
 
 	vmovdqa  ymm0, ymmword ptr lower_offset_array[rip]
@@ -198,14 +205,14 @@ _lo_vector_loop_cond_1:
 	je _lo_remainder_loop_cond_2
 
 _lo_vector_loop:
-	vmovdqu  ymm3, ymmword ptr [rdi]
-	vpaddb   ymm4, ymm3, ymm0
-	vpcmpgtb ymm4, ymm4, ymm1
-	vpand    ymm4, ymm4, ymm2
-	vpaddb   ymm3, ymm4, ymm3
-	vmovdqu  ymmword ptr [rdi], ymm3
+	vmovdqu  xmm3, xmmword ptr [rdi]
+	vpaddb   xmm4, xmm3, xmm0
+	vpcmpgtb xmm4, xmm4, xmm1
+	vpand    xmm4, xmm4, xmm2
+	vpaddb   xmm3, xmm4, xmm3
+	vmovdqu  xmmword ptr [rdi], xmm3
 
-	add rdi, 32
+	add rdi, 16
 
 _lo_vector_loop_cond_2:
 	cmp rdi, rcx
@@ -221,6 +228,13 @@ _lo_remainder_loop:
 	lea edx, [rax + 0x20]
 	cmp ecx, 26
 	cmovb eax, edx
+	#lea ecx, [eax + 0x25]
+	#and cl, 0x7f
+	#add cl, 0x1a
+	#andn ecx, eax, ecx
+	#shr cl, 2
+	#and cl, 0x20
+	#add al, cl
 	mov byte ptr [rdi], al
 
 	inc rdi
@@ -234,82 +248,3 @@ _lo_finished:
 _lo_return:
 	ret
 
-
-/*
-_to_lower:
-    push rbx
-
-	add rsi, rdi
-
-	vmovdqa  ymm3, ymmword ptr lower_offset_array[rip]
-	vmovdqa  ymm4, ymmword ptr range_min[rip]
-
-_lo_loop_init:
-	mov rax, rdi
-	add rax, 31
-	and rax, 0xffffffffffffffe0
-
-	# calculate the upper bound and place it in rcx
-	cmp rsi, rax
-	mov rcx, rax
-	cmovb rcx, rsi
-
-	jmp _lo_beg_loop_cond
-
-_lo_beg_loop:
-	movzx eax, byte ptr [rdi]
-	lea ebx, [rax - 0x41]
-	lea edx, [rax + 0x20]
-	cmp ebx, 26
-	cmovb eax, edx
-	mov byte ptr [rdi], al
-
-	inc rdi
-_lo_beg_loop_cond:
-	cmp rdi, rcx
-	jne _lo_beg_loop
-
-_lo_vector_loop_init:
-	mov rcx, rsi
-	and rcx, 0xffffffffffffffe0
-
-_lo_vector_loop_cond_1:
-	cmp rdi, rcx
-	jae _lo_remainder_loop_cond_1
-
-_lo_vector_loop:
-	vmovdqa  ymm1, ymmword ptr [rdi]
-	vpaddb   ymm2, ymm3, ymm1
-	vpcmpgtb ymm2, ymm2, ymm4
-	vpand    ymm2, ymm2, ymmword ptr upper_to_lower[rip]
-	vpaddb   ymm1, ymm2, ymm1
-	vmovdqa  ymmword ptr [rdi], ymm1
-
-	add rdi, 32
-
-_lo_vector_loop_cond_2:
-	cmp rdi, rcx
-	jb _lo_vector_loop
-
-_lo_remainder_loop_cond_1:
-	cmp rdi, rsi
-	je _lo_finished
-
-_lo_remainder_loop:
-	movzx eax, byte ptr [rdi]
-	lea ebx, [rax - 0x41]
-	lea edx, [rax + 0x20]
-	cmp ebx, 26
-	cmovb eax, edx
-	mov byte ptr [rdi], al
-
-	inc rdi
-
-_lo_remainder_loop_cond_2:
-	cmp rdi, rsi
-	jne _lo_remainder_loop
-
-_lo_finished:
-	pop rbx
-	ret
-*/

@@ -221,34 +221,53 @@ int main() {
 	srand(time(NULL));
 	double naive_s, my_s;
 
-	uint64_t max = 200;
-	//printf("{");
+	uint64_t max = 65536;
+
+	double n_times[max];
+	double m_times[max];
 
 	int sz = max;
-	//for (int sz = 1; sz < max; sz++) {
-		calc_avg_times_upper(sz, 200000, &naive_s, &my_s, true, 0);
+	//for (int sz = 16; sz < max; sz += 16) {
+		calc_avg_times_upper(sz, 100, &naive_s, &my_s, true, 0);
 
-		printf("upper:\n");
+		/*printf("upper:\n");
 		printf("average naive: %.9f\n", naive_s);
 		printf("average mine:  %.9f\n", my_s);
-		printf("speedup:       %f\n", naive_s / my_s);
+		printf("speedup:       %f\n", naive_s / my_s);*/
 
+		n_times[sz / 16] = naive_s;
+		m_times[sz / 16] = my_s;
 		/*printf("{%d, %f}", sz, (naive_s / my_s));
 		if (sz < max - 1) {
 			printf(",");
 		}
 		fflush(stdout);*/
-		usleep(10000);
+		//usleep(10000);
 
-		calc_avg_times_lower(sz, 200000, &naive_s, &my_s, true, 0);
+		calc_avg_times_lower(sz, 200, &naive_s, &my_s, true, 0);
 
-		printf("lower:\n");
+		/*printf("lower:\n");
 		printf("average naive: %.9f\n", naive_s);
 		printf("average mine:  %.9f\n", my_s);
-		printf("speedup:       %f\n", naive_s / my_s);
+		printf("speedup:       %f\n", naive_s / my_s);*/
 
 	//}
-	//printf("}\n");
+	/*printf("{{");
+	for (int i = 0; i < max / 16; i++) {
+		printf("{%d,%.13f}", i * 16, n_times[i]);
+		if (i < max - 16) {
+			printf(",");
+		}
+	}
+	printf("},");
+	printf("{");
+	for (int i = 0; i < max / 16; i++) {
+		printf("{%d,%.13f}", i * 16, m_times[i]);
+		if (i < max - 16) {
+			printf(",");
+		}
+	}
+	printf("}}\n");*/
 	return 0;
 }
 
