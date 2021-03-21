@@ -2,7 +2,7 @@ CC=gcc
 PCC=g++
 AR=ar
 
-BASE_DIR=$(shell pwd)
+BASE_DIR=${CURDIR}
 LIB_DIR=$(BASE_DIR)/lib
 TEST_DIR=$(BASE_DIR)/test
 BIN_DIR=$(BASE_DIR)/bin
