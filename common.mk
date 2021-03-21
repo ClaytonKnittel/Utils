@@ -3,7 +3,7 @@ PCC=g++
 AR=ar
 
 # get base directory that will work on recursive make calls
-ifndef $(BASE_DIR)
+ifndef BASE_DIR
   BASE_DIR=${CURDIR}
 endif
 LIB_DIR=$(BASE_DIR)/lib
