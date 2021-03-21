@@ -3,7 +3,7 @@ PCC=g++
 AR=ar
 
 # get base directory that will work on recursive make calls
-MAKEFILE_PATH:=$(abspath $(lastword $(MAKEFILE_LIST)))
+MAKEFILE_PATH:=$(realpath $(lastword $(MAKEFILE_LIST)))
 BASE_DIR:=$(dir $(MAKEFILE_PATH))
 LIB_DIR=$(BASE_DIR)/lib
 TEST_DIR=$(BASE_DIR)/test
