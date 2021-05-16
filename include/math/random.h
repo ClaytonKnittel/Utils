@@ -22,6 +22,9 @@ uint64_t gen_rand64();
 // generates a random number from 0 to max - 1
 uint32_t gen_rand_r(uint32_t max);
 
+// generates a random number from 0 to max - 1
+uint64_t gen_rand_r64(uint64_t max);
+
 
 #ifdef __cplusplus
 }

@@ -49,13 +49,9 @@ _seed_rand(struct rand_state * state, uint64_t init_seed, uint64_t seq_num) {
     _gen_rand(state);
 }
 
-
-
 void seed_rand(uint64_t init_seed, uint64_t seq_num) {
     _seed_rand(&__state, init_seed, seq_num);
 }
-
-
 
 static uint32_t _gen_rand(struct rand_state * state) {
     uint64_t prev = state->state;
@@ -69,6 +65,11 @@ static uint32_t _gen_rand(struct rand_state * state) {
     return (xor >> rot) | (xor << ((-rot) & 0x1f));
 }
 
+static uint64_t _gen_rand64(struct rand_state * state) {
+    uint32_t r1 = _gen_rand(state);
+    uint32_t r2 = _gen_rand(state);
+    return (((uint64_t) r1) << 32) | ((uint64_t) r2);
+}
 
 /*
  * generate random number (32 bit)
@@ -77,14 +78,9 @@ uint32_t gen_rand() {
     return _gen_rand(&__state);
 }
 
-
 uint64_t gen_rand64() {
-    uint32_t r1 = _gen_rand(&__state);
-    uint32_t r2 = _gen_rand(&__state);
-    return (((uint64_t) r1) << 32) | ((uint64_t) r2);
+    return _gen_rand64(&__state);
 }
-
-
 
 static uint32_t _gen_rand_r(struct rand_state * state, uint32_t max) {
     // mathematically equivalent to 0x100000000lu % max, but is done with
@@ -103,8 +99,29 @@ static uint32_t _gen_rand_r(struct rand_state * state, uint32_t max) {
     return res % max;
 }
 
-
-
 uint32_t gen_rand_r(uint32_t max) {
     return _gen_rand_r(&__state, max);
 }
+
+#include <stdio.h>
+static uint64_t _gen_rand_r64(struct rand_state * state, uint64_t max) {
+    // mathematically equivalent to 0x10000000000000000lu % max
+    uint64_t thresh = -max % max;
+
+    // range is limited to thresh and above, to eliminate any bias (i.e. if
+    // max is 3, then 0 is not allowed to be chosen, as 0xffffffffffffffff
+    // would also give 0 as a result, meaning 0 is slightly more likely to
+    // be chosen)
+    uint64_t res;
+    do {
+        res = _gen_rand64(state);
+    } while (__builtin_expect(res < thresh, 0));
+
+    return res % max;
+}
+
+uint64_t gen_rand_r64(uint64_t max)
+{
+    return _gen_rand_r64(&__state, max);
+}
+

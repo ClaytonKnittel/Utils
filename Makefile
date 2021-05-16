@@ -45,7 +45,7 @@ test: $(SLIB)
 	(make -C $(TEST_DIR) BASE_DIR=$(BASE_DIR) SLIB=$(SLIB) LIBUTIL=$(SLIB))
 
 .PHONY: run_tests
-run_tests:
+run_tests: test
 	(make run_all -C $(TEST_DIR) BASE_DIR=$(BASE_DIR))
 
 

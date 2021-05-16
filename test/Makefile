@@ -23,7 +23,7 @@ PDEPFILES=$(PSRC:%.cc=$(ODIR)/%.d)
 all: $(EXE) $(PEXE)
 
 run_all:
-	for exe in $(EXE) $(PEXE); do $$exe; done
+	./run_tests.sh $(EXE) $(PEXE)
 
 $(BIN_DIR)/%: $(ODIR)/%_c.o $(LIBUTIL)
 	$(CC) $(CFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
