@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -49,6 +50,23 @@ int nth_num(uint16_t* bitm, int n) {
 	return cnt;
 }
 
+
+static void naive_sort(uint32_t N, uint32_t els[N]) {
+	for (uint32_t i = 1; i < N; i++) {
+		for (uint32_t j = i; j > 0; j--) {
+			if (els[j - 1] > els[j]) {
+				uint32_t tmp = els[j];
+				els[j] = els[j - 1];
+				els[j - 1] = tmp;
+			}
+			else {
+				break;
+			}
+		}
+	}
+}
+
+
 int check_correctness(int N) {
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 
@@ -73,7 +91,7 @@ int check_correctness(int N) {
 			}
 		}
 	}
-	else {
+	else if (N <= 16) {
 		for (uint64_t i = 0; i < 65536; i++) {
 			uint16_t mask = 0xffffu;
 
@@ -92,29 +110,30 @@ int check_correctness(int N) {
 			}
 		}
 	}
+	else {
+		uint32_t* all = (uint32_t*) malloc(N * sizeof(uint32_t));
+
+		for (uint64_t i = 0; i < 65536; i++) {
+			for (uint32_t j = 0; j < N; j++) {
+				vals[j] = gen_rand_r(0x7ffffffflu);
+				all[j] = vals[j];
+			}
+			naive_sort(N, all);
+			const_sort_uint32_t(N, vals);
+			for (int j = 0; j < N; j++) {
+				assert(vals[j] == all[j]);
+			}
+		}
+
+		free(all);
+	}
 
 	free(vals);
 	return 1;
 }
 
 
-void naive_sort(uint32_t N, uint32_t els[N]) {
-	for (uint32_t i = 1; i < N; i++) {
-		for (uint32_t j = i; j > 0; j--) {
-			if (els[j - 1] > els[j]) {
-				uint32_t tmp = els[j];
-				els[j] = els[j - 1];
-				els[j - 1] = tmp;
-			}
-			else {
-				break;
-			}
-		}
-	}
-}
-
-
-static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t*), uint64_t n_trials) {
+static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t*), uint64_t n_trials, bool check) {
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 	uint32_t* all  = (uint32_t*) malloc(N * sizeof(uint32_t));
 
@@ -126,54 +145,48 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t
 	for (uint64_t i = 0; i < n_trials; i++) {
 		for (uint32_t j = 0; j < N; j++) {
 			vals[j] = gen_rand_r(0x7ffffffflu);
-			//vals[j] = gen_rand_r(64);
-			all[j] = vals[j];
+			if (check) {
+				all[j] = vals[j];
+			}
 		}
-		naive_sort(N, all);
+		if (check) {
+			naive_sort(N, all);
+		}
 
 		struct timespec start, end;
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		sort_alg(N, vals);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 
-		for (int j = 0; j < N; j++) {
-			assert(vals[j] == all[j]);
+		if (check) {
+			for (int j = 0; j < N; j++) {
+				assert(vals[j] == all[j]);
+			}
 		}
 
 		timespec_sub(&end, &start);
 		timespec_add(&total_time, &end);
 	}
 
+	free(all);
+	free(vals);
+
 	uint64_t total_ns = total_time.tv_sec * 1000000000lu + total_time.tv_nsec;
 	return total_ns;
 }
 
 
-void call_quick_sort(size_t N, uint32_t els[N]) {
-	test_quick_sort(els, N);
-}
-
-void call_tim_sort(size_t N, uint32_t els[N]) {
-	test_tim_sort(els, N);
-}
-
 int main(int argc, char * argv[]) {
-	/*
-	for (int N = 2; N <= 16; N++) {
+	for (int N = 2; N <= CONST_SORT_MAX; N++) {
 		printf("(C) testing %d\n", N);
 		check_correctness(N);
 	}
-	*/
-	uint32_t trials = 50000;
+	uint32_t trials = 50;
 
-	for (uint32_t n = 128; n <= 512; n += 128) {
+	for (uint32_t n = 128000; n <= 512000; n += 128000) {
 		uint64_t total_ns;
-		//total_ns = bench_insert_sort(n, linear_insertion_sort, trials);
-		//printf("lin: size %" PRIu32 ":\tavg (ns) %.0f\n", n, total_ns / ((double) trials));
-		total_ns = bench_insert_sort(n, csort_uint32_t, trials);
-		printf("c: size %" PRIu32 ":\tavg (ns) %.0f\n", n, total_ns / ((double) trials));
-		total_ns = bench_insert_sort(n, call_quick_sort, trials);
-		printf("q: size %" PRIu32 ":\tavg (ns) %.0f\n\n", n, total_ns / ((double) trials));
+		total_ns = bench_insert_sort(n, csort_uint32_t, trials, false);
+		printf("csort: size %" PRIu32 ":\tavg (ns) %.0f\n", n, total_ns / ((double) trials));
 	}
 
 	return 0;
