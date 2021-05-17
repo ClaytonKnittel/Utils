@@ -10,18 +10,7 @@
 #include <timing/timing.h>
 
 
-#define SORT_NAME test
-#define SORT_TYPE uint32_t
-
-#define SORT_CMP(x, y) ((int32_t) ((x) - (y)))
-#define MAX(x,y) (((x) > (y) ? (x) : (y)))
-#define MIN(x,y) (((x) < (y) ? (x) : (y)))
-#define SORT_CSWAP(x, y) {SORT_TYPE _sort_swap_temp = MAX((x), (y)); (x) = MIN((x),(y)); (y) = _sort_swap_temp;}
-
-#include "../../OptimizedProxMapSearch/sort/sort.h"
-
-
-//DEFINE_CONST_SORT_DEFAULT_SWAP(uint32_t);
+DEFINE_CSORT_DEFAULT_FNS(uint32_t);
 
 uint64_t factorial(uint64_t n) {
     if (n == 0)

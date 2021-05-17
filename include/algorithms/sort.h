@@ -3490,8 +3490,6 @@ csort_ ## T(size_t N, T els[N]) \
 	DEFINE_QUICK_SORT_FNS(T, __default_sort_cmp) \
 	DEFINE_CSORT(T)
 
-DEFINE_CSORT_DEFAULT_FNS(uint32_t);
-
 
 #endif
 
