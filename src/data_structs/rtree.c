@@ -27,6 +27,9 @@ _new_empty_leaf_node(uint32_t m)
 	return &n->base;
 }
 
+/*
+ * returns the index of the child with least overlap increase
+ */
 static uint32_t
 _min_overlap_cost_child(rtree_node_base_t* children, uint32_t n, rtree_rect_t* rect)
 {

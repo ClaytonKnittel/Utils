@@ -562,13 +562,21 @@ void const_sort(T els[N]) {
 #else
 
 
-#define CONST_SORT_MAX 16
+#define CONST_SORT_MAX 32
+#define SMALL_SORT_MAX 32
 
+
+#define __sort_swap(T, t1, t2) \
+	do { \
+		T tmp = (t1); \
+		(t1) = (t2); \
+		(t2) = tmp; \
+	} while(0)
 
 /*
  * if t1 <= t2, does nothing, otherwise swaps t1 and t2
  */
-#define __sort_swap(T, t1, t2) \
+#define __default_sort_cswap(T, t1, t2) \
 	do { \
 		T m = (t1 < t2 ? t2 : t1); \
 		T n = (t1 < t2 ? t1 : t2); \
@@ -576,478 +584,2593 @@ void const_sort(T els[N]) {
 		t2 = m; \
 	} while (0)
 
+/*
+ * does t1 < t2
+ */
+#define __default_sort_cmp(t1, t2) \
+	((t1) < (t2))
+
 
 /*
  * base-case bitonic sorts for array sizes 2 - 16, using the best known sorting
  * networks, taken from https://pages.ripco.net/~jgamble/nw.html
  */
 
-#define DEFINE_BITONIC_SORT2(T) \
+#define DEFINE_BITONIC_SORT2(T, __sort_cswap_fn) \
 void __bitonic_sort2_ ## T(T els[2]) { \
-    __sort_swap(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
 }
 
-#define DEFINE_BITONIC_SORT3(T) \
+#define DEFINE_BITONIC_SORT3(T, __sort_cswap_fn) \
 void __bitonic_sort3_ ## T(T els[3]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
 }
 
-#define DEFINE_BITONIC_SORT4(T) \
+#define DEFINE_BITONIC_SORT4(T, __sort_cswap_fn) \
 void __bitonic_sort4_ ## T(T els[4]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[3], els[2]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[3], els[2]); \
 	\
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
 }
 
-#define DEFINE_BITONIC_SORT5(T) \
+#define DEFINE_BITONIC_SORT5(T, __sort_cswap_fn) \
 void __bitonic_sort5_ ## T(T els[5]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
 }
 
-#define DEFINE_BITONIC_SORT6(T) \
+#define DEFINE_BITONIC_SORT6(T, __sort_cswap_fn) \
 void __bitonic_sort6_ ## T(T els[6]) { \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
 }
 
-#define DEFINE_BITONIC_SORT7(T) \
+#define DEFINE_BITONIC_SORT7(T, __sort_cswap_fn) \
 void __bitonic_sort7_ ## T(T els[7]) { \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
 }
 
-#define DEFINE_BITONIC_SORT8(T) \
+#define DEFINE_BITONIC_SORT8(T, __sort_cswap_fn) \
 void __bitonic_sort8_ ## T(T els[8]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[3], els[6]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[3], els[6]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
 }
 
-#define DEFINE_BITONIC_SORT9(T) \
+#define DEFINE_BITONIC_SORT9(T, __sort_cswap_fn) \
 void __bitonic_sort9_ ## T(T els[9]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[3], els[6]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[4], els[7]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[5], els[8]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[3], els[6]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[4], els[7]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[5], els[8]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
 }
 
-#define DEFINE_BITONIC_SORT10(T) \
+#define DEFINE_BITONIC_SORT10(T, __sort_cswap_fn) \
 void __bitonic_sort10_ ## T(T els[10]) { \
-    __sort_swap(T, els[4], els[9]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[2], els[7]); \
-    __sort_swap(T, els[1], els[6]); \
-    __sort_swap(T, els[0], els[5]); \
-    __sort_swap(T, els[6], els[9]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[5], els[8]); \
-    __sort_swap(T, els[0], els[3]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[3], els[6]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[4], els[7]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[4], els[9]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[2], els[7]); \
+    __sort_cswap_fn(T, els[1], els[6]); \
+    __sort_cswap_fn(T, els[0], els[5]); \
+    __sort_cswap_fn(T, els[6], els[9]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[5], els[8]); \
+    __sort_cswap_fn(T, els[0], els[3]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[3], els[6]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[4], els[7]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
 }
 
-#define DEFINE_BITONIC_SORT11(T) \
+#define DEFINE_BITONIC_SORT11(T, __sort_cswap_fn) \
 void __bitonic_sort11_ ## T(T els[11]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[6], els[10]); \
-    __sort_swap(T, els[5], els[9]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[6], els[10]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[4], els[8]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[7], els[10]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[6], els[10]); \
+    __sort_cswap_fn(T, els[5], els[9]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[6], els[10]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[4], els[8]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[7], els[10]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
 }
 
-#define DEFINE_BITONIC_SORT12(T) \
+#define DEFINE_BITONIC_SORT12(T, __sort_cswap_fn) \
 void __bitonic_sort12_ ## T(T els[12]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[6], els[10]); \
-    __sort_swap(T, els[5], els[9]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[6], els[10]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[7], els[11]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[4], els[8]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[7], els[11]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[7], els[10]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[6], els[10]); \
+    __sort_cswap_fn(T, els[5], els[9]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[6], els[10]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[7], els[11]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[4], els[8]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[7], els[11]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[7], els[10]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
 }
 
-#define DEFINE_BITONIC_SORT13(T) \
+#define DEFINE_BITONIC_SORT13(T, __sort_cswap_fn) \
 void __bitonic_sort13_ ## T(T els[13]) { \
-    __sort_swap(T, els[1], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[8]); \
-    __sort_swap(T, els[0], els[12]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[8], els[11]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[7], els[12]); \
-    __sort_swap(T, els[5], els[9]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[6], els[12]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[11], els[12]); \
-    __sort_swap(T, els[4], els[9]); \
-    __sort_swap(T, els[6], els[10]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[1], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[4], els[7]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[0], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[2], els[5]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[1], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[8]); \
+    __sort_cswap_fn(T, els[0], els[12]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[8], els[11]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[7], els[12]); \
+    __sort_cswap_fn(T, els[5], els[9]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[6], els[12]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[11], els[12]); \
+    __sort_cswap_fn(T, els[4], els[9]); \
+    __sort_cswap_fn(T, els[6], els[10]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[1], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[4], els[7]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[0], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[2], els[5]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
 }
 
-#define DEFINE_BITONIC_SORT14(T) \
+#define DEFINE_BITONIC_SORT14(T, __sort_cswap_fn) \
 void __bitonic_sort14_ ## T(T els[14]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[12], els[13]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[8], els[12]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[9], els[13]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[0], els[8]); \
-    __sort_swap(T, els[1], els[9]); \
-    __sort_swap(T, els[2], els[10]); \
-    __sort_swap(T, els[3], els[11]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[12]); \
-    __sort_swap(T, els[5], els[13]); \
-    __sort_swap(T, els[5], els[10]); \
-    __sort_swap(T, els[6], els[9]); \
-    __sort_swap(T, els[3], els[12]); \
-    __sort_swap(T, els[7], els[11]); \
-    __sort_swap(T, els[4], els[8]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[7], els[13]); \
-    __sort_swap(T, els[2], els[8]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[11], els[13]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[7], els[12]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[10], els[12]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[11], els[12]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[12], els[13]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[8], els[12]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[9], els[13]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[0], els[8]); \
+    __sort_cswap_fn(T, els[1], els[9]); \
+    __sort_cswap_fn(T, els[2], els[10]); \
+    __sort_cswap_fn(T, els[3], els[11]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[12]); \
+    __sort_cswap_fn(T, els[5], els[13]); \
+    __sort_cswap_fn(T, els[5], els[10]); \
+    __sort_cswap_fn(T, els[6], els[9]); \
+    __sort_cswap_fn(T, els[3], els[12]); \
+    __sort_cswap_fn(T, els[7], els[11]); \
+    __sort_cswap_fn(T, els[4], els[8]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[7], els[13]); \
+    __sort_cswap_fn(T, els[2], els[8]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[11], els[13]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[7], els[12]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[10], els[12]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[11], els[12]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
 }
 
-#define DEFINE_BITONIC_SORT15(T) \
+#define DEFINE_BITONIC_SORT15(T, __sort_cswap_fn) \
 void __bitonic_sort15_ ## T(T els[15]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[12], els[13]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[12], els[14]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[8], els[12]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[9], els[13]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[10], els[14]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[0], els[8]); \
-    __sort_swap(T, els[1], els[9]); \
-    __sort_swap(T, els[2], els[10]); \
-    __sort_swap(T, els[3], els[11]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[12]); \
-    __sort_swap(T, els[5], els[13]); \
-    __sort_swap(T, els[6], els[14]); \
-    __sort_swap(T, els[5], els[10]); \
-    __sort_swap(T, els[13], els[14]); \
-    __sort_swap(T, els[6], els[9]); \
-    __sort_swap(T, els[3], els[12]); \
-    __sort_swap(T, els[7], els[11]); \
-    __sort_swap(T, els[4], els[8]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[7], els[13]); \
-    __sort_swap(T, els[2], els[8]); \
-    __sort_swap(T, els[11], els[14]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[11], els[13]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[7], els[12]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[10], els[12]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[11], els[12]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[12], els[13]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[12], els[14]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[8], els[12]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[9], els[13]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[10], els[14]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[0], els[8]); \
+    __sort_cswap_fn(T, els[1], els[9]); \
+    __sort_cswap_fn(T, els[2], els[10]); \
+    __sort_cswap_fn(T, els[3], els[11]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[12]); \
+    __sort_cswap_fn(T, els[5], els[13]); \
+    __sort_cswap_fn(T, els[6], els[14]); \
+    __sort_cswap_fn(T, els[5], els[10]); \
+    __sort_cswap_fn(T, els[13], els[14]); \
+    __sort_cswap_fn(T, els[6], els[9]); \
+    __sort_cswap_fn(T, els[3], els[12]); \
+    __sort_cswap_fn(T, els[7], els[11]); \
+    __sort_cswap_fn(T, els[4], els[8]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[7], els[13]); \
+    __sort_cswap_fn(T, els[2], els[8]); \
+    __sort_cswap_fn(T, els[11], els[14]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[11], els[13]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[7], els[12]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[10], els[12]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[11], els[12]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
 }
 
-#define DEFINE_BITONIC_SORT16(T) \
+#define DEFINE_BITONIC_SORT16(T, __sort_cswap_fn) \
 void __bitonic_sort16_ ## T(T els[16]) { \
-    __sort_swap(T, els[0], els[1]); \
-    __sort_swap(T, els[2], els[3]); \
-    __sort_swap(T, els[4], els[5]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
-    __sort_swap(T, els[10], els[11]); \
-    __sort_swap(T, els[12], els[13]); \
-    __sort_swap(T, els[14], els[15]); \
-    __sort_swap(T, els[0], els[2]); \
-    __sort_swap(T, els[4], els[6]); \
-    __sort_swap(T, els[8], els[10]); \
-    __sort_swap(T, els[12], els[14]); \
-    __sort_swap(T, els[1], els[3]); \
-    __sort_swap(T, els[5], els[7]); \
-    __sort_swap(T, els[9], els[11]); \
-    __sort_swap(T, els[13], els[15]); \
-    __sort_swap(T, els[0], els[4]); \
-    __sort_swap(T, els[8], els[12]); \
-    __sort_swap(T, els[1], els[5]); \
-    __sort_swap(T, els[9], els[13]); \
-    __sort_swap(T, els[2], els[6]); \
-    __sort_swap(T, els[10], els[14]); \
-    __sort_swap(T, els[3], els[7]); \
-    __sort_swap(T, els[11], els[15]); \
-    __sort_swap(T, els[0], els[8]); \
-    __sort_swap(T, els[1], els[9]); \
-    __sort_swap(T, els[2], els[10]); \
-    __sort_swap(T, els[3], els[11]); \
-    __sort_swap(T, els[1], els[2]); \
-    __sort_swap(T, els[4], els[12]); \
-    __sort_swap(T, els[5], els[13]); \
-    __sort_swap(T, els[6], els[14]); \
-    __sort_swap(T, els[7], els[15]); \
-    __sort_swap(T, els[5], els[10]); \
-    __sort_swap(T, els[13], els[14]); \
-    __sort_swap(T, els[6], els[9]); \
-    __sort_swap(T, els[3], els[12]); \
-    __sort_swap(T, els[7], els[11]); \
-    __sort_swap(T, els[4], els[8]); \
-    __sort_swap(T, els[1], els[4]); \
-    __sort_swap(T, els[7], els[13]); \
-    __sort_swap(T, els[2], els[8]); \
-    __sort_swap(T, els[11], els[14]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[2], els[4]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[11], els[13]); \
-    __sort_swap(T, els[3], els[8]); \
-    __sort_swap(T, els[7], els[12]); \
-    __sort_swap(T, els[3], els[5]); \
-    __sort_swap(T, els[6], els[8]); \
-    __sort_swap(T, els[10], els[12]); \
-    __sort_swap(T, els[3], els[4]); \
-    __sort_swap(T, els[7], els[9]); \
-    __sort_swap(T, els[5], els[6]); \
-    __sort_swap(T, els[11], els[12]); \
-    __sort_swap(T, els[7], els[8]); \
-    __sort_swap(T, els[9], els[10]); \
-    __sort_swap(T, els[6], els[7]); \
-    __sort_swap(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[0], els[1]); \
+    __sort_cswap_fn(T, els[2], els[3]); \
+    __sort_cswap_fn(T, els[4], els[5]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
+    __sort_cswap_fn(T, els[10], els[11]); \
+    __sort_cswap_fn(T, els[12], els[13]); \
+    __sort_cswap_fn(T, els[14], els[15]); \
+    __sort_cswap_fn(T, els[0], els[2]); \
+    __sort_cswap_fn(T, els[4], els[6]); \
+    __sort_cswap_fn(T, els[8], els[10]); \
+    __sort_cswap_fn(T, els[12], els[14]); \
+    __sort_cswap_fn(T, els[1], els[3]); \
+    __sort_cswap_fn(T, els[5], els[7]); \
+    __sort_cswap_fn(T, els[9], els[11]); \
+    __sort_cswap_fn(T, els[13], els[15]); \
+    __sort_cswap_fn(T, els[0], els[4]); \
+    __sort_cswap_fn(T, els[8], els[12]); \
+    __sort_cswap_fn(T, els[1], els[5]); \
+    __sort_cswap_fn(T, els[9], els[13]); \
+    __sort_cswap_fn(T, els[2], els[6]); \
+    __sort_cswap_fn(T, els[10], els[14]); \
+    __sort_cswap_fn(T, els[3], els[7]); \
+    __sort_cswap_fn(T, els[11], els[15]); \
+    __sort_cswap_fn(T, els[0], els[8]); \
+    __sort_cswap_fn(T, els[1], els[9]); \
+    __sort_cswap_fn(T, els[2], els[10]); \
+    __sort_cswap_fn(T, els[3], els[11]); \
+    __sort_cswap_fn(T, els[1], els[2]); \
+    __sort_cswap_fn(T, els[4], els[12]); \
+    __sort_cswap_fn(T, els[5], els[13]); \
+    __sort_cswap_fn(T, els[6], els[14]); \
+    __sort_cswap_fn(T, els[7], els[15]); \
+    __sort_cswap_fn(T, els[5], els[10]); \
+    __sort_cswap_fn(T, els[13], els[14]); \
+    __sort_cswap_fn(T, els[6], els[9]); \
+    __sort_cswap_fn(T, els[3], els[12]); \
+    __sort_cswap_fn(T, els[7], els[11]); \
+    __sort_cswap_fn(T, els[4], els[8]); \
+    __sort_cswap_fn(T, els[1], els[4]); \
+    __sort_cswap_fn(T, els[7], els[13]); \
+    __sort_cswap_fn(T, els[2], els[8]); \
+    __sort_cswap_fn(T, els[11], els[14]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[2], els[4]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[11], els[13]); \
+    __sort_cswap_fn(T, els[3], els[8]); \
+    __sort_cswap_fn(T, els[7], els[12]); \
+    __sort_cswap_fn(T, els[3], els[5]); \
+    __sort_cswap_fn(T, els[6], els[8]); \
+    __sort_cswap_fn(T, els[10], els[12]); \
+    __sort_cswap_fn(T, els[3], els[4]); \
+    __sort_cswap_fn(T, els[7], els[9]); \
+    __sort_cswap_fn(T, els[5], els[6]); \
+    __sort_cswap_fn(T, els[11], els[12]); \
+    __sort_cswap_fn(T, els[7], els[8]); \
+    __sort_cswap_fn(T, els[9], els[10]); \
+    __sort_cswap_fn(T, els[6], els[7]); \
+    __sort_cswap_fn(T, els[8], els[9]); \
 }
+
+#define DEFINE_BITONIC_SORT17(T, __sort_cswap_fn) \
+void __bitonic_sort17_ ## T(T els[17]) { \
+	__sort_cswap_fn(T, els[0], els[11]); \
+	__sort_cswap_fn(T, els[1], els[15]); \
+	__sort_cswap_fn(T, els[2], els[10]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[0], els[6]); \
+	__sort_cswap_fn(T, els[1], els[13]); \
+	__sort_cswap_fn(T, els[2], els[8]); \
+	__sort_cswap_fn(T, els[4], els[14]); \
+	__sort_cswap_fn(T, els[5], els[15]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[0], els[8]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[4], els[9]); \
+	__sort_cswap_fn(T, els[6], els[16]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[7]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+}
+
+#define DEFINE_BITONIC_SORT18(T, __sort_cswap_fn) \
+void __bitonic_sort18_ ## T(T els[18]) { \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[8], els[16]); \
+	__sort_cswap_fn(T, els[9], els[17]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[0], els[8]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[2], els[12]); \
+	__sort_cswap_fn(T, els[3], els[14]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[7], els[15]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[9]); \
+	__sort_cswap_fn(T, els[5], els[17]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[10], els[16]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[10]); \
+	__sort_cswap_fn(T, els[4], els[12]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[14]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[12]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+}
+
+#define DEFINE_BITONIC_SORT19(T, __sort_cswap_fn) \
+void __bitonic_sort19_ ## T(T els[19]) { \
+	__sort_cswap_fn(T, els[0], els[12]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[2], els[8]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[6], els[17]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[7]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[11]); \
+	__sort_cswap_fn(T, els[5], els[17]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[10], els[15]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[3], els[10]); \
+	__sort_cswap_fn(T, els[4], els[14]); \
+	__sort_cswap_fn(T, els[5], els[15]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[0], els[7]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[11], els[16]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[2], els[9]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[15]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[12]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+}
+
+#define DEFINE_BITONIC_SORT20(T, __sort_cswap_fn) \
+void __bitonic_sort20_ ## T(T els[20]) { \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[7]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[0], els[14]); \
+	__sort_cswap_fn(T, els[1], els[11]); \
+	__sort_cswap_fn(T, els[2], els[16]); \
+	__sort_cswap_fn(T, els[3], els[17]); \
+	__sort_cswap_fn(T, els[4], els[12]); \
+	__sort_cswap_fn(T, els[5], els[19]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[7], els[15]); \
+	__sort_cswap_fn(T, els[8], els[18]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[11], els[16]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[2], els[12]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[11]); \
+	__sort_cswap_fn(T, els[7], els[17]); \
+	__sort_cswap_fn(T, els[8], els[15]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+}
+
+#define DEFINE_BITONIC_SORT21(T, __sort_cswap_fn) \
+void __bitonic_sort21_ ## T(T els[21]) { \
+	__sort_cswap_fn(T, els[0], els[7]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[9], els[19]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[0], els[11]); \
+	__sort_cswap_fn(T, els[1], els[15]); \
+	__sort_cswap_fn(T, els[2], els[12]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[10], els[16]); \
+	__sort_cswap_fn(T, els[13], els[19]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[0], els[6]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[18]); \
+	__sort_cswap_fn(T, els[4], els[15]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[8], els[16]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[20]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[5], els[12]); \
+	__sort_cswap_fn(T, els[7], els[18]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[17]); \
+	__sort_cswap_fn(T, els[13], els[19]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[6], els[17]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[14], els[19]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[9]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+}
+
+#define DEFINE_BITONIC_SORT22(T, __sort_cswap_fn) \
+void __bitonic_sort22_ ## T(T els[22]) { \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[0], els[12]); \
+	__sort_cswap_fn(T, els[1], els[13]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[8], els[20]); \
+	__sort_cswap_fn(T, els[9], els[21]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[4], els[16]); \
+	__sort_cswap_fn(T, els[5], els[17]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[18]); \
+	__sort_cswap_fn(T, els[15], els[20]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[0], els[8]); \
+	__sort_cswap_fn(T, els[1], els[15]); \
+	__sort_cswap_fn(T, els[2], els[14]); \
+	__sort_cswap_fn(T, els[3], els[9]); \
+	__sort_cswap_fn(T, els[5], els[11]); \
+	__sort_cswap_fn(T, els[6], els[20]); \
+	__sort_cswap_fn(T, els[7], els[19]); \
+	__sort_cswap_fn(T, els[10], els[16]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[13], els[21]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[11], els[20]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[9], els[18]); \
+	__sort_cswap_fn(T, els[10], els[15]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[7], els[12]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+}
+
+#define DEFINE_BITONIC_SORT23(T, __sort_cswap_fn) \
+void __bitonic_sort23_ ## T(T els[23]) { \
+	__sort_cswap_fn(T, els[0], els[20]); \
+	__sort_cswap_fn(T, els[1], els[12]); \
+	__sort_cswap_fn(T, els[2], els[16]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[7], els[21]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[11], els[22]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[11]); \
+	__sort_cswap_fn(T, els[2], els[7]); \
+	__sort_cswap_fn(T, els[4], els[17]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[6], els[19]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[18]); \
+	__sort_cswap_fn(T, els[12], els[22]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[21]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[11], els[20]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[18], els[21]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[3], els[14]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[9], els[20]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[0], els[7]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[8], els[15]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[17], els[22]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[19]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+}
+
+#define DEFINE_BITONIC_SORT24(T, __sort_cswap_fn) \
+void __bitonic_sort24_ ## T(T els[24]) { \
+	__sort_cswap_fn(T, els[0], els[20]); \
+	__sort_cswap_fn(T, els[1], els[12]); \
+	__sort_cswap_fn(T, els[2], els[16]); \
+	__sort_cswap_fn(T, els[3], els[23]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[7], els[21]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[11], els[22]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[11]); \
+	__sort_cswap_fn(T, els[2], els[7]); \
+	__sort_cswap_fn(T, els[4], els[17]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[6], els[19]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[18]); \
+	__sort_cswap_fn(T, els[12], els[22]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[21]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[11], els[20]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[18], els[21]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[3], els[14]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[9], els[20]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[0], els[7]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[8], els[15]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[16], els[23]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[17], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[19]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+}
+
+#define DEFINE_BITONIC_SORT25(T, __sort_cswap_fn) \
+void __bitonic_sort25_ ## T(T els[25]) { \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[3], els[18]); \
+	__sort_cswap_fn(T, els[4], els[17]); \
+	__sort_cswap_fn(T, els[5], els[20]); \
+	__sort_cswap_fn(T, els[6], els[19]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[15]); \
+	__sort_cswap_fn(T, els[2], els[18]); \
+	__sort_cswap_fn(T, els[4], els[12]); \
+	__sort_cswap_fn(T, els[5], els[21]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[8], els[22]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[11], els[19]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[7]); \
+	__sort_cswap_fn(T, els[2], els[13]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[10], els[21]); \
+	__sort_cswap_fn(T, els[11], els[20]); \
+	__sort_cswap_fn(T, els[16], els[22]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[0], els[5]); \
+	__sort_cswap_fn(T, els[2], els[11]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[7], els[16]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[12], els[21]); \
+	__sort_cswap_fn(T, els[13], els[19]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[18], els[23]); \
+	__sort_cswap_fn(T, els[2], els[7]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[14], els[24]); \
+	__sort_cswap_fn(T, els[18], els[21]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[21]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[4], els[13]); \
+	__sort_cswap_fn(T, els[10], els[16]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[18], els[24]); \
+	__sort_cswap_fn(T, els[19], els[22]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[9], els[19]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[10], els[17]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+}
+
+#define DEFINE_BITONIC_SORT26(T, __sort_cswap_fn) \
+void __bitonic_sort26_ ## T(T els[26]) { \
+	__sort_cswap_fn(T, els[0], els[25]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[9]); \
+	__sort_cswap_fn(T, els[4], els[19]); \
+	__sort_cswap_fn(T, els[5], els[18]); \
+	__sort_cswap_fn(T, els[6], els[21]); \
+	__sort_cswap_fn(T, els[7], els[20]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[23]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[2], els[16]); \
+	__sort_cswap_fn(T, els[3], els[19]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[6], els[22]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[8], els[15]); \
+	__sort_cswap_fn(T, els[9], els[23]); \
+	__sort_cswap_fn(T, els[10], els[17]); \
+	__sort_cswap_fn(T, els[12], els[20]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[21], els[24]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[2], els[8]); \
+	__sort_cswap_fn(T, els[3], els[14]); \
+	__sort_cswap_fn(T, els[4], els[13]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[10], els[16]); \
+	__sort_cswap_fn(T, els[11], els[22]); \
+	__sort_cswap_fn(T, els[12], els[21]); \
+	__sort_cswap_fn(T, els[17], els[23]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[0], els[10]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[4], els[11]); \
+	__sort_cswap_fn(T, els[5], els[12]); \
+	__sort_cswap_fn(T, els[13], els[20]); \
+	__sort_cswap_fn(T, els[14], els[21]); \
+	__sort_cswap_fn(T, els[15], els[25]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[24]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[21], els[25]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[8], els[14]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[3], els[10]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[21], els[24]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[17], els[22]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[7], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+}
+
+#define DEFINE_BITONIC_SORT27(T, __sort_cswap_fn) \
+void __bitonic_sort27_ ## T(T els[27]) { \
+	__sort_cswap_fn(T, els[0], els[9]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[11], els[24]); \
+	__sort_cswap_fn(T, els[12], els[23]); \
+	__sort_cswap_fn(T, els[13], els[26]); \
+	__sort_cswap_fn(T, els[14], els[25]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[11], els[16]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[13], els[20]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[24]); \
+	__sort_cswap_fn(T, els[19], els[25]); \
+	__sort_cswap_fn(T, els[21], els[26]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[21]); \
+	__sort_cswap_fn(T, els[16], els[22]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[23]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[0], els[11]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[18], els[21]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[22], els[25]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[1], els[12]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[2], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[3], els[14]); \
+	__sort_cswap_fn(T, els[4], els[15]); \
+	__sort_cswap_fn(T, els[5], els[16]); \
+	__sort_cswap_fn(T, els[10], els[21]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[6], els[17]); \
+	__sort_cswap_fn(T, els[7], els[18]); \
+	__sort_cswap_fn(T, els[8], els[19]); \
+	__sort_cswap_fn(T, els[9], els[20]); \
+	__sort_cswap_fn(T, els[10], els[13]); \
+	__sort_cswap_fn(T, els[14], els[22]); \
+	__sort_cswap_fn(T, els[15], els[23]); \
+	__sort_cswap_fn(T, els[16], els[24]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[17], els[25]); \
+	__sort_cswap_fn(T, els[18], els[26]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[21], els[25]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+}
+
+#define DEFINE_BITONIC_SORT28(T, __sort_cswap_fn) \
+void __bitonic_sort28_ ## T(T els[28]) { \
+	__sort_cswap_fn(T, els[0], els[9]); \
+	__sort_cswap_fn(T, els[1], els[20]); \
+	__sort_cswap_fn(T, els[2], els[21]); \
+	__sort_cswap_fn(T, els[3], els[22]); \
+	__sort_cswap_fn(T, els[4], els[19]); \
+	__sort_cswap_fn(T, els[5], els[24]); \
+	__sort_cswap_fn(T, els[6], els[25]); \
+	__sort_cswap_fn(T, els[7], els[26]); \
+	__sort_cswap_fn(T, els[8], els[23]); \
+	__sort_cswap_fn(T, els[10], els[15]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[18], els[27]); \
+	__sort_cswap_fn(T, els[0], els[18]); \
+	__sort_cswap_fn(T, els[1], els[7]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[9], els[27]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[20], els[26]); \
+	__sort_cswap_fn(T, els[21], els[25]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[19]); \
+	__sort_cswap_fn(T, els[6], els[20]); \
+	__sort_cswap_fn(T, els[7], els[21]); \
+	__sort_cswap_fn(T, els[8], els[22]); \
+	__sort_cswap_fn(T, els[9], els[18]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[17], els[26]); \
+	__sort_cswap_fn(T, els[19], els[22]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[24], els[27]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[7]); \
+	__sort_cswap_fn(T, els[3], els[10]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[17], els[24]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[20], els[25]); \
+	__sort_cswap_fn(T, els[26], els[27]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[7], els[19]); \
+	__sort_cswap_fn(T, els[8], els[20]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[21], els[25]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[5], els[12]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[2], els[9]); \
+	__sort_cswap_fn(T, els[4], els[11]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[13]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[14], els[20]); \
+	__sort_cswap_fn(T, els[16], els[23]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[25]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[16]); \
+	__sort_cswap_fn(T, els[4], els[9]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[11], els[24]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[15], els[21]); \
+	__sort_cswap_fn(T, els[18], els[23]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[2], els[8]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[6], els[16]); \
+	__sort_cswap_fn(T, els[9], els[15]); \
+	__sort_cswap_fn(T, els[11], els[21]); \
+	__sort_cswap_fn(T, els[12], els[18]); \
+	__sort_cswap_fn(T, els[19], els[25]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[22]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+}
+
+#define DEFINE_BITONIC_SORT29(T, __sort_cswap_fn) \
+void __bitonic_sort29_ ## T(T els[29]) { \
+	__sort_cswap_fn(T, els[0], els[12]); \
+	__sort_cswap_fn(T, els[1], els[10]); \
+	__sort_cswap_fn(T, els[2], els[9]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[5], els[11]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[13], els[26]); \
+	__sort_cswap_fn(T, els[14], els[25]); \
+	__sort_cswap_fn(T, els[15], els[28]); \
+	__sort_cswap_fn(T, els[16], els[27]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[11]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[13], els[18]); \
+	__sort_cswap_fn(T, els[14], els[20]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[19], els[26]); \
+	__sort_cswap_fn(T, els[21], els[27]); \
+	__sort_cswap_fn(T, els[23], els[28]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[8], els[11]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[17], els[23]); \
+	__sort_cswap_fn(T, els[18], els[24]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[0], els[5]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[6], els[11]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[25]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[26], els[27]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[18], els[21]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[22], els[26]); \
+	__sort_cswap_fn(T, els[24], els[27]); \
+	__sort_cswap_fn(T, els[0], els[13]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[16], els[19]); \
+	__sort_cswap_fn(T, els[22], els[25]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[1], els[14]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[2], els[15]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[10], els[23]); \
+	__sort_cswap_fn(T, els[11], els[24]); \
+	__sort_cswap_fn(T, els[12], els[25]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[3], els[16]); \
+	__sort_cswap_fn(T, els[4], els[17]); \
+	__sort_cswap_fn(T, els[5], els[18]); \
+	__sort_cswap_fn(T, els[6], els[19]); \
+	__sort_cswap_fn(T, els[7], els[20]); \
+	__sort_cswap_fn(T, els[8], els[21]); \
+	__sort_cswap_fn(T, els[9], els[22]); \
+	__sort_cswap_fn(T, els[10], els[15]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[8], els[13]); \
+	__sort_cswap_fn(T, els[9], els[14]); \
+	__sort_cswap_fn(T, els[11], els[16]); \
+	__sort_cswap_fn(T, els[12], els[17]); \
+	__sort_cswap_fn(T, els[18], els[26]); \
+	__sort_cswap_fn(T, els[19], els[27]); \
+	__sort_cswap_fn(T, els[20], els[28]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[22], els[26]); \
+	__sort_cswap_fn(T, els[23], els[27]); \
+	__sort_cswap_fn(T, els[24], els[28]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+}
+
+#define DEFINE_BITONIC_SORT30(T, __sort_cswap_fn) \
+void __bitonic_sort30_ ## T(T els[30]) { \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[10]); \
+	__sort_cswap_fn(T, els[4], els[14]); \
+	__sort_cswap_fn(T, els[5], els[8]); \
+	__sort_cswap_fn(T, els[6], els[13]); \
+	__sort_cswap_fn(T, els[7], els[12]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[25]); \
+	__sort_cswap_fn(T, els[19], els[29]); \
+	__sort_cswap_fn(T, els[20], els[23]); \
+	__sort_cswap_fn(T, els[21], els[28]); \
+	__sort_cswap_fn(T, els[22], els[27]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[0], els[14]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[2], els[8]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[15], els[29]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[17], els[23]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[21], els[24]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[0], els[7]); \
+	__sort_cswap_fn(T, els[1], els[6]); \
+	__sort_cswap_fn(T, els[2], els[9]); \
+	__sort_cswap_fn(T, els[4], els[10]); \
+	__sort_cswap_fn(T, els[5], els[11]); \
+	__sort_cswap_fn(T, els[8], els[13]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[16], els[21]); \
+	__sort_cswap_fn(T, els[17], els[24]); \
+	__sort_cswap_fn(T, els[19], els[25]); \
+	__sort_cswap_fn(T, els[20], els[26]); \
+	__sort_cswap_fn(T, els[23], els[28]); \
+	__sort_cswap_fn(T, els[27], els[29]); \
+	__sort_cswap_fn(T, els[0], els[6]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[21]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[22], els[26]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[24], els[27]); \
+	__sort_cswap_fn(T, els[28], els[29]); \
+	__sort_cswap_fn(T, els[0], els[3]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[4], els[7]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[29]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[19], els[22]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[0], els[15]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[28]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[23], els[25]); \
+	__sort_cswap_fn(T, els[26], els[27]); \
+	__sort_cswap_fn(T, els[1], els[16]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[12], els[27]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[2], els[17]); \
+	__sort_cswap_fn(T, els[3], els[18]); \
+	__sort_cswap_fn(T, els[4], els[19]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[24]); \
+	__sort_cswap_fn(T, els[10], els[25]); \
+	__sort_cswap_fn(T, els[11], els[26]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[5], els[20]); \
+	__sort_cswap_fn(T, els[6], els[21]); \
+	__sort_cswap_fn(T, els[7], els[22]); \
+	__sort_cswap_fn(T, els[8], els[23]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[10], els[17]); \
+	__sort_cswap_fn(T, els[11], els[18]); \
+	__sort_cswap_fn(T, els[12], els[19]); \
+	__sort_cswap_fn(T, els[5], els[9]); \
+	__sort_cswap_fn(T, els[6], els[10]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[8], els[15]); \
+	__sort_cswap_fn(T, els[13], els[20]); \
+	__sort_cswap_fn(T, els[14], els[21]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[12], els[15]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[14], els[17]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[21], els[25]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[6], els[8]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+}
+
+#define DEFINE_BITONIC_SORT31(T, __sort_cswap_fn) \
+void __bitonic_sort31_ ## T(T els[31]) { \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[26], els[27]); \
+	__sort_cswap_fn(T, els[28], els[29]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[28], els[30]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[24], els[28]); \
+	__sort_cswap_fn(T, els[25], els[29]); \
+	__sort_cswap_fn(T, els[26], els[30]); \
+	__sort_cswap_fn(T, els[0], els[8]); \
+	__sort_cswap_fn(T, els[1], els[9]); \
+	__sort_cswap_fn(T, els[2], els[10]); \
+	__sort_cswap_fn(T, els[3], els[11]); \
+	__sort_cswap_fn(T, els[4], els[12]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[6], els[14]); \
+	__sort_cswap_fn(T, els[7], els[15]); \
+	__sort_cswap_fn(T, els[16], els[24]); \
+	__sort_cswap_fn(T, els[17], els[25]); \
+	__sort_cswap_fn(T, els[18], els[26]); \
+	__sort_cswap_fn(T, els[19], els[27]); \
+	__sort_cswap_fn(T, els[20], els[28]); \
+	__sort_cswap_fn(T, els[21], els[29]); \
+	__sort_cswap_fn(T, els[22], els[30]); \
+	__sort_cswap_fn(T, els[0], els[16]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[17], els[24]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[28]); \
+	__sort_cswap_fn(T, els[21], els[26]); \
+	__sort_cswap_fn(T, els[22], els[25]); \
+	__sort_cswap_fn(T, els[23], els[30]); \
+	__sort_cswap_fn(T, els[27], els[29]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[22]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[9], els[25]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[23], els[27]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[29], els[30]); \
+	__sort_cswap_fn(T, els[1], els[17]); \
+	__sort_cswap_fn(T, els[2], els[18]); \
+	__sort_cswap_fn(T, els[3], els[19]); \
+	__sort_cswap_fn(T, els[4], els[20]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[7], els[23]); \
+	__sort_cswap_fn(T, els[8], els[24]); \
+	__sort_cswap_fn(T, els[11], els[27]); \
+	__sort_cswap_fn(T, els[12], els[28]); \
+	__sort_cswap_fn(T, els[13], els[29]); \
+	__sort_cswap_fn(T, els[14], els[30]); \
+	__sort_cswap_fn(T, els[21], els[26]); \
+	__sort_cswap_fn(T, els[3], els[17]); \
+	__sort_cswap_fn(T, els[4], els[16]); \
+	__sort_cswap_fn(T, els[5], els[21]); \
+	__sort_cswap_fn(T, els[6], els[18]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[8], els[20]); \
+	__sort_cswap_fn(T, els[10], els[26]); \
+	__sort_cswap_fn(T, els[11], els[23]); \
+	__sort_cswap_fn(T, els[13], els[25]); \
+	__sort_cswap_fn(T, els[14], els[28]); \
+	__sort_cswap_fn(T, els[15], els[27]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[16]); \
+	__sort_cswap_fn(T, els[7], els[17]); \
+	__sort_cswap_fn(T, els[9], els[21]); \
+	__sort_cswap_fn(T, els[10], els[22]); \
+	__sort_cswap_fn(T, els[11], els[19]); \
+	__sort_cswap_fn(T, els[12], els[20]); \
+	__sort_cswap_fn(T, els[14], els[24]); \
+	__sort_cswap_fn(T, els[15], els[26]); \
+	__sort_cswap_fn(T, els[23], els[28]); \
+	__sort_cswap_fn(T, els[27], els[30]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[18]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[13], els[22]); \
+	__sort_cswap_fn(T, els[14], els[20]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[26], els[29]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[19], els[25]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[27], els[29]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+}
+
+#define DEFINE_BITONIC_SORT32(T, __sort_cswap_fn) \
+void __bitonic_sort32_ ## T(T els[32]) { \
+	__sort_cswap_fn(T, els[0], els[1]); \
+	__sort_cswap_fn(T, els[2], els[3]); \
+	__sort_cswap_fn(T, els[4], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[12], els[13]); \
+	__sort_cswap_fn(T, els[14], els[15]); \
+	__sort_cswap_fn(T, els[16], els[17]); \
+	__sort_cswap_fn(T, els[18], els[19]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[26], els[27]); \
+	__sort_cswap_fn(T, els[28], els[29]); \
+	__sort_cswap_fn(T, els[30], els[31]); \
+	__sort_cswap_fn(T, els[0], els[2]); \
+	__sort_cswap_fn(T, els[1], els[3]); \
+	__sort_cswap_fn(T, els[4], els[6]); \
+	__sort_cswap_fn(T, els[5], els[7]); \
+	__sort_cswap_fn(T, els[8], els[10]); \
+	__sort_cswap_fn(T, els[9], els[11]); \
+	__sort_cswap_fn(T, els[12], els[14]); \
+	__sort_cswap_fn(T, els[13], els[15]); \
+	__sort_cswap_fn(T, els[16], els[18]); \
+	__sort_cswap_fn(T, els[17], els[19]); \
+	__sort_cswap_fn(T, els[20], els[22]); \
+	__sort_cswap_fn(T, els[21], els[23]); \
+	__sort_cswap_fn(T, els[24], els[26]); \
+	__sort_cswap_fn(T, els[25], els[27]); \
+	__sort_cswap_fn(T, els[28], els[30]); \
+	__sort_cswap_fn(T, els[29], els[31]); \
+	__sort_cswap_fn(T, els[0], els[4]); \
+	__sort_cswap_fn(T, els[1], els[5]); \
+	__sort_cswap_fn(T, els[2], els[6]); \
+	__sort_cswap_fn(T, els[3], els[7]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[9], els[13]); \
+	__sort_cswap_fn(T, els[10], els[14]); \
+	__sort_cswap_fn(T, els[11], els[15]); \
+	__sort_cswap_fn(T, els[16], els[20]); \
+	__sort_cswap_fn(T, els[17], els[21]); \
+	__sort_cswap_fn(T, els[18], els[22]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[24], els[28]); \
+	__sort_cswap_fn(T, els[25], els[29]); \
+	__sort_cswap_fn(T, els[26], els[30]); \
+	__sort_cswap_fn(T, els[27], els[31]); \
+	__sort_cswap_fn(T, els[0], els[8]); \
+	__sort_cswap_fn(T, els[1], els[9]); \
+	__sort_cswap_fn(T, els[2], els[10]); \
+	__sort_cswap_fn(T, els[3], els[11]); \
+	__sort_cswap_fn(T, els[4], els[12]); \
+	__sort_cswap_fn(T, els[5], els[13]); \
+	__sort_cswap_fn(T, els[6], els[14]); \
+	__sort_cswap_fn(T, els[7], els[15]); \
+	__sort_cswap_fn(T, els[16], els[24]); \
+	__sort_cswap_fn(T, els[17], els[25]); \
+	__sort_cswap_fn(T, els[18], els[26]); \
+	__sort_cswap_fn(T, els[19], els[27]); \
+	__sort_cswap_fn(T, els[20], els[28]); \
+	__sort_cswap_fn(T, els[21], els[29]); \
+	__sort_cswap_fn(T, els[22], els[30]); \
+	__sort_cswap_fn(T, els[23], els[31]); \
+	__sort_cswap_fn(T, els[0], els[16]); \
+	__sort_cswap_fn(T, els[1], els[8]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[3], els[12]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[6], els[9]); \
+	__sort_cswap_fn(T, els[7], els[14]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[15], els[31]); \
+	__sort_cswap_fn(T, els[17], els[24]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[28]); \
+	__sort_cswap_fn(T, els[21], els[26]); \
+	__sort_cswap_fn(T, els[22], els[25]); \
+	__sort_cswap_fn(T, els[23], els[30]); \
+	__sort_cswap_fn(T, els[27], els[29]); \
+	__sort_cswap_fn(T, els[1], els[2]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[4], els[8]); \
+	__sort_cswap_fn(T, els[6], els[22]); \
+	__sort_cswap_fn(T, els[7], els[11]); \
+	__sort_cswap_fn(T, els[9], els[25]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[20], els[24]); \
+	__sort_cswap_fn(T, els[23], els[27]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[29], els[30]); \
+	__sort_cswap_fn(T, els[1], els[17]); \
+	__sort_cswap_fn(T, els[2], els[18]); \
+	__sort_cswap_fn(T, els[3], els[19]); \
+	__sort_cswap_fn(T, els[4], els[20]); \
+	__sort_cswap_fn(T, els[5], els[10]); \
+	__sort_cswap_fn(T, els[7], els[23]); \
+	__sort_cswap_fn(T, els[8], els[24]); \
+	__sort_cswap_fn(T, els[11], els[27]); \
+	__sort_cswap_fn(T, els[12], els[28]); \
+	__sort_cswap_fn(T, els[13], els[29]); \
+	__sort_cswap_fn(T, els[14], els[30]); \
+	__sort_cswap_fn(T, els[21], els[26]); \
+	__sort_cswap_fn(T, els[3], els[17]); \
+	__sort_cswap_fn(T, els[4], els[16]); \
+	__sort_cswap_fn(T, els[5], els[21]); \
+	__sort_cswap_fn(T, els[6], els[18]); \
+	__sort_cswap_fn(T, els[7], els[9]); \
+	__sort_cswap_fn(T, els[8], els[20]); \
+	__sort_cswap_fn(T, els[10], els[26]); \
+	__sort_cswap_fn(T, els[11], els[23]); \
+	__sort_cswap_fn(T, els[13], els[25]); \
+	__sort_cswap_fn(T, els[14], els[28]); \
+	__sort_cswap_fn(T, els[15], els[27]); \
+	__sort_cswap_fn(T, els[22], els[24]); \
+	__sort_cswap_fn(T, els[1], els[4]); \
+	__sort_cswap_fn(T, els[3], els[8]); \
+	__sort_cswap_fn(T, els[5], els[16]); \
+	__sort_cswap_fn(T, els[7], els[17]); \
+	__sort_cswap_fn(T, els[9], els[21]); \
+	__sort_cswap_fn(T, els[10], els[22]); \
+	__sort_cswap_fn(T, els[11], els[19]); \
+	__sort_cswap_fn(T, els[12], els[20]); \
+	__sort_cswap_fn(T, els[14], els[24]); \
+	__sort_cswap_fn(T, els[15], els[26]); \
+	__sort_cswap_fn(T, els[23], els[28]); \
+	__sort_cswap_fn(T, els[27], els[30]); \
+	__sort_cswap_fn(T, els[2], els[5]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[18]); \
+	__sort_cswap_fn(T, els[11], els[17]); \
+	__sort_cswap_fn(T, els[12], els[16]); \
+	__sort_cswap_fn(T, els[13], els[22]); \
+	__sort_cswap_fn(T, els[14], els[20]); \
+	__sort_cswap_fn(T, els[15], els[19]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[26], els[29]); \
+	__sort_cswap_fn(T, els[2], els[4]); \
+	__sort_cswap_fn(T, els[6], els[12]); \
+	__sort_cswap_fn(T, els[9], els[16]); \
+	__sort_cswap_fn(T, els[10], els[11]); \
+	__sort_cswap_fn(T, els[13], els[17]); \
+	__sort_cswap_fn(T, els[14], els[18]); \
+	__sort_cswap_fn(T, els[15], els[22]); \
+	__sort_cswap_fn(T, els[19], els[25]); \
+	__sort_cswap_fn(T, els[20], els[21]); \
+	__sort_cswap_fn(T, els[27], els[29]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[8], els[12]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[13]); \
+	__sort_cswap_fn(T, els[14], els[16]); \
+	__sort_cswap_fn(T, els[15], els[17]); \
+	__sort_cswap_fn(T, els[18], els[20]); \
+	__sort_cswap_fn(T, els[19], els[23]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[3], els[5]); \
+	__sort_cswap_fn(T, els[6], els[7]); \
+	__sort_cswap_fn(T, els[8], els[9]); \
+	__sort_cswap_fn(T, els[10], els[12]); \
+	__sort_cswap_fn(T, els[11], els[14]); \
+	__sort_cswap_fn(T, els[13], els[16]); \
+	__sort_cswap_fn(T, els[15], els[18]); \
+	__sort_cswap_fn(T, els[17], els[20]); \
+	__sort_cswap_fn(T, els[19], els[21]); \
+	__sort_cswap_fn(T, els[22], els[23]); \
+	__sort_cswap_fn(T, els[24], els[25]); \
+	__sort_cswap_fn(T, els[26], els[28]); \
+	__sort_cswap_fn(T, els[3], els[4]); \
+	__sort_cswap_fn(T, els[5], els[6]); \
+	__sort_cswap_fn(T, els[7], els[8]); \
+	__sort_cswap_fn(T, els[9], els[10]); \
+	__sort_cswap_fn(T, els[11], els[12]); \
+	__sort_cswap_fn(T, els[13], els[14]); \
+	__sort_cswap_fn(T, els[15], els[16]); \
+	__sort_cswap_fn(T, els[17], els[18]); \
+	__sort_cswap_fn(T, els[19], els[20]); \
+	__sort_cswap_fn(T, els[21], els[22]); \
+	__sort_cswap_fn(T, els[23], els[24]); \
+	__sort_cswap_fn(T, els[25], els[26]); \
+	__sort_cswap_fn(T, els[27], els[28]); \
+}
+
 
 #define DEFINE_CONST_SORT_MAIN(T) \
 void const_sort_ ## T(uint32_t N, T els[N]) { \
@@ -1101,27 +3224,240 @@ void const_sort_ ## T(uint32_t N, T els[N]) { \
         case 16: \
             __bitonic_sort16_ ## T(els); \
             break; \
+        case 17: \
+            __bitonic_sort17_ ## T(els); \
+            break; \
+        case 18: \
+            __bitonic_sort18_ ## T(els); \
+            break; \
+        case 19: \
+            __bitonic_sort19_ ## T(els); \
+            break; \
+        case 20: \
+            __bitonic_sort20_ ## T(els); \
+            break; \
+        case 21: \
+            __bitonic_sort21_ ## T(els); \
+            break; \
+        case 22: \
+            __bitonic_sort22_ ## T(els); \
+            break; \
+        case 23: \
+            __bitonic_sort23_ ## T(els); \
+            break; \
+        case 24: \
+            __bitonic_sort24_ ## T(els); \
+            break; \
+        case 25: \
+            __bitonic_sort25_ ## T(els); \
+            break; \
+        case 26: \
+            __bitonic_sort26_ ## T(els); \
+            break; \
+        case 27: \
+            __bitonic_sort27_ ## T(els); \
+            break; \
+        case 28: \
+            __bitonic_sort28_ ## T(els); \
+            break; \
+        case 29: \
+            __bitonic_sort29_ ## T(els); \
+            break; \
+        case 30: \
+            __bitonic_sort30_ ## T(els); \
+            break; \
+        case 31: \
+            __bitonic_sort31_ ## T(els); \
+            break; \
+        case 32: \
+            __bitonic_sort32_ ## T(els); \
+            break; \
     } \
 }
 
 
-#define DEFINE_CONST_SORT(T) \
-	DEFINE_BITONIC_SORT2(T) \
-	DEFINE_BITONIC_SORT3(T) \
-	DEFINE_BITONIC_SORT4(T) \
-	DEFINE_BITONIC_SORT5(T) \
-	DEFINE_BITONIC_SORT6(T) \
-	DEFINE_BITONIC_SORT7(T) \
-	DEFINE_BITONIC_SORT8(T) \
-	DEFINE_BITONIC_SORT9(T) \
-	DEFINE_BITONIC_SORT10(T) \
-	DEFINE_BITONIC_SORT11(T) \
-	DEFINE_BITONIC_SORT12(T) \
-	DEFINE_BITONIC_SORT13(T) \
-	DEFINE_BITONIC_SORT14(T) \
-	DEFINE_BITONIC_SORT15(T) \
-	DEFINE_BITONIC_SORT16(T) \
+/*
+ * finds the index in els that key should be placed at, i.e. the index of the
+ * smallest element of els greater than key (or N if key is larger than all
+ * elements of els)
+ */
+static inline uint32_t
+binary_insertion_find(uint32_t N, uint32_t els[N], uint32_t key)
+{
+	uint32_t l = 0;
+	uint32_t r = N - 1;
+
+	// check for our of bounds above r
+	if (__default_sort_cmp(els[r], key)) {
+		return N;
+	}
+	// don't check for below els[0], since that is less likely for nearly sorted
+	// arrays
+
+	while (l < r) {
+		uint32_t m = (l + r) >> 1;
+
+		if (__default_sort_cmp(key, els[m])) {
+			r = m;
+		}
+		else {
+			l = m + 1;
+		}
+	}
+
+	return l;
+}
+
+
+#define DEFINE_CONST_SORT(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT2(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT3(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT4(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT5(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT6(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT7(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT8(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT9(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT10(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT11(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT12(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT13(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT14(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT15(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT16(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT17(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT18(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT19(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT20(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT21(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT22(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT23(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT24(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT25(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT26(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT27(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT28(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT29(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT30(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT31(T, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT32(T, __sort_cswap_fn) \
 	DEFINE_CONST_SORT_MAIN(T)
+
+#define DEFINE_CONST_SORT_DEFAULT_SWAP(T) \
+	DEFINE_CONST_SORT(T, __default_sort_cswap)
+
+
+DEFINE_CONST_SORT_DEFAULT_SWAP(uint32_t);
+
+
+void binary_insertion_sort(uint32_t N, uint32_t els[N])
+{
+	uint32_t el;
+	uint32_t loc;
+	uint32_t j;
+
+	for (uint32_t i = 1; i < N; i++) {
+		el = els[i];
+
+		loc = binary_insertion_find(i, els, el);
+		for (j = i; j > loc; j--) {
+			els[j] = els[j - 1];
+		}
+		els[j] = el;
+	}
+}
+
+void linear_insertion_sort(uint32_t N, uint32_t els[N])
+{
+	uint32_t el;
+	uint32_t j;
+
+	for (uint32_t i = 1; i < N; i++) {
+		el = els[i];
+
+		for (j = i - 1; j < i && __default_sort_cmp(el, els[j]); j--) {
+			els[j + 1] = els[j];
+		}
+		els[j + 1] = el;
+	}
+}
+
+void small_sort(uint32_t N, uint32_t els[N])
+{
+	if (N <= CONST_SORT_MAX) {
+		const_sort_uint32_t(N, els);
+	}
+	else {
+		linear_insertion_sort(N, els);
+	}
+}
+
+static uint32_t
+quick_sort_partition(uint32_t N, uint32_t els[N], uint32_t pivot)
+{
+	/*
+	uint32_t l = 0;
+	uint32_t r = N - 1;
+	uint8_t do_l = 0;
+
+	// swap pivot with end
+	__sort_swap(uint32_t, els[pivot], els[r]);
+
+	do {
+		do_l ^= (els[l] >= els[r]);
+		__default_sort_cswap(uint32_t, els[l], els[r]);
+
+		l += do_l;
+		r += do_l - 1;
+	} while (l < r);
+
+	// the pivot is at either l or r, but since they are now the same, we can
+	// return just l
+	return l;
+	*/
+
+	uint32_t idx = 0;
+	uint32_t p_val = els[pivot];
+
+	__sort_swap(uint32_t, els[pivot], els[N - 1]);
+
+	for (uint32_t i = 0; i < N - 1; i++) {
+		if (__default_sort_cmp(els[i], p_val)) {
+			__sort_swap(uint32_t, els[i], els[idx]);
+			idx++;
+		}
+	}
+	__sort_swap(uint32_t, els[idx], els[N - 1]);
+	return idx;
+}
+
+
+static void quick_sort_recursive(uint32_t N, uint32_t els[N])
+{
+	if (N <= SMALL_SORT_MAX) {
+		small_sort(N, els);
+		return;
+	}
+
+	uint32_t pivot = (N >> 1);
+	pivot = quick_sort_partition(N, els, pivot);
+
+	quick_sort_recursive(pivot, els);
+	quick_sort_recursive(N - (pivot + 1), els + pivot + 1);
+}
+
+
+void quick_sort(uint32_t N, uint32_t els[N])
+{
+	quick_sort_recursive(N, els);
+}
+
+
+void csort(uint32_t N, uint32_t els[N])
+{
+	quick_sort(N, els);
+}
+
 
 
 #endif

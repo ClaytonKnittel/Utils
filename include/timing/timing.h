@@ -8,8 +8,14 @@ extern "C" {
 
 #include <time.h>
 
+// returns the difference of two timespecs in seconds
+double timespec_diff(struct timespec* t1, struct timespec* t2);
 
-double timespec_diff(struct timespec * t1, struct timespec * t2);
+// adds t to dst
+void timespec_add(struct timespec* dst, struct timespec* t);
+
+// subtracts t from dst
+void timespec_sub(struct timespec* dst, struct timespec* t);
 
 
 #ifdef __cplusplus
