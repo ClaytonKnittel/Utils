@@ -13,9 +13,9 @@
 DEFINE_CSORT_DEFAULT_FNS(uint32_t);
 
 uint64_t factorial(uint64_t n) {
-    if (n == 0)
-        return 1;
-    return n * factorial(n - 1);
+	if (n == 0)
+		return 1;
+	return n * factorial(n - 1);
 }
 
 
