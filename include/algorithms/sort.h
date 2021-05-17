@@ -4,6 +4,13 @@
 #include <stdint.h>
 
 
+#ifdef DEBUG
+# include <assert.h>
+# define TEST_ASSERT(...) assert(__VA_ARGS__)
+#else
+# define TEST_ASSERT(...)
+#endif
+
 #ifdef __cplusplus
 
 #include <type_traits>
@@ -500,7 +507,7 @@ void __bitonic_sort16(T els[16]) {
 
 
 
-template<typename T, uint32_t N>
+template<typename T, size_t N>
 void const_sort(T els[N]) {
     static_assert(N <= CONST_SORT_MAX);
     switch (N) {
@@ -592,8 +599,11 @@ void const_sort(T els[N]) {
 
 
 /*
- * base-case bitonic sorts for array sizes 2 - 16, using the best known sorting
- * networks, taken from https://pages.ripco.net/~jgamble/nw.html
+ * base-case bitonic sorts for array sizes 2 - 32, using the best known sorting
+ * networks
+ *
+ * 2 - 16 taken from https://pages.ripco.net/~jgamble/nw.html
+ * 17 - 32 taken from http://users.telenet.be/bertdobbelaere/SorterHunter/sorting_networks.html
  */
 
 #define DEFINE_BITONIC_SORT2(T, __sort_cswap_fn) \
@@ -3173,8 +3183,8 @@ void __bitonic_sort32_ ## T(T els[32]) { \
 
 
 #define DEFINE_CONST_SORT_MAIN(T) \
-void const_sort_ ## T(uint32_t N, T els[N]) { \
-	assert(N <= CONST_SORT_MAX); \
+void const_sort_ ## T(size_t N, T els[N]) { \
+	TEST_ASSERT(N <= CONST_SORT_MAX); \
     switch (N) { \
         case 0: \
         case 1: \
@@ -3281,32 +3291,152 @@ void const_sort_ ## T(uint32_t N, T els[N]) { \
  * smallest element of els greater than key (or N if key is larger than all
  * elements of els)
  */
-static inline uint32_t
-binary_insertion_find(uint32_t N, uint32_t els[N], uint32_t key)
-{
-	uint32_t l = 0;
-	uint32_t r = N - 1;
-
-	// check for our of bounds above r
-	if (__default_sort_cmp(els[r], key)) {
-		return N;
-	}
-	// don't check for below els[0], since that is less likely for nearly sorted
-	// arrays
-
-	while (l < r) {
-		uint32_t m = (l + r) >> 1;
-
-		if (__default_sort_cmp(key, els[m])) {
-			r = m;
-		}
-		else {
-			l = m + 1;
-		}
-	}
-
-	return l;
+#define DEFINE_BINARY_INSERTION_FIND(T, __sort_cmp) \
+static inline size_t \
+binary_insertion_find_ ## T(size_t N, T els[N], T key) \
+{ \
+	size_t l = 0; \
+	size_t r = N -  1; \
+	\
+	/* check for our of bounds above r */ \
+	if (__sort_cmp(els[r], key)) { \
+		return N; \
+	} \
+	/* don't check for below els[0], since that is less likely for nearly */ \
+	/* sorted arrays */ \
+	\
+	while (l < r) { \
+		size_t m = (l + r) >> 1; \
+		\
+		if (__sort_cmp(key, els[m])) { \
+			r = m; \
+		} \
+		else { \
+			l = m + 1; \
+		} \
+	} \
+	\
+	return l; \
 }
+
+#define DEFINE_BINARY_INSERTION_SORT(T) \
+void \
+binary_insertion_sort_ ## T(size_t N, T els[N]) \
+{ \
+	T el; \
+	size_t loc; \
+	size_t j; \
+	\
+	for (size_t i = 1; i < N; i++) { \
+		el = els[i]; \
+		\
+		loc = binary_insertion_find_ ## T(i, els, el); \
+		for (j = i; j > loc; j--) { \
+			els[j] = els[j - 1]; \
+		} \
+		els[j] = el; \
+	} \
+}
+
+#define DEFINE_LINEAR_INSERTION_SORT(T, __sort_cmp) \
+void \
+linear_insertion_sort_ ## T(size_t N, T els[N]) \
+{ \
+	T el; \
+	size_t j; \
+	\
+	for (size_t i = 1; i < N; i++) { \
+		el = els[i]; \
+		\
+		for (j = i - 1; j < i && __sort_cmp(el, els[j]); j--) { \
+			els[j + 1] = els[j]; \
+		} \
+		els[j + 1] = el; \
+	} \
+}
+
+#define DEFINE_SMALL_SORT(T) \
+void small_sort_ ## T(size_t N, T els[N]) \
+{ \
+	if (N <= CONST_SORT_MAX) { \
+		const_sort_ ## T(N, els); \
+	} \
+	else { \
+		linear_insertion_sort_ ## T(N, els); \
+	} \
+}
+
+#define DEFINE_QUICK_SORT_PARTITION(T, __sort_cmp) \
+static size_t \
+quick_sort_partition_ ## T(size_t N, T els[N], size_t pivot) \
+{ \
+	/*
+	size_t l = 0;
+	size_t r = N - 1;
+	uint8_t do_l = 0;
+
+	// swap pivot with end
+	__sort_swap(T, els[pivot], els[r]);
+
+	do {
+		do_l ^= (els[l] >= els[r]);
+		__sort_cswap(T, els[l], els[r]);
+
+		l += do_l;
+		r += do_l - 1;
+	} while (l < r);
+
+	// the pivot is at either l or r, but since they are now the same, we can
+	// return just l
+	return l;
+	*/ \
+	\
+	size_t idx = 0; \
+	T p_val = els[pivot]; \
+	\
+	__sort_swap(T, els[pivot], els[N - 1]); \
+	\
+	for (size_t i = 0; i < N - 1; i++) { \
+		if (__sort_cmp(els[i], p_val)) { \
+			__sort_swap(T, els[i], els[idx]); \
+			idx++; \
+		} \
+	} \
+	__sort_swap(T, els[idx], els[N - 1]); \
+	return idx; \
+}
+
+#define DEFINE_QUICK_SORT_RECURSIVE(T) \
+static void \
+quick_sort_recursive_ ## T(size_t N, T els[N]) \
+{ \
+	if (N <= SMALL_SORT_MAX) { \
+		small_sort_ ## T(N, els); \
+		return; \
+	} \
+	\
+	size_t pivot = (N >> 1); \
+	pivot = quick_sort_partition_ ## T(N, els, pivot); \
+	\
+	quick_sort_recursive_ ## T(pivot, els); \
+	quick_sort_recursive_ ## T(N - (pivot + 1), els + pivot + 1); \
+}
+
+#define DEFINE_QUICK_SORT(T) \
+void \
+quick_sort_ ## T(size_t N, T els[N]) \
+{ \
+	quick_sort_recursive_ ## T(N, els); \
+}
+
+
+#define DEFINE_CSORT(T) \
+void \
+csort_ ## T(size_t N, T els[N]) \
+{ \
+	quick_sort_ ## T(N, els); \
+}
+
 
 
 #define DEFINE_CONST_SORT(T, __sort_cswap_fn) \
@@ -3343,121 +3473,24 @@ binary_insertion_find(uint32_t N, uint32_t els[N], uint32_t key)
 	DEFINE_BITONIC_SORT32(T, __sort_cswap_fn) \
 	DEFINE_CONST_SORT_MAIN(T)
 
-#define DEFINE_CONST_SORT_DEFAULT_SWAP(T) \
-	DEFINE_CONST_SORT(T, __default_sort_cswap)
+#define DEFINE_BINARY_INSERTION_SORT_FNS(T, __sort_cmp_fn) \
+	DEFINE_BINARY_INSERTION_FIND(T, __sort_cmp_fn) \
+	DEFINE_BINARY_INSERTION_SORT(T)
 
+#define DEFINE_QUICK_SORT_FNS(T, __sort_cmp_fn) \
+	DEFINE_QUICK_SORT_PARTITION(T, __sort_cmp_fn) \
+	DEFINE_QUICK_SORT_RECURSIVE(T) \
+	DEFINE_QUICK_SORT(T)
 
-DEFINE_CONST_SORT_DEFAULT_SWAP(uint32_t);
+#define DEFINE_CSORT_DEFAULT_FNS(T) \
+	DEFINE_CONST_SORT(T, __default_sort_cswap) \
+	DEFINE_BINARY_INSERTION_SORT_FNS(T, __default_sort_cmp) \
+	DEFINE_LINEAR_INSERTION_SORT(T, __default_sort_cmp) \
+	DEFINE_SMALL_SORT(T) \
+	DEFINE_QUICK_SORT_FNS(T, __default_sort_cmp) \
+	DEFINE_CSORT(T)
 
-
-void binary_insertion_sort(uint32_t N, uint32_t els[N])
-{
-	uint32_t el;
-	uint32_t loc;
-	uint32_t j;
-
-	for (uint32_t i = 1; i < N; i++) {
-		el = els[i];
-
-		loc = binary_insertion_find(i, els, el);
-		for (j = i; j > loc; j--) {
-			els[j] = els[j - 1];
-		}
-		els[j] = el;
-	}
-}
-
-void linear_insertion_sort(uint32_t N, uint32_t els[N])
-{
-	uint32_t el;
-	uint32_t j;
-
-	for (uint32_t i = 1; i < N; i++) {
-		el = els[i];
-
-		for (j = i - 1; j < i && __default_sort_cmp(el, els[j]); j--) {
-			els[j + 1] = els[j];
-		}
-		els[j + 1] = el;
-	}
-}
-
-void small_sort(uint32_t N, uint32_t els[N])
-{
-	if (N <= CONST_SORT_MAX) {
-		const_sort_uint32_t(N, els);
-	}
-	else {
-		linear_insertion_sort(N, els);
-	}
-}
-
-static uint32_t
-quick_sort_partition(uint32_t N, uint32_t els[N], uint32_t pivot)
-{
-	/*
-	uint32_t l = 0;
-	uint32_t r = N - 1;
-	uint8_t do_l = 0;
-
-	// swap pivot with end
-	__sort_swap(uint32_t, els[pivot], els[r]);
-
-	do {
-		do_l ^= (els[l] >= els[r]);
-		__default_sort_cswap(uint32_t, els[l], els[r]);
-
-		l += do_l;
-		r += do_l - 1;
-	} while (l < r);
-
-	// the pivot is at either l or r, but since they are now the same, we can
-	// return just l
-	return l;
-	*/
-
-	uint32_t idx = 0;
-	uint32_t p_val = els[pivot];
-
-	__sort_swap(uint32_t, els[pivot], els[N - 1]);
-
-	for (uint32_t i = 0; i < N - 1; i++) {
-		if (__default_sort_cmp(els[i], p_val)) {
-			__sort_swap(uint32_t, els[i], els[idx]);
-			idx++;
-		}
-	}
-	__sort_swap(uint32_t, els[idx], els[N - 1]);
-	return idx;
-}
-
-
-static void quick_sort_recursive(uint32_t N, uint32_t els[N])
-{
-	if (N <= SMALL_SORT_MAX) {
-		small_sort(N, els);
-		return;
-	}
-
-	uint32_t pivot = (N >> 1);
-	pivot = quick_sort_partition(N, els, pivot);
-
-	quick_sort_recursive(pivot, els);
-	quick_sort_recursive(N - (pivot + 1), els + pivot + 1);
-}
-
-
-void quick_sort(uint32_t N, uint32_t els[N])
-{
-	quick_sort_recursive(N, els);
-}
-
-
-void csort(uint32_t N, uint32_t els[N])
-{
-	quick_sort(N, els);
-}
-
+DEFINE_CSORT_DEFAULT_FNS(uint32_t);
 
 
 #endif

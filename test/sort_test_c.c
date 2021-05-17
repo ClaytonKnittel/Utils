@@ -114,7 +114,7 @@ void naive_sort(uint32_t N, uint32_t els[N]) {
 }
 
 
-static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t,uint32_t*), uint64_t n_trials) {
+static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t*), uint64_t n_trials) {
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 	uint32_t* all  = (uint32_t*) malloc(N * sizeof(uint32_t));
 
@@ -149,11 +149,11 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t,uint32
 }
 
 
-void call_quick_sort(uint32_t N, uint32_t els[N]) {
+void call_quick_sort(size_t N, uint32_t els[N]) {
 	test_quick_sort(els, N);
 }
 
-void call_tim_sort(uint32_t N, uint32_t els[N]) {
+void call_tim_sort(size_t N, uint32_t els[N]) {
 	test_tim_sort(els, N);
 }
 
@@ -170,7 +170,7 @@ int main(int argc, char * argv[]) {
 		uint64_t total_ns;
 		//total_ns = bench_insert_sort(n, linear_insertion_sort, trials);
 		//printf("lin: size %" PRIu32 ":\tavg (ns) %.0f\n", n, total_ns / ((double) trials));
-		total_ns = bench_insert_sort(n, csort, trials);
+		total_ns = bench_insert_sort(n, csort_uint32_t, trials);
 		printf("c: size %" PRIu32 ":\tavg (ns) %.0f\n", n, total_ns / ((double) trials));
 		total_ns = bench_insert_sort(n, call_quick_sort, trials);
 		printf("q: size %" PRIu32 ":\tavg (ns) %.0f\n\n", n, total_ns / ((double) trials));
