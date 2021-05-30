@@ -78,14 +78,6 @@ typedef struct rtree {
 	uint32_t m_leaf;
 } rtree_t;
 
-// TODO: optimize this with AVX
-static __attribute__((always_inline)) inline int
-rtree_rect_intersects(rtree_rect_t* a, rtree_rect_t* b)
-{
-	return !((a->ux < b->lx) || (b->ux < a->lx) ||
-			 (a->uy < b->ly) || (b->uy < a->ly));
-}
-
 
 void rtree_init(rtree_t*, uint32_t m_inner, uint32_t m_leaf);
 void rtree_free(rtree_t*);

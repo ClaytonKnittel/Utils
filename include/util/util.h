@@ -161,8 +161,8 @@ constexpr const T log10(const T & val) {
 
 #else
 
-#define MIN(a, b) ((a) < (b) : (a) : (b))
-#define MAX(a, b) ((a) > (b) : (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) < (b) ? (b) : (a))
 
 #define ALIGN_UP(val, algn) (((val) + ((algn) - 1)) & ~((algn) - 1))
 #define ALIGN_DOWN(val, algn) ((val) ~((algn) - 1))
