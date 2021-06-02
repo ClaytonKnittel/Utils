@@ -29,6 +29,8 @@ typedef struct rtree_node_base {
 	// the bounding box of the node
 	rtree_rect_t bb;
 
+	struct rtree_node_base* parent;
+
 	// the number of children of this node
 	uint32_t n;
 
@@ -72,15 +74,20 @@ typedef struct rtree_leaf {
 
 typedef struct rtree {
 	rtree_node_base_t* root;
-	// max number of children an inner node can have
-	uint32_t m_inner;
-	// max number of children a leaf node can have
-	uint32_t m_leaf;
+	// min number of children a node can have
+	uint32_t m_min;
+	// max number of children a node can have
+	uint32_t m_max;
+	// the max depth of any path in the tree
+	uint64_t depth;
 } rtree_t;
 
 
-void rtree_init(rtree_t*, uint32_t m_inner, uint32_t m_leaf);
+void rtree_init(rtree_t*, uint32_t m_min, uint32_t m_max);
 void rtree_free(rtree_t*);
 
+void rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
+
+void rtree_print(const rtree_t*);
 
 #endif /* _R_TREE_H_ */

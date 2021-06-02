@@ -10,7 +10,7 @@
 #include <timing/timing.h>
 
 
-DEFINE_CSORT_DEFAULT_FNS(uint32_t);
+DEFINE_CSORT_DEFAULT_FNS_NAMED(uint32_t, uint32_t, __default_sort_cmp, __default_sort_cswap);
 
 uint64_t factorial(uint64_t n) {
 	if (n == 0)
