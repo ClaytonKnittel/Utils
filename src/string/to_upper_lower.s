@@ -4,7 +4,7 @@
 .global _to_lower
 
 .data:
-.align 32
+.align 5
 # to shift all lowercase letters to the highest signed-byte range
 upper_offset_array:
 	.quad 0x0505050505050505
