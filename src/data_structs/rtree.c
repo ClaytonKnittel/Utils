@@ -10,27 +10,37 @@
 
 
 static __attribute__((always_inline)) inline rtree_coord_t
-_rtree_rect_area(rtree_rect_t* r)
+_rtree_rect_area(const rtree_rect_t* r)
 {
 	return (r->ux - r->lx) * (r->uy - r->ly);
 }
 
 static __attribute__((always_inline)) inline rtree_coord_t
-_rtree_rect_margin(rtree_rect_t* r)
+_rtree_rect_margin(const rtree_rect_t* r)
 {
 	return 2 * ((r->ux - r->lx) + (r->uy - r->ly));
 }
 
 // TODO: optimize this with AVX
 static __attribute__((always_inline)) inline bool
-_rtree_rect_intersects(rtree_rect_t* a, rtree_rect_t* b)
+_rtree_rect_intersects(const rtree_rect_t* a, const rtree_rect_t* b)
 {
 	return !((a->ux < b->lx) || (b->ux < a->lx) ||
 			 (a->uy < b->ly) || (b->uy < a->ly));
 }
 
+/*
+ * returns true if p contains r (borders may intersect), false otherwise
+ */
+static __attribute__((always_inline)) inline bool
+_rtree_rect_contains(const rtree_rect_t* p, const rtree_rect_t* r)
+{
+	return ((p->lx <= r->lx) && (r->ux <= p->ux) &&
+			(p->ly <= r->ly) && (r->uy <= p->uy));
+}
+
 static __attribute__((always_inline)) inline rtree_coord_t
-_rtree_rect_overlap(rtree_rect_t* a_ptr, rtree_rect_t* b_ptr)
+_rtree_rect_overlap(const rtree_rect_t* a_ptr, const rtree_rect_t* b_ptr)
 {
 	rtree_rect_t a = *a_ptr;
 	rtree_rect_t b = *b_ptr;
@@ -240,8 +250,8 @@ _min_area_increase_child(rtree_node_base_t** children, uint32_t n, rtree_rect_t*
 		(b) = m; \
 	} while (0)*/
 
-DEFINE_CSORT_DEFAULT_FNS_NAMED(rtree_rect_t*, rtree_rect_x, rect_x_sort_cmp, rect_x_sort_cswap);
-DEFINE_CSORT_DEFAULT_FNS_NAMED(rtree_rect_t*, rtree_rect_y, rect_y_sort_cmp, rect_y_sort_cswap);
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_x, rect_x_sort_cmp, rect_x_sort_cswap);
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_y, rect_y_sort_cmp, rect_y_sort_cswap);
 
 struct split_cost {
 	rtree_coord_t overlap;
@@ -658,5 +668,87 @@ rtree_print(const rtree_t* tree)
 {
 	rtree_print_node(tree->root, 0);
 	printf("\n");
+}
+
+
+struct check_state {
+	uint64_t depth;
+};
+
+
+static void
+_rtree_check_leaf(const rtree_t* tree, struct check_state* state,
+		const rtree_leaf_t* leaf, const rtree_node_base_t* parent,
+		uint64_t depth)
+{
+	state->depth = MAX(state->depth, depth);
+	assert(leaf->base.parent == parent);
+
+	uint32_t n_children = leaf->base.n;
+	if (leaf->base.parent != NULL) {
+		// only check if this isn't the root
+		assert(tree->m_min <= n_children);
+	}
+	assert(n_children <= tree->m_max);
+
+	for (uint32_t i = 0; i < n_children; i++) {
+		const rtree_el_t* el = &leaf->elements[i];
+		assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
+	}
+}
+
+static void
+_rtree_check_node(const rtree_t* tree, struct check_state* state,
+		const rtree_node_base_t* n, const rtree_node_base_t* parent,
+		uint64_t depth)
+{
+	state->depth = MAX(state->depth, depth);
+
+	if (n->state & RTREE_ROOT_LEAF) {
+		_rtree_check_leaf(tree, state, (const rtree_leaf_t*) n, parent, depth);
+	}
+	else if (n->state & RTREE_NODE_LEAF_CHILDREN) {
+		const rtree_node_t* node = (const rtree_node_t*) n;
+		uint32_t n_children = node->base.n;
+		assert(n_children <= tree->m_max);
+
+		// this flag can only be set in the root
+		assert(parent == NULL);
+		assert(node->base.parent == parent);
+
+		for (uint32_t i = 0; i < n_children; i++) {
+			const rtree_leaf_t* child = (const rtree_leaf_t*) node->children[i];
+			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
+			_rtree_check_leaf(tree, state, child, n, depth + 1);
+		}
+	}
+	else {
+		const rtree_node_t* node = (const rtree_node_t*) n;
+		uint32_t n_children = node->base.n;
+		if (node->base.parent != NULL) {
+			// only check if this isn't the root
+			assert(tree->m_min <= n_children);
+		}
+		assert(n_children <= tree->m_max);
+
+		assert(node->base.parent == parent);
+
+		for (uint32_t i = 0; i < n_children; i++) {
+			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
+			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
+			_rtree_check_node(tree, state, &child->base, n, depth + 1);
+		}
+	}
+}
+
+void
+rtree_check(const rtree_t* tree)
+{
+	struct check_state state = {
+		.depth = 0
+	};
+	_rtree_check_node(tree, &state, tree->root, NULL, 0);
+
+	assert(state.depth == tree->depth);
 }
 

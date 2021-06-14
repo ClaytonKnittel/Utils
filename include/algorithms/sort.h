@@ -3182,6 +3182,62 @@ void __bitonic_sort32_ ## name(T els[32]) { \
 }
 
 
+#define DEFINE_CONST_SORT_MAIN16(T, name) \
+void const_sort_ ## name(size_t N, T els[N]) { \
+	TEST_ASSERT(N <= 16); \
+	switch (N) { \
+		case 0: \
+		case 1: \
+			break; \
+		case 2: \
+			__bitonic_sort2_ ## name(els); \
+			break; \
+		case 3: \
+			__bitonic_sort3_ ## name(els); \
+			break; \
+		case 4: \
+			__bitonic_sort4_ ## name(els); \
+			break; \
+		case 5: \
+			__bitonic_sort5_ ## name(els); \
+			break; \
+		case 6: \
+			__bitonic_sort6_ ## name(els); \
+			break; \
+		case 7: \
+			__bitonic_sort7_ ## name(els); \
+			break; \
+		case 8: \
+			__bitonic_sort8_ ## name(els); \
+			break; \
+		case 9: \
+			__bitonic_sort9_ ## name(els); \
+			break; \
+		case 10: \
+			__bitonic_sort10_ ## name(els); \
+			break; \
+		case 11: \
+			__bitonic_sort11_ ## name(els); \
+			break; \
+		case 12: \
+			__bitonic_sort12_ ## name(els); \
+			break; \
+		case 13: \
+			__bitonic_sort13_ ## name(els); \
+			break; \
+		case 14: \
+			__bitonic_sort14_ ## name(els); \
+			break; \
+		case 15: \
+			__bitonic_sort15_ ## name(els); \
+			break; \
+		case 16: \
+			__bitonic_sort16_ ## name(els); \
+			break; \
+	} \
+}
+
+
 #define DEFINE_CONST_SORT_MAIN(T, name) \
 void const_sort_ ## name(size_t N, T els[N]) { \
 	TEST_ASSERT(N <= CONST_SORT_MAX); \
@@ -3438,6 +3494,24 @@ csort_ ## name(size_t N, T els[N]) \
 }
 
 
+#define DEFINE_CONST_SORT16(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT2(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT3(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT4(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT5(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT6(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT7(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT8(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT9(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT10(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT11(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT12(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT13(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT14(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT15(T, name, __sort_cswap_fn) \
+	DEFINE_BITONIC_SORT16(T, name, __sort_cswap_fn) \
+	DEFINE_CONST_SORT_MAIN16(T, name)
+
 
 #define DEFINE_CONST_SORT(T, name, __sort_cswap_fn) \
 	DEFINE_BITONIC_SORT2(T, name, __sort_cswap_fn) \
@@ -3482,6 +3556,17 @@ csort_ ## name(size_t N, T els[N]) \
 	DEFINE_QUICK_SORT_RECURSIVE(T, name) \
 	DEFINE_QUICK_SORT(T, name)
 
+#define DEFINE_CSORT_DEFAULT_FNS_NAMED_16(T, name, sort_cmp, sort_cswap) \
+	DEFINE_CONST_SORT16(T, name, sort_cswap) \
+	DEFINE_BINARY_INSERTION_SORT_FNS(T, name, sort_cmp) \
+	DEFINE_LINEAR_INSERTION_SORT(T, name, sort_cmp) \
+	DEFINE_SMALL_SORT(T, name) \
+	DEFINE_QUICK_SORT_FNS(T, name, sort_cmp) \
+	DEFINE_CSORT(T, name)
+
+#define DEFINE_CSORT_DEFAULT_FNS_16(T) \
+	DEFINE_COSRT_DEFAULT_FNS_NAMED_16(T, T, __default_sort_cmp, __default_sort_cswap)
+
 #define DEFINE_CSORT_DEFAULT_FNS_NAMED(T, name, sort_cmp, sort_cswap) \
 	DEFINE_CONST_SORT(T, name, sort_cswap) \
 	DEFINE_BINARY_INSERTION_SORT_FNS(T, name, sort_cmp) \
@@ -3493,7 +3578,7 @@ csort_ ## name(size_t N, T els[N]) \
 #define DEFINE_CSORT_DEFAULT_FNS(T) \
 	DEFINE_COSRT_DEFAULT_FNS_NAMED(T, T, __default_sort_cmp, __default_sort_cswap)
 
-#endif
+#endif /* __cplusplus */
 
 
 #endif /* _ALG_SORT_H */

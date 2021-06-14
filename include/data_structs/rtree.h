@@ -90,4 +90,6 @@ void rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
 
 void rtree_print(const rtree_t*);
 
+void rtree_check(const rtree_t*);
+
 #endif /* _R_TREE_H_ */

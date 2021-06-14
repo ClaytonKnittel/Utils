@@ -34,11 +34,20 @@ int main(int argc, char* argv[])
 		.ux = 2,
 		.uy = 3
 	};
+	rtree_print(&tree);
+	rtree_check(&tree);
 	rtree_insert(&tree, &rect1, NULL);
+	rtree_print(&tree);
+	rtree_check(&tree);
 	rtree_insert(&tree, &rect2, NULL);
+	rtree_print(&tree);
+	rtree_check(&tree);
 	rtree_insert(&tree, &rect3, NULL);
 	rtree_print(&tree);
+	rtree_check(&tree);
 	rtree_insert(&tree, &rect4, NULL);
+	rtree_print(&tree);
+	rtree_check(&tree);
 
 	return 0;
 }
