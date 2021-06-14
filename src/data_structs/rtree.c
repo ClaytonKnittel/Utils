@@ -1,4 +1,6 @@
 
+#include <assert.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -122,7 +124,7 @@ _new_empty_leaf_node(uint32_t m_max)
 {
 	// TODO: test calloc vs clear first bit
 	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t*));
+			m_max * sizeof(rtree_el_t));
 	// set everything but the children pointers to 0
 	memset(n, 0, sizeof(rtree_leaf_t));
 	return &n->base;
@@ -133,7 +135,7 @@ _new_leaf_node(uint32_t m_max)
 {
 	// TODO: test calloc vs clear first bit
 	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t*));
+			m_max * sizeof(rtree_el_t));
 	return &n->base;
 }
 
@@ -312,18 +314,32 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_x.overlap = _rtree_rect_overlap(&x_bb, &rev_rects[0]);
 		opt_x.area = _rtree_rect_area(&x_bb) + _rtree_rect_area(&rev_rects[0]);
 		opt_x.split_idx = i;
+		opt_x.lower_bb = x_bb;
+		opt_x.upper_bb = rev_rects[0];
+
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&x_bb, x_sort[i]);
-			x_margin += _rtree_rect_margin(&x_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]);
+			x_margin += _rtree_rect_margin(&x_bb) +
+				_rtree_rect_margin(&rev_rects[i - m_min + 1]);
 
 			rtree_coord_t overlap = _rtree_rect_overlap(&x_bb, &rev_rects[i - m_min + 1]);
-			rtree_coord_t area = _rtree_rect_area(&x_bb) + _rtree_rect_area(&rev_rects[i - m_min + 1]);
+			rtree_coord_t area = _rtree_rect_area(&x_bb) +
+				_rtree_rect_area(&rev_rects[i - m_min + 1]);
 			if (overlap < opt_x.overlap || (overlap == opt_x.overlap && area < opt_x.area)) {
 				opt_x.overlap = overlap;
 				opt_x.area = area;
 				opt_x.split_idx = i + 1;
 				opt_x.lower_bb = x_bb;
 				opt_x.upper_bb = rev_rects[i - m_min + 1];
+
+				printf("x got better at %u,\n"
+						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
+						i,
+						x_bb.lx, x_bb.ly,
+						x_bb.ux, x_bb.uy,
+						rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
+						rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy);
 			}
 		}
 	}
@@ -353,37 +369,51 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_y.overlap = _rtree_rect_overlap(&y_bb, &rev_rects[0]);
 		opt_y.area = _rtree_rect_area(&y_bb) + _rtree_rect_area(&rev_rects[0]);
 		opt_y.split_idx = i;
+		opt_y.lower_bb = y_bb;
+		opt_y.upper_bb = rev_rects[0];
+
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&y_bb, y_sort[i]);
-			y_margin += _rtree_rect_margin(&y_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]);
+			y_margin += _rtree_rect_margin(&y_bb) +
+				_rtree_rect_margin(&rev_rects[i - m_min + 1]);
 
 			rtree_coord_t overlap = _rtree_rect_overlap(&y_bb, &rev_rects[i - m_min + 1]);
-			rtree_coord_t area = _rtree_rect_area(&y_bb) + _rtree_rect_area(&rev_rects[i - m_min + 1]);
+			rtree_coord_t area = _rtree_rect_area(&y_bb) +
+				_rtree_rect_area(&rev_rects[i - m_min + 1]);
 			if (overlap < opt_y.overlap || (overlap == opt_y.overlap && area < opt_y.area)) {
 				opt_y.overlap = overlap;
 				opt_y.area = area;
 				opt_y.split_idx = i + 1;
 				opt_y.lower_bb = y_bb;
 				opt_y.upper_bb = rev_rects[i - m_min + 1];
+
+				printf("y got better at %u,\n"
+						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
+						i,
+						y_bb.lx, y_bb.ly,
+						y_bb.ux, y_bb.uy,
+						rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
+						rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy);
 			}
 		}
 	}
 
 	printf("sorted x:\n");
 	for (int i = 0; i < n; i++) {
-		printf("<(%lld, %lld), (%lld, %lld)>\n",
+		printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
 				x_sort[i]->lx, x_sort[i]->ly,
 				x_sort[i]->ux, x_sort[i]->uy);
 	}
 
 	printf("\nsorted y:\n");
 	for (int i = 0; i < n; i++) {
-		printf("<(%lld, %lld), (%lld, %lld)>\n",
+		printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
 				y_sort[i]->lx, y_sort[i]->ly,
 				y_sort[i]->ux, y_sort[i]->uy);
 	}
 
-	printf("\nx total: %llu\ny total: %llu\n", x_margin, y_margin);
+	printf("\nx total: %" PRIu64 "\ny total: %" PRIu64 "\n", x_margin, y_margin);
 
 	*x_cost = opt_x;
 	*y_cost = opt_y;
@@ -395,19 +425,27 @@ static rtree_node_base_t*
 _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 {
 	uint32_t n = node->base.n;
+	rtree_el_t* x_sort_base;
+	rtree_el_t* y_sort_base;
 	rtree_el_t** x_sort;
 	rtree_el_t** y_sort;
 	struct split_cost x_cost, y_cost;
 
+	x_sort_base = (rtree_el_t*) alloca((n + 1) * sizeof(rtree_el_t));
+	y_sort_base = (rtree_el_t*) alloca((n + 1) * sizeof(rtree_el_t));
+
 	x_sort = (rtree_el_t**) alloca((n + 1) * sizeof(rtree_el_t*));
 	y_sort = (rtree_el_t**) alloca((n + 1) * sizeof(rtree_el_t*));
 
-	for (uint32_t i = 0; i < n; i++) {
-		x_sort[i] = &((rtree_leaf_t*) node)->elements[i];
-		y_sort[i] = &((rtree_leaf_t*) node)->elements[i];
+	memcpy(x_sort_base, node->elements, n * sizeof(rtree_el_t));
+	memcpy(y_sort_base, node->elements, n * sizeof(rtree_el_t));
+	x_sort_base[n] = *to_add;
+	y_sort_base[n] = *to_add;
+
+	for (uint32_t i = 0; i < n + 1; i++) {
+		x_sort[i] = &x_sort_base[i];
+		y_sort[i] = &y_sort_base[i];
 	}
-	x_sort[n] = to_add;
-	y_sort[n] = to_add;
 	n++;
 
 	bool split_x = _determine_split(tree, n, (rtree_rect_t**) x_sort, (rtree_rect_t**) y_sort,
@@ -573,6 +611,9 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			old_root->state &= ~RTREE_ROOT_LEAF;
 
 			split_child->parent = (rtree_node_base_t*) new_root;
+			split_child->state &= ~RTREE_ROOT_LEAF;
+
+			tree->root = &new_root->base;
 			break;
 		}
 
@@ -591,6 +632,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			// perform a split
 			n = _split_node(tree, (rtree_node_t*) n, split_child);
 		}
+		depth--;
 	}
 }
 
@@ -602,6 +644,7 @@ rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
 	tree->root->state |= RTREE_ROOT_LEAF;
 	tree->m_min = m_min;
 	tree->m_max = m_max;
+	tree->depth = 0;
 }
 
 void
@@ -622,11 +665,11 @@ rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
 void
 rtree_print_leaf(const rtree_leaf_t* leaf, int depth)
 {
-	printf("%*s{ ((%lld, %lld), (%lld, %lld))", depth, "",
+	printf("%*s{ ((%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 "))", depth, "",
 				leaf->base.bb.lx, leaf->base.bb.ly,
 				leaf->base.bb.ux, leaf->base.bb.uy);
 	for (uint32_t i = 0; i < leaf->base.n; i++) {
-		printf("\n%*s<(%lld, %lld), (%lld, %lld)>", depth + 2, "",
+		printf("\n%*s<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>", depth + 2, "",
 				leaf->elements[i].bb.lx, leaf->elements[i].bb.ly,
 				leaf->elements[i].bb.ux, leaf->elements[i].bb.uy);
 	}
@@ -641,7 +684,7 @@ rtree_print_node(const rtree_node_base_t* node, int depth)
 	}
 	else if (node->state & RTREE_NODE_LEAF_CHILDREN) {
 		rtree_node_t* n = (rtree_node_t*) node;
-		printf("%*s[ ((%lld, %lld), (%lld, %lld))", depth, "",
+		printf("%*s[ ((%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 "))", depth, "",
 				n->base.bb.lx, n->base.bb.ly,
 				n->base.bb.ux, n->base.bb.uy);
 		for (uint32_t i = 0; i < node->n; i++) {
@@ -652,7 +695,7 @@ rtree_print_node(const rtree_node_base_t* node, int depth)
 	}
 	else {
 		rtree_node_t* n = (rtree_node_t*) node;
-		printf("%*s[ ((%lld, %lld), (%lld, %lld))", depth, "",
+		printf("%*s[ ((%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 "))", depth, "",
 				n->base.bb.lx, n->base.bb.ly,
 				n->base.bb.ux, n->base.bb.uy);
 		for (uint32_t i = 0; i < node->n; i++) {

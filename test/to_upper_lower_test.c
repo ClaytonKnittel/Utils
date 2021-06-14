@@ -9,6 +9,8 @@
 
 #include <string/string.h>
 
+#ifdef __APPLE__
+
 void gen_rand_str(char* rand_str, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
 		//rand_str[i] = rand() % 127 + 1;
@@ -270,4 +272,12 @@ int main() {
 	printf("}}\n");*/
 	return 0;
 }
+
+#else
+
+int main() {
+	return 0;
+}
+
+#endif /* __APPLE__ */
 

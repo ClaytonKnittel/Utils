@@ -1,4 +1,5 @@
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <data_structs/union_find.h>
@@ -22,7 +23,7 @@ int uf_init(union_find * uf, uint64_t size) {
 
     if (arr == NULL) {
         printerr(stderr,
-            "Unable to malloc %llu bytes\n",
+            "Unable to malloc %" PRIu64 " bytes\n",
             size * sizeof(union_node));
         return -1;
     }
@@ -55,7 +56,7 @@ int uf_copy(union_find * dst, const union_find * src) {
 
     if (dst->arr == NULL) {
         printerr(stderr,
-            "Unable to malloc %llu bytes\n",
+            "Unable to malloc %" PRIu64 " bytes\n",
             dst->size * sizeof(union_node));
         return -1;
     }

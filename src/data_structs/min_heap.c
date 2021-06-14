@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #include <data_structs/min_heap.h>
@@ -575,10 +576,10 @@ static void __print_nodes(heap_node * node, int is_left, int depth) {
         printf("%*.sRoot (%p)\n", depth, "", node);
     }
     else if (is_left == 1) {
-        printf("%*.sL: %lld (%p)\n", depth, "", node->key, node);
+        printf("%*.sL: %" PRId64 " (%p)\n", depth, "", node->key, node);
     }
     else {
-        printf("%*.sR: %lld (%p)\n", depth, "", node->key, node);
+        printf("%*.sR: %" PRId64 " (%p)\n", depth, "", node->key, node);
     }
 
     heap_node * child = node->lchild;
