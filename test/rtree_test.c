@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
 	rtree_print(&tree);
 	rtree_check(&tree);
 
+	rtree_free(&tree);
 	return 0;
 }
 

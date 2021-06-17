@@ -455,6 +455,7 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 	rtree_leaf_t* split_node = (rtree_leaf_t*) _new_leaf_node(tree->m_max);
 	split_node->base.parent = node->base.parent;
 	split_node->base.state = node->base.state;
+	split_node->base.depth = 0;
 
 	if (split_x) {
 		split_node->base.bb = x_cost.upper_bb;
@@ -517,6 +518,23 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 				x_cost.split_idx * sizeof(rtree_node_base_t*));
 		memcpy(split_node->children, &x_sort[x_cost.split_idx],
 				(n - x_cost.split_idx) * sizeof(rtree_node_base_t*));
+
+		// calculate the new depths of each node
+		uint32_t node_depth;
+		uint32_t split_depth;
+
+		node_depth = x_sort[0]->depth;
+		for (uint32_t i = 1; i < x_cost.split_idx; i++) {
+			node_depth = MAX(node_depth, x_sort[i]->depth);
+		}
+
+		split_depth = x_sort[x_cost.split_idx]->depth;
+		for (uint32_t i = x_cost.split_idx + 1; i < n; i++) {
+			split_depth = MAX(split_depth, x_sort[i]->depth);
+		}
+
+		node->base.depth = node_depth;
+		split_node->base.depth = split_depth;
 	}
 	else {
 		split_node->base.bb = y_cost.upper_bb;
@@ -527,6 +545,23 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 				y_cost.split_idx * sizeof(rtree_node_base_t*));
 		memcpy(split_node->children, &y_sort[y_cost.split_idx],
 				(n - y_cost.split_idx) * sizeof(rtree_node_base_t*));
+
+		// calculate the new depths of each node
+		uint32_t node_depth;
+		uint32_t split_depth;
+
+		node_depth = y_sort[0]->depth;
+		for (uint32_t i = 1; i < y_cost.split_idx; i++) {
+			node_depth = MAX(node_depth, y_sort[i]->depth);
+		}
+
+		split_depth = y_sort[y_cost.split_idx]->depth;
+		for (uint32_t i = y_cost.split_idx + 1; i < n; i++) {
+			split_depth = MAX(split_depth, y_sort[i]->depth);
+		}
+
+		node->base.depth = node_depth;
+		split_node->base.depth = split_depth;
 	}
 
 	return (rtree_node_base_t*) split_node;
@@ -648,10 +683,39 @@ rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
 	tree->m_max = m_max;
 }
 
+static void
+_rtree_leaf_free(rtree_leaf_t* leaf)
+{
+	free(leaf);
+}
+
+static void
+_rtree_node_free(rtree_node_base_t* node)
+{
+	if (node->state & RTREE_ROOT_LEAF) {
+		_rtree_leaf_free((rtree_leaf_t*) node);
+	}
+	else if (node->state & RTREE_NODE_LEAF_CHILDREN) {
+		rtree_node_t* inode = (rtree_node_t*) node;
+		for (uint32_t i = 0; i < inode->base.n; i++) {
+			rtree_leaf_t* leaf = (rtree_leaf_t*) inode->children[i];
+			_rtree_leaf_free(leaf);
+		}
+		free(inode);
+	}
+	else {
+		rtree_node_t* inode = (rtree_node_t*) node;
+		for (uint32_t i = 0; i < inode->base.n; i++) {
+			_rtree_node_free(inode->children[i]);
+		}
+		free(inode);
+	}
+}
+
 void
 rtree_free(rtree_t* tree)
 {
-
+	_rtree_node_free(tree->root);
 }
 
 void
