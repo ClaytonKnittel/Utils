@@ -602,7 +602,9 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			_rtree_rect_combine(&new_root->base.bb, &old_root->bb, &split_child->bb);
 			new_root->base.parent = NULL;
 			new_root->base.n = 2;
-			new_root->base.state = (old_root->state & RTREE_ROOT_LEAF) ? RTREE_NODE_LEAF_CHILDREN : 0;
+			new_root->base.state = (old_root->state & RTREE_ROOT_LEAF) ?
+				RTREE_NODE_LEAF_CHILDREN : 0;
+			new_root->base.depth = old_root->depth + 1;
 			new_root->children[0] = old_root;
 			new_root->children[1] = split_child;
 
@@ -644,7 +646,6 @@ rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
 	tree->root->state |= RTREE_ROOT_LEAF;
 	tree->m_min = m_min;
 	tree->m_max = m_max;
-	tree->depth = 0;
 }
 
 void
@@ -657,7 +658,7 @@ void
 rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
 {
 	int_set_t iset;
-	int_set_inita(iset, tree->depth);
+	int_set_inita(iset, tree->root->depth);
 	_do_insert(tree, rect, udata, iset);
 }
 
@@ -724,6 +725,7 @@ _rtree_check_leaf(const rtree_t* tree, struct check_state* state,
 		const rtree_leaf_t* leaf, const rtree_node_base_t* parent,
 		uint64_t depth)
 {
+	assert(leaf->base.depth == 0);
 	state->depth = MAX(state->depth, depth);
 	assert(leaf->base.parent == parent);
 
@@ -741,14 +743,16 @@ _rtree_check_leaf(const rtree_t* tree, struct check_state* state,
 }
 
 static void
-_rtree_check_node(const rtree_t* tree, struct check_state* state,
+_rtree_check_node(const rtree_t* tree, struct check_state* p_state,
 		const rtree_node_base_t* n, const rtree_node_base_t* parent,
 		uint64_t depth)
 {
-	state->depth = MAX(state->depth, depth);
+	struct check_state state = {
+		.depth = depth
+	};
 
 	if (n->state & RTREE_ROOT_LEAF) {
-		_rtree_check_leaf(tree, state, (const rtree_leaf_t*) n, parent, depth);
+		_rtree_check_leaf(tree, &state, (const rtree_leaf_t*) n, parent, depth);
 	}
 	else if (n->state & RTREE_NODE_LEAF_CHILDREN) {
 		const rtree_node_t* node = (const rtree_node_t*) n;
@@ -762,7 +766,7 @@ _rtree_check_node(const rtree_t* tree, struct check_state* state,
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_leaf_t* child = (const rtree_leaf_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
-			_rtree_check_leaf(tree, state, child, n, depth + 1);
+			_rtree_check_leaf(tree, &state, child, n, depth + 1);
 		}
 	}
 	else {
@@ -779,9 +783,12 @@ _rtree_check_node(const rtree_t* tree, struct check_state* state,
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
-			_rtree_check_node(tree, state, &child->base, n, depth + 1);
+			_rtree_check_node(tree, &state, &child->base, n, depth + 1);
 		}
 	}
+
+	assert(n->depth == state.depth - depth);
+	p_state->depth = MAX(p_state->depth, state.depth);
 }
 
 void
@@ -791,7 +798,5 @@ rtree_check(const rtree_t* tree)
 		.depth = 0
 	};
 	_rtree_check_node(tree, &state, tree->root, NULL, 0);
-
-	assert(state.depth == tree->depth);
 }
 

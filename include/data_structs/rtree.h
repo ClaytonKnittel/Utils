@@ -39,6 +39,9 @@ typedef struct rtree_node_base {
 	//  - RTREE_NODE_LEAF_CHILDREN (for inner nodes)
 	//  - RTREE_ROOT_LEAF
 	uint8_t state;
+
+	// depth of the tree from this node
+	uint16_t depth;
 } rtree_node_base_t;
 
 
@@ -78,8 +81,6 @@ typedef struct rtree {
 	uint32_t m_min;
 	// max number of children a node can have
 	uint32_t m_max;
-	// the max depth of any path in the tree
-	uint64_t depth;
 } rtree_t;
 
 
