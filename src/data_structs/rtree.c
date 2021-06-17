@@ -800,10 +800,24 @@ _rtree_check_leaf(const rtree_t* tree, struct check_state* state,
 	}
 	assert(n_children <= tree->m_max);
 
+	rtree_rect_t bb;
+
 	for (uint32_t i = 0; i < n_children; i++) {
 		const rtree_el_t* el = &leaf->elements[i];
 		assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
+
+		if (i == 0) {
+			bb = el->bb;
+		}
+		else {
+			_rtree_rect_extend(&bb, &el->bb);
+		}
 	}
+
+	assert(bb.lx == leaf->base.bb.lx);
+	assert(bb.ly == leaf->base.bb.ly);
+	assert(bb.ux == leaf->base.bb.ux);
+	assert(bb.uy == leaf->base.bb.uy);
 }
 
 static void
@@ -827,11 +841,25 @@ _rtree_check_node(const rtree_t* tree, struct check_state* p_state,
 		assert(parent == NULL);
 		assert(node->base.parent == parent);
 
+		rtree_rect_t bb;
+
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_leaf_t* child = (const rtree_leaf_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
 			_rtree_check_leaf(tree, &state, child, n, depth + 1);
+
+			if (i == 0) {
+				bb = child->base.bb;
+			}
+			else {
+				_rtree_rect_extend(&bb, &child->base.bb);
+			}
 		}
+
+		assert(bb.lx == node->base.bb.lx);
+		assert(bb.ly == node->base.bb.ly);
+		assert(bb.ux == node->base.bb.ux);
+		assert(bb.uy == node->base.bb.uy);
 	}
 	else {
 		const rtree_node_t* node = (const rtree_node_t*) n;
@@ -844,11 +872,25 @@ _rtree_check_node(const rtree_t* tree, struct check_state* p_state,
 
 		assert(node->base.parent == parent);
 
+		rtree_rect_t bb;
+
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
 			_rtree_check_node(tree, &state, &child->base, n, depth + 1);
+
+			if (i == 0) {
+				bb = child->base.bb;
+			}
+			else {
+				_rtree_rect_extend(&bb, &child->base.bb);
+			}
 		}
+
+		assert(bb.lx == node->base.bb.lx);
+		assert(bb.ly == node->base.bb.ly);
+		assert(bb.ux == node->base.bb.ux);
+		assert(bb.uy == node->base.bb.uy);
 	}
 
 	assert(n->depth == state.depth - depth);
