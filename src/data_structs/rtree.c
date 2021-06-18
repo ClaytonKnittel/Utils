@@ -493,6 +493,7 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 
 	if (split_x) {
 		node->base.bb = x_cost.lower_bb;
+		node->base.n = x_cost.split_idx;
 		split_node->base.bb = x_cost.upper_bb;
 		split_node->base.n = n - x_cost.split_idx;
 
@@ -506,6 +507,7 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 	}
 	else {
 		node->base.bb = y_cost.lower_bb;
+		node->base.n = y_cost.split_idx;
 		split_node->base.bb = y_cost.upper_bb;
 		split_node->base.n = n - y_cost.split_idx;
 
@@ -535,6 +537,9 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 
 	memcpy(x_sort, node->children, n * sizeof(rtree_node_base_t*));
 	memcpy(y_sort, node->children, n * sizeof(rtree_node_base_t*));
+
+	x_sort[n] = to_add;
+	y_sort[n] = to_add;
 	n++;
 
 	bool split_x = _determine_split(tree, n, (rtree_rect_t**) x_sort, (rtree_rect_t**) y_sort,
@@ -546,6 +551,8 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 	split_node->base.state = node->base.state;
 
 	if (split_x) {
+		node->base.bb = x_cost.lower_bb;
+		node->base.n = x_cost.split_idx;
 		split_node->base.bb = x_cost.upper_bb;
 		split_node->base.n = n - x_cost.split_idx;
 
@@ -569,10 +576,12 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			split_depth = MAX(split_depth, x_sort[i]->depth);
 		}
 
-		node->base.depth = node_depth;
-		split_node->base.depth = split_depth;
+		node->base.depth = node_depth + 1;
+		split_node->base.depth = split_depth + 1;
 	}
 	else {
+		node->base.bb = y_cost.lower_bb;
+		node->base.n = y_cost.split_idx;
 		split_node->base.bb = y_cost.upper_bb;
 		split_node->base.n = n - y_cost.split_idx;
 
@@ -596,8 +605,8 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			split_depth = MAX(split_depth, y_sort[i]->depth);
 		}
 
-		node->base.depth = node_depth;
-		split_node->base.depth = split_depth;
+		node->base.depth = node_depth + 1;
+		split_node->base.depth = split_depth + 1;
 	}
 
 	return (rtree_node_base_t*) split_node;
@@ -645,6 +654,15 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			.udata = udata
 		};
 		_rtree_rect_extend(&leaf->base.bb, rect);
+
+		rtree_node_base_t* child = n;
+		n = child->parent;
+		// update the bounding boxes of all of this node's parents
+		while (n != NULL) {
+			_rtree_rect_extend(&n->bb, &child->bb);
+			child = n;
+			n = n->parent;
+		}
 		return;
 	}
 
@@ -695,6 +713,13 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			// we can accomodate split_child
 			rtree_node_t* node = (rtree_node_t*) n;
 			node->children[node->base.n++] = split_child;
+
+			// update the bounding boxes of all of this node's parents
+			do {
+				_rtree_rect_extend(&n->bb, &split_child->bb);
+				split_child = n;
+				n = n->parent;
+			} while (n != NULL);
 			break;
 		}
 
