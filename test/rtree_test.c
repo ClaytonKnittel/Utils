@@ -34,6 +34,12 @@ int main(int argc, char* argv[])
 		.ux = 2,
 		.uy = 3
 	};
+	rtree_rect_t rect5 = {
+		.lx = 11,
+		.ly = 18,
+		.ux = 13,
+		.uy = 21
+	};
 	rtree_print(&tree);
 	rtree_check(&tree);
 	rtree_insert(&tree, &rect1, NULL);
@@ -46,6 +52,9 @@ int main(int argc, char* argv[])
 	rtree_print(&tree);
 	rtree_check(&tree);
 	rtree_insert(&tree, &rect4, NULL);
+	rtree_print(&tree);
+	rtree_check(&tree);
+	rtree_insert(&tree, &rect5, NULL);
 	rtree_print(&tree);
 	rtree_check(&tree);
 

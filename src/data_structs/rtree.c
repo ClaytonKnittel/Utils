@@ -317,6 +317,16 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_x.lower_bb = x_bb;
 		opt_x.upper_bb = rev_rects[0];
 
+		printf("x at %u,\n"
+				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)\n",
+				i,
+				x_bb.lx, x_bb.ly,
+				x_bb.ux, x_bb.uy,
+				rev_rects[0].lx, rev_rects[0].ly,
+				rev_rects[0].ux, rev_rects[0].uy,
+				_rtree_rect_margin(&x_bb) + _rtree_rect_margin(&rev_rects[0]));
+
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&x_bb, x_sort[i]);
 			x_margin += _rtree_rect_margin(&x_bb) +
@@ -325,6 +335,17 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 			rtree_coord_t overlap = _rtree_rect_overlap(&x_bb, &rev_rects[i - m_min + 1]);
 			rtree_coord_t area = _rtree_rect_area(&x_bb) +
 				_rtree_rect_area(&rev_rects[i - m_min + 1]);
+
+			printf("x at %u,\n"
+					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)",
+					i,
+					x_bb.lx, x_bb.ly,
+					x_bb.ux, x_bb.uy,
+					rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
+					rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy,
+					_rtree_rect_margin(&x_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]));
+
 			if (overlap < opt_x.overlap || (overlap == opt_x.overlap && area < opt_x.area)) {
 				opt_x.overlap = overlap;
 				opt_x.area = area;
@@ -332,14 +353,10 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				opt_x.lower_bb = x_bb;
 				opt_x.upper_bb = rev_rects[i - m_min + 1];
 
-				printf("x got better at %u,\n"
-						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
-						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
-						i,
-						x_bb.lx, x_bb.ly,
-						x_bb.ux, x_bb.uy,
-						rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
-						rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy);
+				printf(" BETTER!\n");
+			}
+			else {
+				printf("\n");
 			}
 		}
 	}
@@ -372,6 +389,16 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_y.lower_bb = y_bb;
 		opt_y.upper_bb = rev_rects[0];
 
+		printf("y at %u,\n"
+				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)\n",
+				i,
+				y_bb.lx, y_bb.ly,
+				y_bb.ux, y_bb.uy,
+				rev_rects[0].lx, rev_rects[0].ly,
+				rev_rects[0].ux, rev_rects[0].uy,
+				_rtree_rect_margin(&y_bb) + _rtree_rect_margin(&rev_rects[0]));
+
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&y_bb, y_sort[i]);
 			y_margin += _rtree_rect_margin(&y_bb) +
@@ -380,6 +407,17 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 			rtree_coord_t overlap = _rtree_rect_overlap(&y_bb, &rev_rects[i - m_min + 1]);
 			rtree_coord_t area = _rtree_rect_area(&y_bb) +
 				_rtree_rect_area(&rev_rects[i - m_min + 1]);
+
+			printf("y at %u,\n"
+					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
+					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)",
+					i,
+					y_bb.lx, y_bb.ly,
+					y_bb.ux, y_bb.uy,
+					rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
+					rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy,
+					_rtree_rect_margin(&y_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]));
+
 			if (overlap < opt_y.overlap || (overlap == opt_y.overlap && area < opt_y.area)) {
 				opt_y.overlap = overlap;
 				opt_y.area = area;
@@ -387,14 +425,10 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				opt_y.lower_bb = y_bb;
 				opt_y.upper_bb = rev_rects[i - m_min + 1];
 
-				printf("y got better at %u,\n"
-						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
-						"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
-						i,
-						y_bb.lx, y_bb.ly,
-						y_bb.ux, y_bb.uy,
-						rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
-						rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy);
+				printf(" BETTER!\n");
+			}
+			else {
+				printf("\n");
 			}
 		}
 	}
@@ -458,6 +492,7 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 	split_node->base.depth = 0;
 
 	if (split_x) {
+		node->base.bb = x_cost.lower_bb;
 		split_node->base.bb = x_cost.upper_bb;
 		split_node->base.n = n - x_cost.split_idx;
 
@@ -470,6 +505,7 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 		}
 	}
 	else {
+		node->base.bb = y_cost.lower_bb;
 		split_node->base.bb = y_cost.upper_bb;
 		split_node->base.n = n - y_cost.split_idx;
 
