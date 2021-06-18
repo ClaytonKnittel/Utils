@@ -158,8 +158,8 @@ _min_overlap_cost_child(rtree_node_base_t** children, uint32_t n, rtree_rect_t* 
 	opt.area = _rtree_rect_area(&children[0]->bb);
 
 	for (uint32_t idx = 1; idx < n; idx++) {
-		cur.overlap_inc += _rtree_rect_overlap(&r, &children[idx]->bb);
-		cur.overlap_inc -= _rtree_rect_overlap(&children[0]->bb, &children[idx]->bb);
+		opt.overlap_inc += _rtree_rect_overlap(&r, &children[idx]->bb);
+		opt.overlap_inc -= _rtree_rect_overlap(&children[0]->bb, &children[idx]->bb);
 	}
 
 	for (uint32_t i = 1; i < n; i++) {
@@ -168,16 +168,16 @@ _min_overlap_cost_child(rtree_node_base_t** children, uint32_t n, rtree_rect_t* 
 		cur.area_inc = _rtree_rect_extend(&r, rect);
 		cur.area = _rtree_rect_area(&children[i]->bb);
 
-		for (uint32_t _idx = 0; _idx < n; _idx++) {
+		for (uint32_t _idx = 0; _idx < n - 1; _idx++) {
 			uint32_t idx = _idx + (_idx >= i);
 			cur.overlap_inc += _rtree_rect_overlap(&r, &children[idx]->bb);
-			cur.overlap_inc -= _rtree_rect_overlap(&children[0]->bb, &children[idx]->bb);
+			cur.overlap_inc -= _rtree_rect_overlap(&children[i]->bb, &children[idx]->bb);
 		}
 
-		if (cur.overlap_inc > opt.overlap_inc ||
+		if (cur.overlap_inc < opt.overlap_inc ||
 				(cur.overlap_inc == opt.overlap_inc &&
-				 (cur.area_inc > opt.area_inc ||
-				  (cur.area_inc == opt.area_inc && cur.area > opt.area)))) {
+				 (cur.area_inc < opt.area_inc ||
+				  (cur.area_inc == opt.area_inc && cur.area < opt.area)))) {
 			opt = cur;
 			opt_idx = i;
 		}
@@ -208,8 +208,8 @@ _min_area_increase_child(rtree_node_base_t** children, uint32_t n, rtree_rect_t*
 		cur.area_inc = _rtree_rect_extend(&r, rect);
 		cur.area = _rtree_rect_area(&children[i]->bb);
 
-		if (cur.area_inc > opt.area_inc ||
-				(cur.area_inc == opt.area_inc && cur.area > opt.area)) {
+		if (cur.area_inc < opt.area_inc ||
+				(cur.area_inc == opt.area_inc && cur.area < opt.area)) {
 			opt = cur;
 			opt_idx = i;
 		}
@@ -621,6 +621,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 				rtree_node_t* node = (rtree_node_t*) n;
 				uint32_t c_idx = _min_overlap_cost_child(node->children, node->base.n, rect);
 				n = node->children[c_idx];
+				printf("I choose node %u\n", c_idx);
 				break;
 			}
 			else {
@@ -850,10 +851,12 @@ _rtree_check_leaf(const rtree_t* tree, struct check_state* state,
 		}
 	}
 
-	assert(bb.lx == leaf->base.bb.lx);
-	assert(bb.ly == leaf->base.bb.ly);
-	assert(bb.ux == leaf->base.bb.ux);
-	assert(bb.uy == leaf->base.bb.uy);
+	if (n_children > 0) {
+		assert(bb.lx == leaf->base.bb.lx);
+		assert(bb.ly == leaf->base.bb.ly);
+		assert(bb.ux == leaf->base.bb.ux);
+		assert(bb.uy == leaf->base.bb.uy);
+	}
 }
 
 static void
