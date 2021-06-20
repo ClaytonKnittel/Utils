@@ -317,6 +317,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_x.lower_bb = x_bb;
 		opt_x.upper_bb = rev_rects[0];
 
+		/*
 		printf("x at %u,\n"
 				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
 				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)\n",
@@ -326,6 +327,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				rev_rects[0].lx, rev_rects[0].ly,
 				rev_rects[0].ux, rev_rects[0].uy,
 				_rtree_rect_margin(&x_bb) + _rtree_rect_margin(&rev_rects[0]));
+				*/
 
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&x_bb, x_sort[i]);
@@ -336,6 +338,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 			rtree_coord_t area = _rtree_rect_area(&x_bb) +
 				_rtree_rect_area(&rev_rects[i - m_min + 1]);
 
+			/*
 			printf("x at %u,\n"
 					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
 					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)",
@@ -345,6 +348,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 					rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
 					rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy,
 					_rtree_rect_margin(&x_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]));
+					*/
 
 			if (overlap < opt_x.overlap || (overlap == opt_x.overlap && area < opt_x.area)) {
 				opt_x.overlap = overlap;
@@ -352,11 +356,6 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				opt_x.split_idx = i + 1;
 				opt_x.lower_bb = x_bb;
 				opt_x.upper_bb = rev_rects[i - m_min + 1];
-
-				printf(" BETTER!\n");
-			}
-			else {
-				printf("\n");
 			}
 		}
 	}
@@ -389,6 +388,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 		opt_y.lower_bb = y_bb;
 		opt_y.upper_bb = rev_rects[0];
 
+		/*
 		printf("y at %u,\n"
 				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
 				"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)\n",
@@ -398,6 +398,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				rev_rects[0].lx, rev_rects[0].ly,
 				rev_rects[0].ux, rev_rects[0].uy,
 				_rtree_rect_margin(&y_bb) + _rtree_rect_margin(&rev_rects[0]));
+				*/
 
 		for (; i < n - m_min; i++) {
 			_rtree_rect_extend(&y_bb, y_sort[i]);
@@ -408,6 +409,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 			rtree_coord_t area = _rtree_rect_area(&y_bb) +
 				_rtree_rect_area(&rev_rects[i - m_min + 1]);
 
+			/*
 			printf("y at %u,\n"
 					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n"
 					"  <(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> (%llu)",
@@ -417,6 +419,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 					rev_rects[i - m_min + 1].lx, rev_rects[i - m_min + 1].ly,
 					rev_rects[i - m_min + 1].ux, rev_rects[i - m_min + 1].uy,
 					_rtree_rect_margin(&y_bb) + _rtree_rect_margin(&rev_rects[i - m_min + 1]));
+					*/
 
 			if (overlap < opt_y.overlap || (overlap == opt_y.overlap && area < opt_y.area)) {
 				opt_y.overlap = overlap;
@@ -424,15 +427,11 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 				opt_y.split_idx = i + 1;
 				opt_y.lower_bb = y_bb;
 				opt_y.upper_bb = rev_rects[i - m_min + 1];
-
-				printf(" BETTER!\n");
-			}
-			else {
-				printf("\n");
 			}
 		}
 	}
 
+	/*
 	printf("sorted x:\n");
 	for (int i = 0; i < n; i++) {
 		printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
@@ -448,6 +447,7 @@ _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 	}
 
 	printf("\nx total: %" PRIu64 "\ny total: %" PRIu64 "\n", x_margin, y_margin);
+	*/
 
 	*x_cost = opt_x;
 	*y_cost = opt_y;
@@ -571,8 +571,10 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			node_depth = MAX(node_depth, x_sort[i]->depth);
 		}
 
+		x_sort[x_cost.split_idx]->parent = split_node;
 		split_depth = x_sort[x_cost.split_idx]->depth;
 		for (uint32_t i = x_cost.split_idx + 1; i < n; i++) {
+			x_sort[i]->parent = split_node;
 			split_depth = MAX(split_depth, x_sort[i]->depth);
 		}
 
@@ -591,7 +593,7 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 		memcpy(split_node->children, &y_sort[y_cost.split_idx],
 				(n - y_cost.split_idx) * sizeof(rtree_node_base_t*));
 
-		// calculate the new depths of each node
+		// calculate the new depths of each node and update their parents
 		uint32_t node_depth;
 		uint32_t split_depth;
 
@@ -600,8 +602,10 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			node_depth = MAX(node_depth, y_sort[i]->depth);
 		}
 
+		y_sort[y_cost.split_idx]->parent = split_node;
 		split_depth = y_sort[y_cost.split_idx]->depth;
 		for (uint32_t i = y_cost.split_idx + 1; i < n; i++) {
+			y_sort[i]->parent = split_node;
 			split_depth = MAX(split_depth, y_sort[i]->depth);
 		}
 
@@ -630,7 +634,6 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 				rtree_node_t* node = (rtree_node_t*) n;
 				uint32_t c_idx = _min_overlap_cost_child(node->children, node->base.n, rect);
 				n = node->children[c_idx];
-				printf("I choose node %u\n", c_idx);
 				break;
 			}
 			else {
@@ -729,7 +732,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 		}
 		else {
 			// perform a split
-			n = _split_node(tree, (rtree_node_t*) n, split_child);
+			split_child = _split_node(tree, (rtree_node_t*) n, split_child);
 		}
 		depth--;
 	}
@@ -894,6 +897,9 @@ _rtree_check_node(const rtree_t* tree, struct check_state* p_state,
 	};
 
 	if (n->state & RTREE_ROOT_LEAF) {
+		// this flag can only be set in the root
+		assert(parent == NULL);
+
 		_rtree_check_leaf(tree, &state, (const rtree_leaf_t*) n, parent, depth);
 	}
 	else if (n->state & RTREE_NODE_LEAF_CHILDREN) {
@@ -901,8 +907,6 @@ _rtree_check_node(const rtree_t* tree, struct check_state* p_state,
 		uint32_t n_children = node->base.n;
 		assert(n_children <= tree->m_max);
 
-		// this flag can only be set in the root
-		assert(parent == NULL);
 		assert(node->base.parent == parent);
 
 		rtree_rect_t bb;
