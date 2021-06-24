@@ -3183,7 +3183,7 @@ void __bitonic_sort32_ ## name(T els[32]) { \
 
 
 #define DEFINE_CONST_SORT_MAIN16(T, name) \
-void const_sort_ ## name(size_t N, T els[N]) { \
+void const_sort_ ## name(T* els, size_t N) { \
 	TEST_ASSERT(N <= 16); \
 	switch (N) { \
 		case 0: \
@@ -3239,7 +3239,7 @@ void const_sort_ ## name(size_t N, T els[N]) { \
 
 
 #define DEFINE_CONST_SORT_MAIN(T, name) \
-void const_sort_ ## name(size_t N, T els[N]) { \
+void const_sort_ ## name(T* els, size_t N) { \
 	TEST_ASSERT(N <= CONST_SORT_MAX); \
 	switch (N) { \
 		case 0: \
@@ -3349,7 +3349,7 @@ void const_sort_ ## name(size_t N, T els[N]) { \
  */
 #define DEFINE_BINARY_INSERTION_FIND(T, name, __sort_cmp) \
 static inline size_t \
-binary_insertion_find_ ## name(size_t N, T els[N], T key) \
+binary_insertion_find_ ## name(T* els, size_t N, T key) \
 { \
 	size_t l = 0; \
 	size_t r = N -  1; \
@@ -3377,7 +3377,7 @@ binary_insertion_find_ ## name(size_t N, T els[N], T key) \
 
 #define DEFINE_BINARY_INSERTION_SORT(T, name) \
 void \
-binary_insertion_sort_ ## name(size_t N, T els[N]) \
+binary_insertion_sort_ ## name(T* els, size_t N) \
 { \
 	T el; \
 	size_t loc; \
@@ -3386,7 +3386,7 @@ binary_insertion_sort_ ## name(size_t N, T els[N]) \
 	for (size_t i = 1; i < N; i++) { \
 		el = els[i]; \
 		\
-		loc = binary_insertion_find_ ## name(i, els, el); \
+		loc = binary_insertion_find_ ## name(els, i, el); \
 		for (j = i; j > loc; j--) { \
 			els[j] = els[j - 1]; \
 		} \
@@ -3396,7 +3396,7 @@ binary_insertion_sort_ ## name(size_t N, T els[N]) \
 
 #define DEFINE_LINEAR_INSERTION_SORT(T, name, __sort_cmp) \
 void \
-linear_insertion_sort_ ## name(size_t N, T els[N]) \
+linear_insertion_sort_ ## name(T* els, size_t N) \
 { \
 	T el; \
 	size_t j; \
@@ -3412,19 +3412,19 @@ linear_insertion_sort_ ## name(size_t N, T els[N]) \
 }
 
 #define DEFINE_SMALL_SORT(T, name) \
-void small_sort_ ## name(size_t N, T els[N]) \
+void small_sort_ ## name(T* els, size_t N) \
 { \
 	if (N <= CONST_SORT_MAX) { \
-		const_sort_ ## name(N, els); \
+		const_sort_ ## name(els, N); \
 	} \
 	else { \
-		linear_insertion_sort_ ## name(N, els); \
+		linear_insertion_sort_ ## name(els, N); \
 	} \
 }
 
 #define DEFINE_QUICK_SORT_PARTITION(T, name, __sort_cmp) \
 static size_t \
-quick_sort_partition_ ## name(size_t N, T els[N], size_t pivot) \
+quick_sort_partition_ ## name(T* els, size_t N, size_t pivot) \
 { \
 	/*
 	size_t l = 0;
@@ -3464,33 +3464,33 @@ quick_sort_partition_ ## name(size_t N, T els[N], size_t pivot) \
 
 #define DEFINE_QUICK_SORT_RECURSIVE(T, name) \
 static void \
-quick_sort_recursive_ ## name(size_t N, T els[N]) \
+quick_sort_recursive_ ## name(T* els, size_t N) \
 { \
 	if (N <= SMALL_SORT_MAX) { \
-		small_sort_ ## name(N, els); \
+		small_sort_ ## name(els, N); \
 		return; \
 	} \
 	\
 	size_t pivot = (N >> 1); \
-	pivot = quick_sort_partition_ ## name(N, els, pivot); \
+	pivot = quick_sort_partition_ ## name(els, N, pivot); \
 	\
-	quick_sort_recursive_ ## name(pivot, els); \
-	quick_sort_recursive_ ## name(N - (pivot + 1), els + pivot + 1); \
+	quick_sort_recursive_ ## name(els, pivot); \
+	quick_sort_recursive_ ## name(els + pivot + 1, N - (pivot + 1)); \
 }
 
 #define DEFINE_QUICK_SORT(T, name) \
 void \
-quick_sort_ ## name(size_t N, T els[N]) \
+quick_sort_ ## name(T* els, size_t N) \
 { \
-	quick_sort_recursive_ ## name(N, els); \
+	quick_sort_recursive_ ## name(els, N); \
 }
 
 
 #define DEFINE_CSORT(T, name) \
 void \
-csort_ ## name(size_t N, T els[N]) \
+csort_ ## name(T* els, size_t N) \
 { \
-	quick_sort_ ## name(N, els); \
+	quick_sort_ ## name(els, N); \
 }
 
 

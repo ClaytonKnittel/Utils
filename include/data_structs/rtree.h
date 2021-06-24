@@ -7,13 +7,11 @@
  * Implementation file of R* trees for storage of rectangular elements
  */
 
-// when set, indicates that this internal node has leaves for children
-#define RTREE_NODE_LEAF_CHILDREN 0x1
-
-// whens set, indicates that this is a leaf node (only set for the root)
-#define RTREE_ROOT_LEAF 0x2
-
 typedef int64_t rtree_coord_t;
+
+// the default fraction of m_max that p is set to (the number of nodes to reinsert)
+#define DEFAULT_REINSERT_P_PCT .30f
+
 
 typedef struct rtree_rect {
 	rtree_coord_t lx;
@@ -33,15 +31,6 @@ typedef struct rtree_node_base {
 
 	// the number of children of this node
 	uint32_t n;
-
-	// bitfield of states this node can be in, with possible states (all are
-	// orthogonal):
-	//  - RTREE_NODE_LEAF_CHILDREN (for inner nodes)
-	//  - RTREE_ROOT_LEAF
-	uint8_t state;
-
-	// depth of the tree from this node
-	uint16_t depth;
 } rtree_node_base_t;
 
 
@@ -81,6 +70,12 @@ typedef struct rtree {
 	uint32_t m_min;
 	// max number of children a node can have
 	uint32_t m_max;
+
+	// the number of elements to reinsert 
+	uint32_t reinsert_p;
+
+	// the depth of the tree (i.e. number of ancestors the leaves have)
+	uint64_t depth;
 } rtree_t;
 
 

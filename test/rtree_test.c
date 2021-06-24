@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 {
 	rtree_t tree;
 
-	rtree_init(&tree, 1, 3);
+	rtree_init(&tree, 2, 4);
 	const uint64_t n_rects = 100;
 
 	srand(0);
@@ -36,58 +36,6 @@ int main(int argc, char* argv[])
 		rects[i].ly = ly;
 		rects[i].uy = uy;
 	}
-	/*
-	rtree_rect_t rects[] = {
-		{
-			.lx = 5,
-			.ly = 5,
-			.ux = 10,
-			.uy = 10
-		},
-		{
-			.lx = 100,
-			.ly = 200,
-			.ux = 110,
-			.uy = 210
-		},
-		{
-			.lx = 0,
-			.ly = 10,
-			.ux = 130,
-			.uy = 50
-		},
-		{
-			.lx = 0,
-			.ly = 10,
-			.ux = 20,
-			.uy = 30
-		},
-		{
-			.lx = 50,
-			.ly = 180,
-			.ux = 60,
-			.uy = 208
-		},
-		{
-			.lx = 0,
-			.ly = 300,
-			.ux = 10,
-			.uy = 310
-		},
-		{
-			.lx = 110,
-			.ly = 320,
-			.ux = 115,
-			.uy = 330
-		},
-		{
-			.lx = 140,
-			.ly = 50,
-			.ux = 180,
-			.uy = 7
-		}
-	};
-	*/
 
 	rtree_print(&tree);
 	rtree_check(&tree);

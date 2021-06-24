@@ -40,7 +40,7 @@ int nth_num(uint16_t* bitm, int n) {
 }
 
 
-static void naive_sort(uint32_t N, uint32_t els[N]) {
+static void naive_sort(uint32_t* els, uint32_t N) {
 	for (uint32_t i = 1; i < N; i++) {
 		for (uint32_t j = i; j > 0; j--) {
 			if (els[j - 1] > els[j]) {
@@ -74,7 +74,7 @@ int check_correctness(int N) {
 				perm -= k * fact;
 			}
 
-			const_sort_uint32_t(N, vals);
+			const_sort_uint32_t(vals, N);
 			for (int j = 0; j < N; j++) {
 				assert(vals[j] == j + 1);
 			}
@@ -93,7 +93,7 @@ int check_correctness(int N) {
 				perm -= n * fact;
 			}
 
-			const_sort_uint32_t(N, vals);
+			const_sort_uint32_t(vals, N);
 			for (int j = 0; j < N; j++) {
 				assert(vals[j] == j + 1);
 			}
@@ -107,8 +107,8 @@ int check_correctness(int N) {
 				vals[j] = gen_rand_r(0x7ffffffflu);
 				all[j] = vals[j];
 			}
-			naive_sort(N, all);
-			const_sort_uint32_t(N, vals);
+			naive_sort(all, N);
+			const_sort_uint32_t(vals, N);
 			for (int j = 0; j < N; j++) {
 				assert(vals[j] == all[j]);
 			}
@@ -122,7 +122,7 @@ int check_correctness(int N) {
 }
 
 
-static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t*), uint64_t n_trials, bool check) {
+static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t*,size_t), uint64_t n_trials, bool check) {
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 	uint32_t* all  = (uint32_t*) malloc(N * sizeof(uint32_t));
 
@@ -139,12 +139,12 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(size_t,uint32_t
 			}
 		}
 		if (check) {
-			naive_sort(N, all);
+			naive_sort(all, N);
 		}
 
 		struct timespec start, end;
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		sort_alg(N, vals);
+		sort_alg(vals, N);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 
 		if (check) {

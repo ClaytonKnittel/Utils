@@ -1,7 +1,7 @@
 
 .intel_syntax noprefix
-.global _to_upper
-.global _to_lower
+.global _to_upper_osx
+.global _to_lower_osx
 
 .data:
 .align 5
@@ -37,7 +37,7 @@ upper_to_lower:
 	.quad 0x2020202020202020
 
 .text:
-_to_upper:
+_to_upper_osx:
 	test rsi, rsi
 	je _up_return
 
@@ -143,7 +143,7 @@ _up_return:
 	ret
 
 
-_to_lower:
+_to_lower_osx:
 	test rsi, rsi
 	je _lo_return
 
