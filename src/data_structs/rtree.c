@@ -571,10 +571,10 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			node_depth = MAX(node_depth, x_sort[i]->depth);
 		}
 
-		x_sort[x_cost.split_idx]->parent = split_node;
+		x_sort[x_cost.split_idx]->parent = (rtree_node_base_t*) split_node;
 		split_depth = x_sort[x_cost.split_idx]->depth;
 		for (uint32_t i = x_cost.split_idx + 1; i < n; i++) {
-			x_sort[i]->parent = split_node;
+			x_sort[i]->parent = (rtree_node_base_t*) split_node;
 			split_depth = MAX(split_depth, x_sort[i]->depth);
 		}
 
@@ -602,10 +602,10 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 			node_depth = MAX(node_depth, y_sort[i]->depth);
 		}
 
-		y_sort[y_cost.split_idx]->parent = split_node;
+		y_sort[y_cost.split_idx]->parent = (rtree_node_base_t*) split_node;
 		split_depth = y_sort[y_cost.split_idx]->depth;
 		for (uint32_t i = y_cost.split_idx + 1; i < n; i++) {
-			y_sort[i]->parent = split_node;
+			y_sort[i]->parent = (rtree_node_base_t*) split_node;
 			split_depth = MAX(split_depth, y_sort[i]->depth);
 		}
 
@@ -656,15 +656,22 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			.bb = *rect,
 			.udata = udata
 		};
-		_rtree_rect_extend(&leaf->base.bb, rect);
 
-		rtree_node_base_t* child = n;
-		n = child->parent;
-		// update the bounding boxes of all of this node's parents
-		while (n != NULL) {
-			_rtree_rect_extend(&n->bb, &child->bb);
-			child = n;
-			n = n->parent;
+		if (leaf->base.n == 1) {
+			// this can only happen for the very first element inserted
+			leaf->base.bb = *rect;
+		}
+		else {
+			_rtree_rect_extend(&leaf->base.bb, rect);
+
+			rtree_node_base_t* child = n;
+			n = child->parent;
+			// update the bounding boxes of all of this node's parents
+			while (n != NULL) {
+				_rtree_rect_extend(&n->bb, &child->bb);
+				child = n;
+				n = n->parent;
+			}
 		}
 		return;
 	}
