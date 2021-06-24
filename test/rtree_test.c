@@ -1,4 +1,5 @@
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
 	rtree_print(&tree);
 	rtree_check(&tree);
 	for (int i = 0; i < n_rects; i++) {
-		printf("Inserting: <(%lld, %lld), (%lld, %lld)>\n",
+		printf("Inserting: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\n",
 				rects[i].lx, rects[i].ly, rects[i].ux, rects[i].uy);
 		rtree_insert(&tree, &rects[i], NULL);
 		rtree_print(&tree);

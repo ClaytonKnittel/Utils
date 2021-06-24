@@ -668,7 +668,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			n = child->parent;
 			// update the bounding boxes of all of this node's parents
 			while (n != NULL) {
-				_rtree_rect_extend(&n->bb, &child->bb);
+				_rtree_rect_extend(&n->bb, rect);
 				child = n;
 				n = n->parent;
 			}
@@ -726,7 +726,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 
 			// update the bounding boxes of all of this node's parents
 			do {
-				_rtree_rect_extend(&n->bb, &split_child->bb);
+				_rtree_rect_extend(&n->bb, rect);
 				split_child = n;
 				n = n->parent;
 			} while (n != NULL);
