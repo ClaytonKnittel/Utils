@@ -84,6 +84,8 @@ void rtree_free(rtree_t*);
 
 void rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
 
+rtree_el_t* rtree_find_exact(const rtree_t*, const rtree_rect_t* rect);
+
 void rtree_print(const rtree_t*);
 
 void rtree_check(const rtree_t*);

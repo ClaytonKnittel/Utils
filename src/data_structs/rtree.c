@@ -1004,8 +1004,55 @@ rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
 	_do_insert(tree, rect, udata, iset);
 }
 
+static rtree_el_t*
+_rtree_find_exact_leaf(const rtree_leaf_t* leaf, const rtree_rect_t* rect)
+{
+	for (uint32_t i = 0; i < leaf->base.n; i++) {
+		if (_rtree_rect_eq(&leaf->elements[i].bb, rect)) {
+			return (rtree_el_t*) &leaf->elements[i];
+		}
+	}
+	return NULL;
+}
 
-void
+static rtree_el_t*
+_rtree_find_exact(const rtree_node_t* node, const rtree_rect_t* rect, int depth)
+{
+	for (uint32_t i = 0; i < node->base.n; i++) {
+		if (!_rtree_rect_contains(&node->base.bb, rect)) {
+			continue;
+		}
+
+		rtree_el_t* q;
+		if (depth == 0) {
+			q = _rtree_find_exact_leaf((const rtree_leaf_t*) node->children[i], rect);
+		}
+		else {
+			q = _rtree_find_exact((const rtree_node_t*) node->children[i], rect, depth - 1);
+		}
+		if (q) {
+			return q;
+		}
+	}
+	return NULL;
+}
+
+rtree_el_t*
+rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
+{
+	rtree_node_base_t* n = tree->root;
+	uint64_t depth = tree->depth;
+
+	if (depth > 0) {
+		return _rtree_find_exact((const rtree_node_t*) n, rect, depth - 1);
+	}
+	else {
+		return _rtree_find_exact_leaf((const rtree_leaf_t*) n, rect);
+	}
+}
+
+
+static void
 rtree_print_leaf(const rtree_leaf_t* leaf, int depth)
 {
 	printf("%*s{ ((%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 "))", 2*depth, "",
@@ -1019,7 +1066,7 @@ rtree_print_leaf(const rtree_leaf_t* leaf, int depth)
 	printf("\n%*s}", 2*depth, "");
 }
 
-void
+static void
 rtree_print_node(const rtree_t* tree, const rtree_node_base_t* node, int depth)
 {
 	if (depth == (int) tree->depth) {
@@ -1105,10 +1152,6 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
 			_rtree_check_node(tree, &child->base, n, depth + 1);
-
-			for (uint32_t j = 0; j < i; j++) {
-				assert(node->children[j] != child);
-			}
 
 			if (i == 0) {
 				bb = child->base.bb;
