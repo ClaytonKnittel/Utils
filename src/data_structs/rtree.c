@@ -24,6 +24,15 @@ _rtree_rect_margin(const rtree_rect_t* r)
 	return 2 * ((r->ux - r->lx) + (r->uy - r->ly));
 }
 
+/*
+ * returns true if the two rtree_rect_t's are identical
+ */
+static __attribute__((always_inline)) inline bool
+_rtree_rect_eq(const rtree_rect_t* a, const rtree_rect_t* b)
+{
+	return a->lx == b->lx && a->ly == b->ly && a->ux == b->ux && a->uy == b->uy;
+}
+
 // TODO: optimize this with AVX
 static __attribute__((always_inline)) inline bool
 _rtree_rect_intersects(const rtree_rect_t* a, const rtree_rect_t* b)
@@ -217,6 +226,37 @@ _min_area_increase_child(rtree_node_base_t** children, uint32_t n, rtree_rect_t*
 	}
 
 	return opt_idx;
+}
+
+
+/*
+ * to be called when the bounding box of a node shrinks along any axis
+ *
+ * this call runs up the tree, starting at node's parent, adjusting the bounding
+ * box of each
+ */
+static void
+_shrunk_node_bb(rtree_node_base_t* node)
+{
+	rtree_rect_t new_bb;
+	rtree_node_t* p = (rtree_node_t*) node->parent;
+
+	while (p != NULL) {
+		new_bb = p->children[0]->bb;
+
+		for (uint32_t i = 1; i < p->base.n; i++) {
+			_rtree_rect_extend(&new_bb, &p->children[i]->bb);
+		}
+
+		if (_rtree_rect_eq(&new_bb, &p->base.bb)) {
+			// shrinking this child's bounding box had no effect on the bounding
+			// box of the parent, so we can stop propagating the change up
+			break;
+		}
+
+		p->base.bb = new_bb;
+		p = (rtree_node_t*) p->base.parent;
+	}
 }
 
 
@@ -597,7 +637,15 @@ struct node_dist {
 	 * those values are then multiplied together)
 	 */
 	uint64_t dist2;
-	rtree_node_base_t* node;
+
+	union {
+		// when reinserting leaf elements, this holds the rtree_el_t for the
+		// corresponding element
+		rtree_el_t el;
+		// when reinserting inner node children, this holds the corresponding
+		// child
+		rtree_node_base_t* node;
+	};
 };
 
 #define node_dist_sort_cmp(a, b) \
@@ -628,7 +676,9 @@ struct node_dist {
 DEFINE_CSORT_DEFAULT_FNS_NAMED_16(struct node_dist, node_dist, node_dist_sort_cmp, node_dist_sort_cswap);
 
 
-// forward declaration for use in __continue_split
+// forward declarations for use in __continue_split
+static void _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata,
+		int_set_t reinserted_levels);
 static void _do_inner_insert(rtree_t* tree, rtree_node_t* n,
 		int_set_t reinserted_levels, uint64_t depth);
 
@@ -644,41 +694,48 @@ _do_reinsert_leaf(rtree_t* tree, rtree_leaf_t* parent, int_set_t reinserted_leve
 	rtree_coord_t parent_xc = parent->base.bb.lx + parent->base.bb.ux;
 	rtree_coord_t parent_yc = parent->base.bb.ly + parent->base.bb.uy;
 
-	// TODO alloca copy of elements + to_add, sort, etc.
-
 	struct node_dist* dists =
 		(struct node_dist*) alloca((m_max + 1) * sizeof(struct node_dist));
 	for (uint64_t i = 0; i < m_max; i++) {
-		rtree_node_base_t* child = &parent->elements[i];
-		rtree_coord_t xc = child->bb.lx + child->bb.ux;
-		rtree_coord_t yc = child->bb.ly + child->bb.uy;
+		rtree_el_t* el = &parent->elements[i];
+		rtree_coord_t xc = el->bb.lx + el->bb.ux;
+		rtree_coord_t yc = el->bb.ly + el->bb.uy;
 		rtree_coord_t dx = xc - parent_xc;
 		rtree_coord_t dy = yc - parent_yc;
 		uint64_t d2 = dx * dx + dy * dy;
 
 		dists[i].dist2 = d2;
-		dists[i].node = child;
+		dists[i].el = *el;
 	}
 
-	rtree_coord_t xc = to_add->bb.lx + to_add->bb.ux;
-	rtree_coord_t yc = to_add->bb.ly + to_add->bb.uy;
+	rtree_coord_t xc = rect->lx + rect->ux;
+	rtree_coord_t yc = rect->ly + rect->uy;
 	rtree_coord_t dx = xc - parent_xc;
 	rtree_coord_t dy = yc - parent_yc;
 	uint64_t d2 = dx * dx + dy * dy;
 
 	dists[m_max].dist2 = d2;
-	dists[m_max].node = to_add;
+	dists[m_max].el.bb = *rect;
+	dists[m_max].el.udata = udata;
 
 	csort_node_dist(dists, m_max + 1);
+
 	parent->base.n = m_max + 1 - reinsert_p;
 
+	parent->base.bb = dists[0].el.bb;
+	parent->elements[0] = dists[0].el;
 	uint32_t i;
-	for (i = 0; i < parent->base.n; i++) {
-		// TODO update bb of n
-		parent->children[i] = dists[i].node;
+	for (i = 1; i < parent->base.n; i++) {
+		_rtree_rect_extend(&parent->base.bb, &dists[i].el.bb);
+		parent->elements[i] = dists[i].el;
 	}
+
+	// since the bounding box of parent may have changed, try propagating this
+	// change up the tree
+	_shrunk_node_bb(&parent->base);
+
 	for (; i <= m_max; i++) {
-		_do_inner_insert(tree, (rtree_node_t*) dists[i].node, reinserted_levels, depth);
+		_do_insert(tree, &dists[i].el.bb, dists[i].el.udata, reinserted_levels);
 	}
 }
 
@@ -718,13 +775,21 @@ _do_reinsert(rtree_t* tree, rtree_node_t* parent, int_set_t reinserted_levels,
 	dists[m_max].node = to_add;
 
 	csort_node_dist(dists, m_max + 1);
+
 	parent->base.n = m_max + 1 - reinsert_p;
 
+	parent->base.bb = dists[0].node->bb;
+	parent->children[0] = dists[0].node;
 	uint32_t i;
-	for (i = 0; i < parent->base.n; i++) {
-		// TODO update bb of n
+	for (i = 1; i < parent->base.n; i++) {
+		_rtree_rect_extend(&parent->base.bb, &dists[i].node->bb);
 		parent->children[i] = dists[i].node;
 	}
+
+	// since the bounding box of parent may have changed, try propagating this
+	// change up the tree
+	_shrunk_node_bb(&parent->base);
+
 	for (; i <= m_max; i++) {
 		_do_inner_insert(tree, (rtree_node_t*) dists[i].node, reinserted_levels, depth);
 	}
@@ -781,6 +846,9 @@ __continue_split(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
 			int_set_insert(reinserted_levels, depth);
 
 			_do_reinsert(tree, (rtree_node_t*) n, reinserted_levels, depth, split_child);
+
+			// reinsert completes the operation, so don't continue splitting up the tree
+			break;
 		}
 		else {
 			// perform a split
@@ -884,9 +952,9 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 			.udata = udata
 		};
 		n = _split_leaf(tree, leaf, &new_el);
-	}
 
-	__continue_split(tree, n, reinserted_levels, depth, rect);
+		__continue_split(tree, n, reinserted_levels, depth, rect);
+	}
 }
 
 
@@ -1037,6 +1105,10 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
 			_rtree_check_node(tree, &child->base, n, depth + 1);
+
+			for (uint32_t j = 0; j < i; j++) {
+				assert(node->children[j] != child);
+			}
 
 			if (i == 0) {
 				bb = child->base.bb;
