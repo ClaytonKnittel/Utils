@@ -12,10 +12,34 @@ int main(int argc, char* argv[])
 	rtree_t tree;
 
 	rtree_init(&tree, 3, 10);
-	const uint64_t n_rects = 4000;
+	uint64_t n_rects = 22;
 
+	FILE* f = fopen("../test/test.dat", "r");
+	fseek(f, 0, SEEK_END);
+	uint64_t len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	n_rects = len / (24);
+
+	rtree_el_t* rects = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
+	for (uint64_t i = 0; i < n_rects; i++) {
+		int64_t lx, ly;
+		int64_t postal_code;
+
+		assert(fread(&lx, sizeof(lx), 1, f) == 1);
+		assert(fread(&ly, sizeof(ly), 1, f) == 1);
+		assert(fread(&postal_code, sizeof(postal_code), 1, f) == 1);
+
+		printf("rect: %lld, %lld, %lld (%llu)\n", lx, ly, postal_code, i+1);
+
+		rects[i].bb.lx = lx;
+		rects[i].bb.ly = ly;
+		rects[i].bb.ux = lx;
+		rects[i].bb.uy = ly;
+		rects[i].udata = (void*) postal_code;
+	}
+
+	/*
 	srand(0);
-
 	rtree_rect_t* rects = (rtree_rect_t*) malloc(n_rects * sizeof(rtree_rect_t));
 	for (uint64_t i = 0; i < n_rects; i++) {
 		rtree_coord_t lx = rand() % 1000000;
@@ -38,24 +62,28 @@ int main(int argc, char* argv[])
 		rects[i].ux = ux;
 		rects[i].ly = ly;
 		rects[i].uy = uy;
-	}
+	}*/
 
 	rtree_print(&tree);
 	rtree_check(&tree);
 	for (int i = 0; i < n_rects; i++) {
 		printf("Inserting: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\t(%d)\n",
-				rects[i].lx, rects[i].ly, rects[i].ux, rects[i].uy, i);
-		rtree_insert(&tree, &rects[i], (void*) ((uint64_t) i));
+				rects[i].bb.lx, rects[i].bb.ly, rects[i].bb.ux, rects[i].bb.uy, i);
+		rtree_insert(&tree, &rects[i].bb, rects[i].udata);
 		//rtree_print(&tree);
 		rtree_check(&tree);
 
+		/*
 		for (int j = 0; j <= i; j++) {
-			rtree_el_t* el = rtree_find_exact(&tree, &rects[j]);
+			rtree_el_t* el = rtree_find_exact(&tree, &rects[j].bb);
 			assert(el != NULL);
-			assert(el->udata == (void*) ((uint64_t) j));
-		}
+			assert(el->udata == rects[j].udata);
+		}*/
 	}
 	rtree_print(&tree);
+
+	printf("Root bb: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\n",
+			tree.root->bb.lx, tree.root->bb.ly, tree.root->bb.ux, tree.root->bb.uy);
 
 	rtree_free(&tree);
 	return 0;
