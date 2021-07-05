@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 {
 	rtree_t tree;
 
-	rtree_init(&tree, 3, 10);
+	rtree_init(&tree, 8, 25);
 	uint64_t n_rects = 22;
 
 	FILE* f = fopen("../test/test.dat", "r");

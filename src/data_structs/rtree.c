@@ -958,6 +958,20 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 }
 
 
+static void
+_do_delete(rtree_t* tree, rtree_leaf_t* parent, uint64_t to_delete_idx)
+{
+
+}
+
+
+rtree_el_t*
+rtree_el_id_get(rtree_el_id_t id)
+{
+	return &id.parent->elements[id.idx];
+}
+
+
 void
 rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
 {
@@ -1004,18 +1018,29 @@ rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
 	_do_insert(tree, rect, udata, iset);
 }
 
-static rtree_el_t*
+void
+rtree_delete(rtree_t* tree, rtree_el_id_t* id)
+{
+
+}
+
+static rtree_el_id_t
 _rtree_find_exact_leaf(const rtree_leaf_t* leaf, const rtree_rect_t* rect)
 {
 	for (uint32_t i = 0; i < leaf->base.n; i++) {
 		if (_rtree_rect_eq(&leaf->elements[i].bb, rect)) {
-			return (rtree_el_t*) &leaf->elements[i];
+			return (rtree_el_id_t) {
+				.parent = (rtree_leaf_t*) &leaf,
+				.idx = i
+			};
 		}
 	}
-	return NULL;
+	return (rtree_el_id_t) {
+		.parent = NULL
+	};
 }
 
-static rtree_el_t*
+static rtree_el_id_t
 _rtree_find_exact(const rtree_node_t* node, const rtree_rect_t* rect, int depth)
 {
 	for (uint32_t i = 0; i < node->base.n; i++) {
@@ -1023,22 +1048,24 @@ _rtree_find_exact(const rtree_node_t* node, const rtree_rect_t* rect, int depth)
 			continue;
 		}
 
-		rtree_el_t* q;
+		rtree_el_id_t q;
 		if (depth == 0) {
 			q = _rtree_find_exact_leaf((const rtree_leaf_t*) node->children[i], rect);
 		}
 		else {
 			q = _rtree_find_exact((const rtree_node_t*) node->children[i], rect, depth - 1);
 		}
-		if (q) {
+		if (q.parent) {
 			return q;
 		}
 	}
-	return NULL;
+	return (rtree_el_id_t) {
+		.parent = NULL
+	};
 }
 
-rtree_el_t*
-rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
+rtree_el_id_t
+rtree_find_exact_id(const rtree_t* tree, const rtree_rect_t* rect)
 {
 	rtree_node_base_t* n = tree->root;
 	uint64_t depth = tree->depth;
@@ -1049,6 +1076,42 @@ rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
 	else {
 		return _rtree_find_exact_leaf((const rtree_leaf_t*) n, rect);
 	}
+}
+
+rtree_el_t*
+rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
+{
+	rtree_el_id_t id = rtree_find_exact_id(tree, rect);
+	return rtree_el_id_get(id);
+}
+
+
+rtree_el_id_t
+rtree_intersects_id(const rtree_t* tree, const rtree_rect_t* rect)
+{
+	return (rtree_el_id_t) {
+		.parent = NULL
+	};
+}
+
+rtree_el_t*
+rtree_intersects(const rtree_t* tree, const rtree_rect_t* rect)
+{
+	rtree_el_id_t id = rtree_intersects_id(tree, rect);
+	return rtree_el_id_get(id);
+}
+
+
+rtree_el_id_t*
+rtree_k_nearest_id(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_id_t* ids, uint32_t k)
+{
+	return NULL;
+}
+
+rtree_el_t**
+rtree_k_nearest(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_t** els, uint32_t k)
+{
+	return NULL;
 }
 
 

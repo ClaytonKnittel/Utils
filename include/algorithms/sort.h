@@ -3411,10 +3411,10 @@ linear_insertion_sort_ ## name(T* els, size_t N) \
 	} \
 }
 
-#define DEFINE_SMALL_SORT(T, name) \
+#define DEFINE_SMALL_SORT(T, name, const_sort_max) \
 void small_sort_ ## name(T* els, size_t N) \
 { \
-	if (N <= CONST_SORT_MAX) { \
+	if (N <= const_sort_max) { \
 		const_sort_ ## name(els, N); \
 	} \
 	else { \
@@ -3560,7 +3560,7 @@ csort_ ## name(T* els, size_t N) \
 	DEFINE_CONST_SORT16(T, name, sort_cswap) \
 	DEFINE_BINARY_INSERTION_SORT_FNS(T, name, sort_cmp) \
 	DEFINE_LINEAR_INSERTION_SORT(T, name, sort_cmp) \
-	DEFINE_SMALL_SORT(T, name) \
+	DEFINE_SMALL_SORT(T, name, 16) \
 	DEFINE_QUICK_SORT_FNS(T, name, sort_cmp) \
 	DEFINE_CSORT(T, name)
 
@@ -3571,7 +3571,7 @@ csort_ ## name(T* els, size_t N) \
 	DEFINE_CONST_SORT(T, name, sort_cswap) \
 	DEFINE_BINARY_INSERTION_SORT_FNS(T, name, sort_cmp) \
 	DEFINE_LINEAR_INSERTION_SORT(T, name, sort_cmp) \
-	DEFINE_SMALL_SORT(T, name) \
+	DEFINE_SMALL_SORT(T, name, 32) \
 	DEFINE_QUICK_SORT_FNS(T, name, sort_cmp) \
 	DEFINE_CSORT(T, name)
 
