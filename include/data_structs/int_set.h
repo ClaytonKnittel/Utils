@@ -11,6 +11,7 @@
  */
 typedef uint64_t* int_set_t;
 
+#define INT_SET_MAX_SIZE (0xfffffffffffffffflu - INT_SET_ENTRY_BITS + 1)
 
 #define INT_SET_ENTRY_BITS (8 * sizeof(uint64_t))
 
