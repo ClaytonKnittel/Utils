@@ -1,6 +1,7 @@
 #ifndef _STDUTIL_H
 #define _STDUTIL_H
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -159,13 +160,21 @@ constexpr const T log10(const T & val) {
 
 } /* end namespace util */
 
-#else
+#else /* __cplusplus */
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
 #define ALIGN_UP(val, algn) (((val) + ((algn) - 1)) & ~((algn) - 1))
 #define ALIGN_DOWN(val, algn) ((val) ~((algn) - 1))
+
+
+static inline const char*
+boolstr(bool b)
+{
+	extern const char* bools[2];
+	return bools[!b];
+}
 
 #endif /* __cplusplus */
 
