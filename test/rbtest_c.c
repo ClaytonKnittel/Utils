@@ -9,7 +9,7 @@ int main(int argc, char * argv[]) {
 
 #define N_NODES 100
 
-    rb_node nodes[N_NODES];
+    rb_node_t nodes[N_NODES];
 
     for (int i = 1; i < N_NODES; i += 2) {
         rb_insert_ptr(&tree, &nodes[i]);
@@ -33,18 +33,18 @@ int main(int argc, char * argv[]) {
          addr < (uint64_t) &nodes[N_NODES];
          addr += 8) {
         uint64_t upper_bound = ((uint64_t) &nodes[0])
-                + ((addr - ((uint64_t) &nodes[0])) / sizeof(rb_node))
-                    * sizeof(rb_node);
+                + ((addr - ((uint64_t) &nodes[0])) / sizeof(rb_node_t))
+                    * sizeof(rb_node_t);
         uint64_t lower_bound = addr > ((uint64_t) &nodes[N_NODES - 1])
             ? 0
             : ((uint64_t) &nodes[0])
-                + ((addr - ((uint64_t) &nodes[0]) + sizeof(rb_node) - 1)
-                      / sizeof(rb_node))
-                    * sizeof(rb_node);
-        assert(rb_upper_bound_ptr(&tree, (rb_node *) addr)
-            == (rb_node *) upper_bound);
-        assert(rb_lower_bound_ptr(&tree, (rb_node *) addr)
-            == (rb_node *) lower_bound);
+                + ((addr - ((uint64_t) &nodes[0]) + sizeof(rb_node_t) - 1)
+                      / sizeof(rb_node_t))
+                    * sizeof(rb_node_t);
+        assert(rb_upper_bound_ptr(&tree, (rb_node_t *) addr)
+            == (rb_node_t *) upper_bound);
+        assert(rb_lower_bound_ptr(&tree, (rb_node_t *) addr)
+            == (rb_node_t *) lower_bound);
     }
 
     // delete some nodes

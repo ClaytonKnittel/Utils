@@ -22,7 +22,7 @@ typedef struct rb_node {
     struct rb_node *left;
     struct rb_node *right;
     struct rb_node *parent;
-} rb_node;
+} rb_node_t;
 
 
 
@@ -75,36 +75,36 @@ struct __int_rb_tree {
 // mask covering all used bitfields in a pointer
 #define PTR_MASK (RED | BLACK | ROOT)
 
-#define LEAF ((rb_node*) BLACK)
+#define LEAF ((rb_node_t*) BLACK)
 
 
 
-static rb_node* rb_get_root(struct __int_rb_tree *t) {
+static rb_node_t* rb_get_root(struct __int_rb_tree *t) {
     return t->root;
 }
 
-static void rb_set_parent(rb_node *n, rb_node *p) {
-    n->parent = (rb_node*) (
+static void rb_set_parent(rb_node_t *n, rb_node_t *p) {
+    n->parent = (rb_node_t*) (
             (((unsigned long) n->parent) & PTR_MASK) | ((unsigned long) p));
 }
 
-static rb_node* rb_get_left(rb_node *n) {
-    return (rb_node*) (((unsigned long) n->left) & ~PTR_MASK);
+static rb_node_t* rb_get_left(rb_node_t *n) {
+    return (rb_node_t*) (((unsigned long) n->left) & ~PTR_MASK);
 }
 
-static void rb_set_left(rb_node *n, rb_node *l) {
-    n->left = (rb_node*) ((((unsigned long) n->left) & PTR_MASK)
+static void rb_set_left(rb_node_t *n, rb_node_t *l) {
+    n->left = (rb_node_t*) ((((unsigned long) n->left) & PTR_MASK)
             | (unsigned long) l);
     if (l != LEAF) {
         rb_set_parent(l, n);
     }
 }
 
-static rb_node* rb_get_right(rb_node *n) {
+static rb_node_t* rb_get_right(rb_node_t *n) {
     return n->right;
 }
 
-static void rb_set_right(rb_node *n, rb_node *r) {
+static void rb_set_right(rb_node_t *n, rb_node_t *r) {
     n->right = r;
     if (r != LEAF) {
         rb_set_parent(r, n);
@@ -130,9 +130,9 @@ static void rb_init(struct __int_rb_tree* tree) {
  * without violating the BST property of the tree
  */
 #define RB_DEFINE_FIND_LOC(name, less_fn) \
-static rb_node* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node *node) { \
-    rb_node *prev_node = LEAF;                                  \
-    rb_node *root = rb_get_root(tree);                          \
+static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node_t *node) { \
+    rb_node_t *prev_node = LEAF;                                  \
+    rb_node_t *root = rb_get_root(tree);                          \
     while (root != LEAF) {                                      \
         prev_node = root;                                       \
         root = (less_fn(root, node) ?                           \
@@ -146,9 +146,9 @@ static rb_node* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node *no
  * returns the largest node which is less than or equal to the supplied node
  */
 #define RB_DEFINE_UPPER_BOUND(name, less_fn) \
-static rb_node* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
-    rb_node * prev_less_node = LEAF;                            \
-    rb_node * root = rb_get_root(tree);                         \
+static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
+    rb_node_t * prev_less_node = LEAF;                            \
+    rb_node_t * root = rb_get_root(tree);                         \
     while (root != LEAF) {                                      \
         if (!less_fn(node, root)) {                             \
             prev_less_node = root;                              \
@@ -165,9 +165,9 @@ static rb_node* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node *nod
  * returns the smallest node which is greater than or equal to the supplied node
  */
 #define RB_DEFINE_LOWER_BOUND(name, less_fn) \
-static rb_node* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
-    rb_node * prev_ge_node = LEAF;                              \
-    rb_node * root = rb_get_root(tree);                         \
+static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
+    rb_node_t * prev_ge_node = LEAF;                              \
+    rb_node_t * root = rb_get_root(tree);                         \
     while (root != LEAF) {                                      \
         if (less_fn(root, node)) {                              \
             root = rb_get_right(root);                          \
@@ -183,7 +183,7 @@ static rb_node* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node *nod
 
 
 #define RB_DEFINE_CONTAINS_HELPER(name, less_fn) \
-static int _rb_contains_ ## name ## _helper(rb_node *root, rb_node *node) {     \
+static int _rb_contains_ ## name ## _helper(rb_node_t *root, rb_node_t *node) {     \
     while (root != LEAF) {                                                      \
         if (root == node) return 1;                                             \
         if (!less_fn(root, node) && !less_fn(node, root)) {                     \
@@ -197,20 +197,20 @@ static int _rb_contains_ ## name ## _helper(rb_node *root, rb_node *node) {     
 
 
 #define RB_DEFINE_CONTAINS(name, less_fn) \
-static int rb_contains_ ## name(struct __int_rb_tree *tree, rb_node *node) { \
-    rb_node *root;                                              \
+static int rb_contains_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
+    rb_node_t *root;                                              \
     root = rb_get_root(tree);                                   \
     return _rb_contains_ ## name ## _helper(root, node);        \
 }
 
 
 
-int _rb_insert_helper(struct __int_rb_tree *tree, rb_node *node, rb_node* p);
+int _rb_insert_helper(struct __int_rb_tree *tree, rb_node_t *node, rb_node_t* p);
 
 #define RB_DEFINE_INSERT(name, less_fn) \
-static int rb_insert_ ## name(struct __int_rb_tree *tree, rb_node* node) {   \
-    rb_node *p;                                                 \
-    memset(node, 0, sizeof(rb_node));                           \
+static int rb_insert_ ## name(struct __int_rb_tree *tree, rb_node_t* node) {   \
+    rb_node_t *p;                                                 \
+    memset(node, 0, sizeof(rb_node_t));                           \
     p = rb_find_ ## name ## _loc(tree, node);                   \
     if (p != LEAF) {                                            \
         if (less_fn(p, node)) {                                 \
@@ -223,10 +223,10 @@ static int rb_insert_ ## name(struct __int_rb_tree *tree, rb_node* node) {   \
 }
 
 
-void _rb_remove_helper(struct __int_rb_tree *tree, rb_node *node);
+void _rb_remove_helper(struct __int_rb_tree *tree, rb_node_t *node);
 
 #define RB_DEFINE_REMOVE(name) \
-static void rb_remove_ ## name(struct __int_rb_tree *tree, rb_node *node) {  \
+static void rb_remove_ ## name(struct __int_rb_tree *tree, rb_node_t *node) {  \
     RB_ASSERT(rb_contains_ ## name(tree, node), tree);          \
     _rb_remove_helper(tree, node);                              \
 }
@@ -240,7 +240,7 @@ void _rb_validate_helper(struct __int_rb_tree *tree);
 
 
 #define RB_DEFINE_BST_CHECK(name, less_fn) \
-static void _bst_check_ ## name(rb_node *node) {            \
+static void _bst_check_ ## name(rb_node_t *node) {            \
     if (rb_get_left(node) != LEAF) {                        \
         assert(!less_fn(node, rb_get_left(node)));   \
         _bst_check_ ## name(rb_get_left(node));             \
@@ -254,7 +254,7 @@ static void _bst_check_ ## name(rb_node *node) {            \
 
 #define RB_DEFINE_VALIDATE(name) \
 static void rb_validate_ ## name(struct __int_rb_tree *tree) {   \
-    rb_node *root = rb_get_root(tree);              \
+    rb_node_t *root = rb_get_root(tree);              \
     _rb_validate_helper(tree);                      \
     if(root != LEAF) {                              \
         _bst_check_ ## name(root);                  \
@@ -280,11 +280,11 @@ static int rb_is_empty(struct __int_rb_tree *tree) {
 
 
 
-rb_node* rb_find_leftmost(struct __int_rb_tree *tree);
-rb_node* rb_find_rightmost(struct __int_rb_tree *tree);
+rb_node_t* rb_find_leftmost(struct __int_rb_tree *tree);
+rb_node_t* rb_find_rightmost(struct __int_rb_tree *tree);
 
-rb_node* rb_find_succ(rb_node *node);
-rb_node* rb_find_pred(rb_node *node);
+rb_node_t* rb_find_succ(rb_node_t *node);
+rb_node_t* rb_find_pred(rb_node_t *node);
 
 
 #define rb_for_each(tree, node) \
@@ -297,7 +297,7 @@ void rb_print(struct __int_rb_tree *tree);
 
 
 
-static int ptr_less(rb_node* a, rb_node* b) {
+static int ptr_less(rb_node_t* a, rb_node_t* b) {
     return ((uint64_t) a) < ((uint64_t) b);
 }
 
