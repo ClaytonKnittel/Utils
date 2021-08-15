@@ -326,7 +326,7 @@ public:
 
 #else*/
 
-typedef struct __int_rb_tree rb_tree;
+typedef struct __int_rb_tree rb_tree_t;
 
 //#endif /* __cplusplus */
 

@@ -3,7 +3,7 @@
 
 
 int main(int argc, char * argv[]) {
-    rb_tree tree;
+    rb_tree_t tree;
 
     rb_init(&tree);
 
