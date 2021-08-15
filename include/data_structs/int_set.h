@@ -58,4 +58,23 @@ void int_set_insert(int_set_t, uint64_t val);
 void int_set_remove(int_set_t, uint64_t val);
 
 
+#define INT_SET_FOREACH(iset, max, i) \
+	do { \
+		uint64_t __iset_off = 0; \
+		uint64_t __iset_max = INT_SET_GET_SIZE(max); \
+		while (__iset_off < __iset_max) { \
+			uint64_t bitv = (iset)[__iset_off]; \
+			uint64_t __iset_idx = 0; \
+			while (bitv != 0) { \
+				__iset_idx = __builtin_ctzl(bitv); \
+				bitv ^= 1lu << __iset_idx; \
+				uint64_t i = __iset_idx + (__iset_off * INT_SET_ENTRY_BITS);
+
+#define INT_SET_FOREACH_END \
+			} \
+			__iset_off++; \
+		} \
+	} while(0)
+
+
 #endif /* _INT_SET_H */

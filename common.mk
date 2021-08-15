@@ -14,7 +14,7 @@ IFLAGS=-I$(BASE_DIR)/include
 
 FTEST_MACROS=-D_GNU_SOURCE
 
-DEBUG=0
+DEBUG=1
 
 ifeq ($(DEBUG), 0)
 CFLAGS=-O3 -flto -mavx -march=native -Wall -Wno-unused-function -MMD -MP $(FTEST_MACROS)
