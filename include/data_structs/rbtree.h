@@ -342,25 +342,6 @@ static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, s_type va
 }
 
 /*
- * macro for defining the find function for rb nodes, which returns a pointer
- * to the node containing the queried value
- */
-#define RB_DEFINE_SCALAR_FIND(name, s_type, less_fn) \
-static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, s_type val) { \
-	rb_node_t *root = rb_get_root(tree); \
-	while (root != LEAF) { \
-		s_type root_val = *(s_type*) (((uint64_t) root) + \
-				offsetof(rb_int_node_t, val)); \
-		if (root_val == val) { \
-			return root; \
-		} \
-		root = root_val < val ? \
-				rb_get_right(root) : rb_get_left(root); \
-	} \
-	return NULL; \
-}
-
-/*
  * returns the largest node which is less than or equal to the supplied node
  */
 #define RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type, less_fn) \
@@ -417,6 +398,9 @@ static rb_node_t* rb_contains_ ## name(struct __int_rb_tree *tree, s_type val) {
 	rb_node_t *root; \
 	root = rb_get_root(tree); \
 	return _rb_contains_ ## name ## _helper(root, val); \
+} \
+static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, s_type val) { \
+	return rb_contains_ ## name(tree, val); \
 }
 
 
@@ -454,7 +438,6 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
 
 #define RB_DEFINE_SCALAR_TYPE(name, s_type, less_fn) \
 	RB_DEFINE_SCALAR_FIND_LOC(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_FIND(name, s_type, less_fn) \
 	RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type, less_fn) \
 	RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type, less_fn) \
 	RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type, less_fn) \
