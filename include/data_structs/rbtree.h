@@ -488,28 +488,6 @@ static int uint_less(rb_node_t* a, rb_node_t* b) {
 RB_DEFINE_SCALAR_TYPE(int, int64_t, int_less);
 RB_DEFINE_SCALAR_TYPE(uint, uint64_t, uint_less);
 
-static int is_red2(rb_node_t *n) {
-    return (n != LEAF) && (((unsigned long) n->parent) & COLOR_MASK) == RED;
-}
-static void _rb_print_int(rb_node_t *node, int depth, int l) {
-    static const char *colstr[2] = {"black", "red"};
-    if (!node) return;
-
-    const char * pref;
-    if (depth == 0) pref = "";
-    else if (l) pref = "L: ";
-    else pref = "R: ";
-
-    printf("%*.*s%s%p (%s) %lld\n", depth, depth, "", pref, node, colstr[is_red2(node)], *(int64_t*) (node + 1));
-    _rb_print_int(rb_get_left(node), depth + 1, 1);
-    _rb_print_int(rb_get_right(node), depth + 1, 0);
-}
-
-
-static void rb_print_int(struct __int_rb_tree *tree) {
-    _rb_print_int(rb_get_root(tree), 0, 0);
-}
-
 
 /*#ifdef __cplusplus
 
