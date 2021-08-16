@@ -273,6 +273,8 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 }
 
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic push
 
 #define RB_DEFINE_TYPE(name, less_fn) \
 	RB_DEFINE_FIND_LOC(name, less_fn) \
@@ -285,10 +287,12 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 	RB_DEFINE_BST_CHECK(name, less_fn) \
 	RB_DEFINE_VALIDATE(name)
 
+#pragma GCC diagnostic pop
+
+
 static int rb_is_empty(struct __int_rb_tree *tree) {
 	return rb_get_root(tree) == LEAF;
 }
-
 
 
 rb_node_t* rb_find_leftmost(struct __int_rb_tree *tree);
@@ -445,6 +449,8 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
 }
 
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic push
 
 #define RB_DEFINE_SCALAR_TYPE(name, s_type, less_fn) \
 	RB_DEFINE_SCALAR_FIND_LOC(name, s_type, less_fn) \
@@ -458,6 +464,7 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	RB_DEFINE_BST_CHECK(name, less_fn) \
 	RB_DEFINE_VALIDATE(name)
 
+#pragma GCC diagnostic pop
 
 /*
  * int rb trees: sorted by an int value stored immediately after the node in memory
