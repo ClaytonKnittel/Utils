@@ -430,6 +430,7 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t* node = rb_contains_ ## name(tree, val); \
 	RB_ASSERT(node != NULL, tree); \
 	_rb_remove_helper(tree, node); \
+	free(node); \
 }
 
 
