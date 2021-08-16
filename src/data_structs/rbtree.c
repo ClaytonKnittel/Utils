@@ -213,6 +213,21 @@ static void rb_rotate_right_left(rb_node_t *p, rb_node_t *r, rb_node_t *rl) {
 }
 
 
+/*
+ * --------------------------------- rb_free ---------------------------------
+ */
+
+void rb_free_node(rb_node_t *node) {
+	rb_node_t* left = rb_get_left(node);
+	rb_node_t* right = rb_get_right(node);
+	if (left != LEAF) {
+		rb_free_node(left);
+	}
+	if (right != LEAF) {
+		rb_free_node(right);
+	}
+	free(node);
+}
 
 
 /*

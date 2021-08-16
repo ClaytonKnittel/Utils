@@ -53,5 +53,73 @@ int main(int argc, char * argv[]) {
         rb_validate_ptr(&tree);
     }
 
+
+	// now do int test
+	rb_init(&tree);
+
+	int64_t vals[N_NODES];
+    rb_int_node_t* inodes[N_NODES];
+
+	for (int i = 0; i < N_NODES; i++) {
+		vals[i] = rand();
+	}
+
+    for (int i = 0; i < N_NODES; i++) {
+        inodes[i] = (rb_int_node_t*) rb_insert_int(&tree, vals[i]);
+        rb_validate_int(&tree);
+    }
+
+	// insertion sort
+	for (int i = 1; i < N_NODES; i++) {
+		for (int j = i - 1; j >= 0; j--) {
+			if (vals[j] > vals[j + 1]) {
+				int64_t tmp = vals[j];
+				vals[j] = vals[j + 1];
+				vals[j + 1] = tmp;
+
+				rb_int_node_t* tmp2 = inodes[j];
+				inodes[j] = inodes[j + 1];
+				inodes[j + 1] = tmp2;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+    for (int i = 0; i < N_NODES; i++) {
+		rb_node_t* res = rb_find_int(&tree, vals[i]);
+		assert(res == &inodes[i]->base);
+		assert(((rb_int_node_t*) res)->val == vals[i]);
+
+		rb_node_t* pred = rb_upper_bound_int(&tree, vals[i]);
+		assert(pred == &inodes[i]->base);
+		rb_node_t* succ = rb_lower_bound_int(&tree, vals[i]);
+		assert(succ == &inodes[i]->base);
+
+		pred = rb_upper_bound_int(&tree, vals[i] - 1);
+		succ = rb_lower_bound_int(&tree, vals[i] + 1);
+		if (i > 0) {
+			assert(pred == &inodes[i - 1]->base);
+		}
+		else {
+			assert(pred == NULL);
+		}
+		if (i < N_NODES - 1) {
+			assert(succ == &inodes[i + 1]->base);
+		}
+		else {
+			assert(succ == NULL);
+		}
+    }
+
+    // delete some nodes
+    for (int i = 1; i < N_NODES; i += 3) {
+        rb_remove_int(&tree, vals[i]);
+        rb_validate_int(&tree);
+    }
+
+	rb_free(&tree);
+
     return 0;
 }
