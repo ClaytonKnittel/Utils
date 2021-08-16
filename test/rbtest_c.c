@@ -87,6 +87,16 @@ int main(int argc, char * argv[]) {
 		}
 	}
 
+	rb_node_t* _node;
+	uint64_t idx = 0;
+	rb_for_each(&tree, _node) {
+		rb_int_node_t* node = (rb_int_node_t*) _node;
+		assert(inodes[idx] == node);
+		assert(vals[idx] == node->val);
+
+		idx++;
+	}
+
     for (int i = 0; i < N_NODES; i++) {
 		rb_node_t* res = rb_find_int(&tree, vals[i]);
 		assert(res == &inodes[i]->base);
