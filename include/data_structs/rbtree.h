@@ -146,13 +146,13 @@ static void rb_free(struct __int_rb_tree* tree) {
  * Find will return the leftmost node of tree which could be a parent of node
  * without violating the BST property of the tree
  */
-#define RB_DEFINE_FIND_LOC(name, less_fn) \
+#define RB_DEFINE_FIND_LOC(name, cmp_fn) \
 static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node_t *node) { \
 	rb_node_t *prev_node = LEAF; \
 	rb_node_t *root = rb_get_root(tree); \
 	while (root != LEAF) { \
 		prev_node = root; \
-		root = (less_fn(root, node) ? \
+		root = (cmp_fn(root, node) < 0 ? \
 				rb_get_right(root) : rb_get_left(root)); \
 	} \
 	return prev_node; \
@@ -162,12 +162,12 @@ static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, rb_node_t
 /*
  * returns the largest node which is less than or equal to the supplied node
  */
-#define RB_DEFINE_UPPER_BOUND(name, less_fn) \
+#define RB_DEFINE_UPPER_BOUND(name, cmp_fn) \
 static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 	rb_node_t * prev_less_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		if (!less_fn(node, root)) { \
+		if (cmp_fn(node, root) >= 0) { \
 			prev_less_node = root; \
 			root = rb_get_right(root); \
 		} \
@@ -181,12 +181,12 @@ static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, rb_node_t 
 /*
  * returns the smallest node which is greater than or equal to the supplied node
  */
-#define RB_DEFINE_LOWER_BOUND(name, less_fn) \
+#define RB_DEFINE_LOWER_BOUND(name, cmp_fn) \
 static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 	rb_node_t * prev_ge_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		if (less_fn(root, node)) { \
+		if (cmp_fn(root, node) < 0) { \
 			root = rb_get_right(root); \
 		} \
 		else { \
@@ -199,34 +199,38 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node_t 
 
 
 
-#define RB_DEFINE_CONTAINS_HELPER(name, less_fn) \
-static int _rb_contains_ ## name ## _helper(rb_node_t *root, rb_node_t *node) { \
+#define RB_DEFINE_CONTAINS_HELPER(name, cmp_fn) \
+static rb_node_t* _rb_find_ ## name ## _helper(rb_node_t *root, rb_node_t *node) { \
 	while (root != LEAF) { \
-		if (root == node) return 1; \
-		root = less_fn(root, node) ? rb_get_right(root) : rb_get_left(root); \
+		int cmp = cmp_fn(root, node); \
+		if (cmp == 0) return root; \
+		root = cmp < 0 ? rb_get_right(root) : rb_get_left(root); \
 	} \
-	return 0; \
+	return NULL; \
 }
 
 
-#define RB_DEFINE_CONTAINS(name, less_fn) \
-static int rb_contains_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
+#define RB_DEFINE_CONTAINS(name) \
+static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 	rb_node_t *root; \
 	root = rb_get_root(tree); \
-	return _rb_contains_ ## name ## _helper(root, node); \
+	return _rb_find_ ## name ## _helper(root, node); \
+} \
+static int rb_contains_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
+	return rb_find_ ## name(tree, node) != NULL; \
 }
 
 
 
 int _rb_insert_helper(struct __int_rb_tree *tree, rb_node_t *node, rb_node_t* p);
 
-#define RB_DEFINE_INSERT(name, less_fn) \
+#define RB_DEFINE_INSERT(name, cmp_fn) \
 static int rb_insert_ ## name(struct __int_rb_tree *tree, rb_node_t* node) { \
 	rb_node_t *p; \
 	memset(node, 0, sizeof(rb_node_t)); \
 	p = rb_find_ ## name ## _loc(tree, node); \
 	if (p != LEAF) { \
-		if (less_fn(p, node)) { \
+		if (cmp_fn(p, node) < 0) { \
 			rb_set_right(p, node); \
 		} else { \
 			rb_set_left(p, node); \
@@ -252,14 +256,14 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 void _rb_validate_helper(struct __int_rb_tree *tree);
 
 
-#define RB_DEFINE_BST_CHECK(name, less_fn) \
+#define RB_DEFINE_BST_CHECK(name, cmp_fn) \
 static void _bst_check_ ## name(rb_node_t *node) { \
 	if (rb_get_left(node) != LEAF) { \
-		assert(!less_fn(node, rb_get_left(node))); \
+		assert(cmp_fn(node, rb_get_left(node)) >= 0); \
 		_bst_check_ ## name(rb_get_left(node)); \
 	} \
 	if (rb_get_right(node) != LEAF) { \
-		assert(!less_fn(rb_get_right(node), node)); \
+		assert(cmp_fn(rb_get_right(node), node) >= 0); \
 		_bst_check_ ## name(rb_get_right(node)); \
 	} \
 }
@@ -278,15 +282,15 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic push
 
-#define RB_DEFINE_TYPE(name, less_fn) \
-	RB_DEFINE_FIND_LOC(name, less_fn) \
-	RB_DEFINE_UPPER_BOUND(name, less_fn) \
-	RB_DEFINE_LOWER_BOUND(name, less_fn) \
-	RB_DEFINE_CONTAINS_HELPER(name, less_fn) \
-	RB_DEFINE_CONTAINS(name, less_fn) \
-	RB_DEFINE_INSERT(name, less_fn) \
+#define RB_DEFINE_TYPE(name, cmp_fn) \
+	RB_DEFINE_FIND_LOC(name, cmp_fn) \
+	RB_DEFINE_UPPER_BOUND(name, cmp_fn) \
+	RB_DEFINE_LOWER_BOUND(name, cmp_fn) \
+	RB_DEFINE_CONTAINS_HELPER(name, cmp_fn) \
+	RB_DEFINE_CONTAINS(name) \
+	RB_DEFINE_INSERT(name, cmp_fn) \
 	RB_DEFINE_REMOVE(name) \
-	RB_DEFINE_BST_CHECK(name, less_fn) \
+	RB_DEFINE_BST_CHECK(name, cmp_fn) \
 	RB_DEFINE_VALIDATE(name)
 
 #pragma GCC diagnostic pop
@@ -321,12 +325,22 @@ void rb_print(struct __int_rb_tree *tree);
  * ptr rb trees: sorted by location of nodes in memory
  */
 
-static int ptr_less(rb_node_t* a, rb_node_t* b) {
-	return ((uint64_t) a) < ((uint64_t) b);
+static int ptr_cmp(rb_node_t* a, rb_node_t* b) {
+	return ((uint64_t) a) < ((uint64_t) b) ? -1 : ((uint64_t) a) == ((uint64_t) b) ? 0 : 1;
 }
 
-RB_DEFINE_TYPE(ptr, ptr_less)
+RB_DEFINE_TYPE(ptr, ptr_cmp);
 
+
+#define RB_DEFINE_GET_VAL(name, s_type) \
+static s_type _rb_ ## name ## _val(rb_node_t* n) { \
+	return *(s_type*) (((uint64_t) n) + offsetof(rb_int_node_t, val)); \
+}
+
+#define RB_DEFINE_SET_VAL(name, s_type) \
+static void _rb_ ## name ## _set_val(rb_node_t* n, s_type v) { \
+	*(s_type*) (((uint64_t) n) + offsetof(rb_int_node_t, val)) = v; \
+}
 
 /*
  * macro for defining the find function for rb nodes, which essentially
@@ -335,13 +349,14 @@ RB_DEFINE_TYPE(ptr, ptr_less)
  * Find will return the leftmost node of tree which could be a parent of node
  * without violating the BST property of the tree
  */
-#define RB_DEFINE_SCALAR_FIND_LOC(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_FIND_LOC(name, s_type) \
 static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t *prev_node = LEAF; \
 	rb_node_t *root = rb_get_root(tree); \
 	while (root != LEAF) { \
 		prev_node = root; \
-		root = (less_fn(root, val_to_node(&val)) ? \
+		s_type root_val = _rb_ ## name ## _val(root); \
+		root = (root_val < val ? \
 				rb_get_right(root) : rb_get_left(root)); \
 	} \
 	return prev_node; \
@@ -350,12 +365,13 @@ static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, s_type va
 /*
  * returns the largest node which is less than or equal to the supplied node
  */
-#define RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type) \
 static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t * prev_less_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		if (!less_fn(val_to_node(&val), root)) { \
+		s_type root_val = _rb_ ## name ## _val(root); \
+		if (root_val <= val) { \
 			prev_less_node = root; \
 			root = rb_get_right(root); \
 		} \
@@ -369,12 +385,13 @@ static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, s_type val
 /*
  * returns the smallest node which is greater than or equal to the supplied node
  */
-#define RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type) \
 static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t * prev_ge_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		if (less_fn(root, val_to_node(&val))) { \
+		s_type root_val = _rb_ ## name ## _val(root); \
+		if (root_val < val) { \
 			root = rb_get_right(root); \
 		} \
 		else { \
@@ -387,11 +404,10 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, s_type val
 
 
 
-#define RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type) \
 static rb_node_t* _rb_contains_ ## name ## _helper(rb_node_t *root, s_type val) { \
 	while (root != LEAF) { \
-		s_type root_val = *(s_type*) (((uint64_t) root) + \
-				offsetof(rb_int_node_t, val)); \
+		s_type root_val = _rb_ ## name ## _val(root); \
 		if (root_val == val) return root; \
 		root = root_val < val ? rb_get_right(root) : rb_get_left(root); \
 	} \
@@ -399,26 +415,27 @@ static rb_node_t* _rb_contains_ ## name ## _helper(rb_node_t *root, s_type val) 
 }
 
 
-#define RB_DEFINE_SCALAR_CONTAINS(name, s_type, less_fn) \
-static rb_node_t* rb_contains_ ## name(struct __int_rb_tree *tree, s_type val) { \
+#define RB_DEFINE_SCALAR_CONTAINS(name, s_type) \
+static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t *root; \
 	root = rb_get_root(tree); \
 	return _rb_contains_ ## name ## _helper(root, val); \
 } \
-static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, s_type val) { \
-	return rb_contains_ ## name(tree, val); \
+static int rb_contains_ ## name(struct __int_rb_tree *tree, s_type val) { \
+	return rb_find_ ## name(tree, val) != NULL; \
 }
 
 
-#define RB_DEFINE_SCALAR_INSERT(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_INSERT(name, s_type) \
 static rb_node_t* rb_insert_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t* node = (rb_node_t*) malloc(sizeof(rb_int_node_t) + sizeof(s_type)); \
-	*(s_type*) (((uint64_t) node) + offsetof(rb_int_node_t, val)) = val; \
+	_rb_ ## name ## _set_val(node, val); \
 	rb_node_t *p; \
 	memset(node, 0, sizeof(rb_node_t)); \
 	p = rb_find_ ## name ## _loc(tree, val); \
 	if (p != LEAF) { \
-		if (less_fn(p, val_to_node(&val))) { \
+		s_type p_val = _rb_ ## name ## _val(p); \
+		if (p_val < val) { \
 			rb_set_right(p, node); \
 		} else { \
 			rb_set_left(p, node); \
@@ -433,25 +450,42 @@ static rb_node_t* rb_insert_ ## name(struct __int_rb_tree *tree, s_type val) { \
 
 #define RB_DEFINE_SCALAR_REMOVE(name, s_type) \
 static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
-	rb_node_t* node = rb_contains_ ## name(tree, val); \
+	rb_node_t* node = rb_find_ ## name(tree, val); \
 	RB_ASSERT(node != NULL, tree); \
 	_rb_remove_helper(tree, node); \
 	free(node); \
+}
+
+#define RB_DEFINE_SCALAR_BST_CHECK(name, s_type) \
+static void _bst_check_ ## name(rb_node_t *node) { \
+	s_type node_val = _rb_ ## name ## _val(node); \
+	if (rb_get_left(node) != LEAF) { \
+		s_type left_val = _rb_ ## name ## _val(rb_get_left(node)); \
+		assert(left_val <= node_val); \
+		_bst_check_ ## name(rb_get_left(node)); \
+	} \
+	if (rb_get_right(node) != LEAF) { \
+		s_type right_val = _rb_ ## name ## _val(rb_get_right(node)); \
+		assert(node_val <= right_val); \
+		_bst_check_ ## name(rb_get_right(node)); \
+	} \
 }
 
 
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic push
 
-#define RB_DEFINE_SCALAR_TYPE(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_FIND_LOC(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_CONTAINS(name, s_type, less_fn) \
-	RB_DEFINE_SCALAR_INSERT(name, s_type, less_fn) \
+#define RB_DEFINE_SCALAR_TYPE(name, s_type) \
+	RB_DEFINE_GET_VAL(name, s_type) \
+	RB_DEFINE_SET_VAL(name, s_type) \
+	RB_DEFINE_SCALAR_FIND_LOC(name, s_type) \
+	RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type) \
+	RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type) \
+	RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type) \
+	RB_DEFINE_SCALAR_CONTAINS(name, s_type) \
+	RB_DEFINE_SCALAR_INSERT(name, s_type) \
 	RB_DEFINE_SCALAR_REMOVE(name, s_type) \
-	RB_DEFINE_BST_CHECK(name, less_fn) \
+	RB_DEFINE_SCALAR_BST_CHECK(name, s_type) \
 	RB_DEFINE_VALIDATE(name)
 
 #pragma GCC diagnostic pop
@@ -470,20 +504,8 @@ typedef struct rb_uint_node {
 	uint64_t val;
 } rb_uint_node_t;
 
-static rb_node_t* val_to_node(void* val) {
-	return (rb_node_t*) (((uint64_t) val) - offsetof(rb_int_node_t, val));
-}
-
-static int int_less(rb_node_t* a, rb_node_t* b) {
-	return ((rb_int_node_t*) a)->val < ((rb_int_node_t*) b)->val;
-}
-
-static int uint_less(rb_node_t* a, rb_node_t* b) {
-	return ((rb_uint_node_t*) a)->val < ((rb_uint_node_t*) b)->val;
-}
-
-RB_DEFINE_SCALAR_TYPE(int, int64_t, int_less);
-RB_DEFINE_SCALAR_TYPE(uint, uint64_t, uint_less);
+RB_DEFINE_SCALAR_TYPE(int, int64_t);
+RB_DEFINE_SCALAR_TYPE(uint, uint64_t);
 
 
 /*#ifdef __cplusplus
