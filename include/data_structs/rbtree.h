@@ -29,6 +29,7 @@ typedef struct rb_node {
 
 struct __int_rb_tree {
 	struct rb_node *root;
+	uint64_t size;
 };
 
 /*
@@ -120,6 +121,7 @@ static void rb_set_right(rb_node_t *n, rb_node_t *r) {
  */
 static void rb_init(struct __int_rb_tree* tree) {
 	tree->root = LEAF;
+	tree->size = 0;
 }
 
 

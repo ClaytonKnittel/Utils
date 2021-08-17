@@ -1,4 +1,6 @@
 
+#include <inttypes.h>
+
 #include <data_structs/rbtree.h>
 
 
@@ -311,6 +313,7 @@ int _rb_insert_helper(struct __int_rb_tree *tree, rb_node_t *node, rb_node_t *p)
         set_black(node);
     }
 
+	tree->size++;
     return 1; // success
 }
 
@@ -473,6 +476,8 @@ void _rb_remove_helper(struct __int_rb_tree *tree, rb_node_t *node) {
             set_right(get_parent(node), replacer);
         }
     }
+
+	tree->size--;
 }
 
 
@@ -561,6 +566,7 @@ static void _rb_print(rb_node_t *node, int depth, int l) {
 
 
 void rb_print(struct __int_rb_tree *tree) {
+	printf("tree size: %" PRIu64 "\n", tree->size);
     _rb_print(get_root(tree), 0, 0);
 }
 
@@ -615,6 +621,20 @@ static char parents_valid(rb_node_t *node) {
     return 1;
 }
 
+static uint64_t tree_size(rb_node_t *node) {
+	if (node == LEAF) {
+		return 0;
+	}
+	uint64_t lsize = 0, rsize = 0;
+	if (get_left(node) != LEAF) {
+		lsize = tree_size(get_left(node));
+	}
+	if (get_right(node) != LEAF) {
+		rsize = tree_size(get_right(node));
+	}
+	return lsize + rsize + 1;
+}
+
 static char no_other_roots(rb_node_t *node) {
     if (node == LEAF) return 1;
     if (is_root(node)) return 0;
@@ -631,6 +651,7 @@ void _rb_validate_helper(struct __int_rb_tree *tree) {
     RB_ASSERT(black_depth(root) != -1LU, tree);
     RB_ASSERT(no_red_red(root), tree);
     RB_ASSERT(parents_valid(root), tree);
+	RB_ASSERT(tree_size(root) == tree->size, tree);
 
     if (root != LEAF) {
         RB_ASSERT(is_root(root), tree);
