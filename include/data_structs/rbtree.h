@@ -286,6 +286,10 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 
 /*
  * only defines the search functions for this type
+ *
+ * the left operand of cmp_find will always be rb_nodes found in the tree, and
+ * the right will always be the thing you are comparing against, so the latter
+ * may be whatever type you desire, even if incompatible with the rb_node type
  */
 #define RB_DEFINE_TYPE_SEARCH(name, cmp_fn) \
 	RB_DEFINE_FIND_HELPER(name, cmp_fn) \
@@ -342,12 +346,12 @@ RB_DEFINE_TYPE(ptr, ptr_cmp);
 
 
 #define RB_DEFINE_GET_VAL(name, s_type) \
-static s_type _rb_ ## name ## _val(rb_node_t* n) { \
+static s_type rb_ ## name ## _val(rb_node_t* n) { \
 	return *(s_type*) (((uint64_t) n) + offsetof(rb_int_node_t, val)); \
 }
 
 #define RB_DEFINE_SET_VAL(name, s_type) \
-static void _rb_ ## name ## _set_val(rb_node_t* n, s_type v) { \
+static void rb_ ## name ## _set_val(rb_node_t* n, s_type v) { \
 	*(s_type*) (((uint64_t) n) + offsetof(rb_int_node_t, val)) = v; \
 }
 
@@ -364,7 +368,7 @@ static rb_node_t* rb_find_ ## name ## _loc(struct __int_rb_tree *tree, s_type va
 	rb_node_t *root = rb_get_root(tree); \
 	while (root != LEAF) { \
 		prev_node = root; \
-		s_type root_val = _rb_ ## name ## _val(root); \
+		s_type root_val = rb_ ## name ## _val(root); \
 		root = (root_val < val ? \
 				rb_get_right(root) : rb_get_left(root)); \
 	} \
@@ -379,7 +383,7 @@ static rb_node_t* rb_upper_bound_ ## name(struct __int_rb_tree *tree, s_type val
 	rb_node_t * prev_less_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		s_type root_val = _rb_ ## name ## _val(root); \
+		s_type root_val = rb_ ## name ## _val(root); \
 		if (root_val <= val) { \
 			prev_less_node = root; \
 			root = rb_get_right(root); \
@@ -399,7 +403,7 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, s_type val
 	rb_node_t * prev_ge_node = LEAF; \
 	rb_node_t * root = rb_get_root(tree); \
 	while (root != LEAF) { \
-		s_type root_val = _rb_ ## name ## _val(root); \
+		s_type root_val = rb_ ## name ## _val(root); \
 		if (root_val < val) { \
 			root = rb_get_right(root); \
 		} \
@@ -416,7 +420,7 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, s_type val
 #define RB_DEFINE_SCALAR_FIND_HELPER(name, s_type) \
 static rb_node_t* _rb_contains_ ## name ## _helper(rb_node_t *root, s_type val) { \
 	while (root != LEAF) { \
-		s_type root_val = _rb_ ## name ## _val(root); \
+		s_type root_val = rb_ ## name ## _val(root); \
 		if (root_val == val) return root; \
 		root = root_val < val ? rb_get_right(root) : rb_get_left(root); \
 	} \
@@ -440,12 +444,12 @@ static int rb_contains_ ## name(struct __int_rb_tree *tree, s_type val) { \
 #define RB_DEFINE_SCALAR_INSERT(name, s_type) \
 static rb_node_t* rb_insert_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t* node = (rb_node_t*) malloc(sizeof(rb_int_node_t) + sizeof(s_type)); \
-	_rb_ ## name ## _set_val(node, val); \
+	rb_ ## name ## _set_val(node, val); \
 	rb_node_t *p; \
 	memset(node, 0, sizeof(rb_node_t)); \
 	p = rb_find_ ## name ## _loc(tree, val); \
 	if (p != LEAF) { \
-		s_type p_val = _rb_ ## name ## _val(p); \
+		s_type p_val = rb_ ## name ## _val(p); \
 		if (p_val < val) { \
 			rb_set_right(p, node); \
 		} else { \
@@ -469,14 +473,14 @@ static void rb_remove_ ## name(struct __int_rb_tree *tree, s_type val) { \
 
 #define RB_DEFINE_SCALAR_BST_CHECK(name, s_type) \
 static void _bst_check_ ## name(rb_node_t *node) { \
-	s_type node_val = _rb_ ## name ## _val(node); \
+	s_type node_val = rb_ ## name ## _val(node); \
 	if (rb_get_left(node) != LEAF) { \
-		s_type left_val = _rb_ ## name ## _val(rb_get_left(node)); \
+		s_type left_val = rb_ ## name ## _val(rb_get_left(node)); \
 		assert(left_val <= node_val); \
 		_bst_check_ ## name(rb_get_left(node)); \
 	} \
 	if (rb_get_right(node) != LEAF) { \
-		s_type right_val = _rb_ ## name ## _val(rb_get_right(node)); \
+		s_type right_val = rb_ ## name ## _val(rb_get_right(node)); \
 		assert(node_val <= right_val); \
 		_bst_check_ ## name(rb_get_right(node)); \
 	} \
