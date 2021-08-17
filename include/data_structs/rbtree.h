@@ -199,7 +199,7 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, rb_node_t 
 
 
 
-#define RB_DEFINE_CONTAINS_HELPER(name, cmp_fn) \
+#define RB_DEFINE_FIND_HELPER(name, cmp_fn) \
 static rb_node_t* _rb_find_ ## name ## _helper(rb_node_t *root, rb_node_t *node) { \
 	while (root != LEAF) { \
 		int cmp = cmp_fn(root, node); \
@@ -210,12 +210,14 @@ static rb_node_t* _rb_find_ ## name ## _helper(rb_node_t *root, rb_node_t *node)
 }
 
 
-#define RB_DEFINE_CONTAINS(name) \
+#define RB_DEFINE_FIND(name) \
 static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 	rb_node_t *root; \
 	root = rb_get_root(tree); \
 	return _rb_find_ ## name ## _helper(root, node); \
-} \
+}
+
+#define RB_DEFINE_CONTAINS(name) \
 static int rb_contains_ ## name(struct __int_rb_tree *tree, rb_node_t *node) { \
 	return rb_find_ ## name(tree, node) != NULL; \
 }
@@ -286,7 +288,8 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 	RB_DEFINE_FIND_LOC(name, cmp_fn) \
 	RB_DEFINE_UPPER_BOUND(name, cmp_fn) \
 	RB_DEFINE_LOWER_BOUND(name, cmp_fn) \
-	RB_DEFINE_CONTAINS_HELPER(name, cmp_fn) \
+	RB_DEFINE_FIND_HELPER(name, cmp_fn) \
+	RB_DEFINE_FIND(name) \
 	RB_DEFINE_CONTAINS(name) \
 	RB_DEFINE_INSERT(name, cmp_fn) \
 	RB_DEFINE_REMOVE(name) \
@@ -404,7 +407,7 @@ static rb_node_t* rb_lower_bound_ ## name(struct __int_rb_tree *tree, s_type val
 
 
 
-#define RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type) \
+#define RB_DEFINE_SCALAR_FIND_HELPER(name, s_type) \
 static rb_node_t* _rb_contains_ ## name ## _helper(rb_node_t *root, s_type val) { \
 	while (root != LEAF) { \
 		s_type root_val = _rb_ ## name ## _val(root); \
@@ -415,12 +418,14 @@ static rb_node_t* _rb_contains_ ## name ## _helper(rb_node_t *root, s_type val) 
 }
 
 
-#define RB_DEFINE_SCALAR_CONTAINS(name, s_type) \
+#define RB_DEFINE_SCALAR_FIND(name, s_type) \
 static rb_node_t* rb_find_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	rb_node_t *root; \
 	root = rb_get_root(tree); \
 	return _rb_contains_ ## name ## _helper(root, val); \
-} \
+}
+
+#define RB_DEFINE_SCALAR_CONTAINS(name, s_type) \
 static int rb_contains_ ## name(struct __int_rb_tree *tree, s_type val) { \
 	return rb_find_ ## name(tree, val) != NULL; \
 }
@@ -481,7 +486,8 @@ static void _bst_check_ ## name(rb_node_t *node) { \
 	RB_DEFINE_SCALAR_FIND_LOC(name, s_type) \
 	RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type) \
 	RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type) \
-	RB_DEFINE_SCALAR_CONTAINS_HELPER(name, s_type) \
+	RB_DEFINE_SCALAR_FIND_HELPER(name, s_type) \
+	RB_DEFINE_SCALAR_FIND(name, s_type) \
 	RB_DEFINE_SCALAR_CONTAINS(name, s_type) \
 	RB_DEFINE_SCALAR_INSERT(name, s_type) \
 	RB_DEFINE_SCALAR_REMOVE(name, s_type) \
