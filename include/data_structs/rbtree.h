@@ -308,6 +308,10 @@ rb_node_t* rb_find_pred(rb_node_t *node);
 	for ((node) = rb_find_leftmost((tree)); (node) != LEAF; \
 			(node) = rb_find_succ(node))
 
+#define rb_for_each_rev(tree, node) \
+	for ((node) = rb_find_rightmost((tree)); (node) != LEAF; \
+			(node) = rb_find_pred(node))
+
 
 
 void rb_print(struct __int_rb_tree *tree);
