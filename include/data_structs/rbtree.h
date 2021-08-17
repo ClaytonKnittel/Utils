@@ -284,13 +284,19 @@ static void rb_validate_ ## name(struct __int_rb_tree *tree) { \
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic push
 
+/*
+ * only defines the search functions for this type
+ */
+#define RB_DEFINE_TYPE_SEARCH(name, cmp_fn) \
+	RB_DEFINE_FIND_HELPER(name, cmp_fn) \
+	RB_DEFINE_FIND(name) \
+	RB_DEFINE_CONTAINS(name)
+
 #define RB_DEFINE_TYPE(name, cmp_fn) \
 	RB_DEFINE_FIND_LOC(name, cmp_fn) \
 	RB_DEFINE_UPPER_BOUND(name, cmp_fn) \
 	RB_DEFINE_LOWER_BOUND(name, cmp_fn) \
-	RB_DEFINE_FIND_HELPER(name, cmp_fn) \
-	RB_DEFINE_FIND(name) \
-	RB_DEFINE_CONTAINS(name) \
+	RB_DEFINE_TYPE_SEARCH(name, cmp_fn) \
 	RB_DEFINE_INSERT(name, cmp_fn) \
 	RB_DEFINE_REMOVE(name) \
 	RB_DEFINE_BST_CHECK(name, cmp_fn) \
