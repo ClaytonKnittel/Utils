@@ -1,6 +1,3 @@
-CC=gcc
-PCC=g++
-AR=ar
 
 # get base directory that will work on recursive make calls
 ifndef BASE_DIR

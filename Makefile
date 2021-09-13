@@ -2,7 +2,6 @@ include common.mk
 
 SDIR=src
 ODIR=.obj
-PSDIR=src
 
 SLIB=$(LIB_DIR)/libutil.a
 
@@ -24,16 +23,16 @@ $(shell mkdir -p $(BIN_DIR))
 DEPFILES=$(SRC:$(SDIR)/%.c=$(ODIR)/%_c.d)
 
 
-PSRC=$(shell find $(PSDIR) -type f -name '*.cpp')
-POBJ=$(patsubst $(PSDIR)/%.cpp,$(ODIR)/%_cc.o,$(PSRC))
-PDEP=$(wildcard $(PSDIR)/*.h)
+PSRC=$(shell find $(SDIR) -type f -name '*.cc')
+POBJ=$(patsubst $(SDIR)/%.cc,$(ODIR)/%_cc.o,$(PSRC))
+PDEP=$(wildcard $(SDIR)/*.h)
 
-PDIRS=$(shell find $(PSDIR) -type d)
-POBJDIRS=$(patsubst $(PSDIR)/%,$(ODIR)/%,$(PDIRS))
+PDIRS=$(shell find $(SDIR) -type d)
+POBJDIRS=$(patsubst $(SDIR)/%,$(ODIR)/%,$(PDIRS))
 
 $(shell mkdir -p $(POBJDIRS))
 
-PDEPFILES=$(PSRC:$(PSDIR)/%.cpp=$(PODIR)/%_cc.d)
+PDEPFILES=$(PSRC:$(SDIR)/%.cc=$(ODIR)/%_cc.d)
 
 ifeq ($(UNAME_S),Darwin)
   ASM=$(shell find $(SDIR) -type f -name '*.s')
@@ -64,8 +63,8 @@ $(SLIB): $(OBJ) $(POBJ) $(ASM_OBJ)
 $(ODIR)/%_c.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
 
-$(PODIR)/%_cc.o: $(SDIR)/%.cpp
-	$(PCC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
+$(ODIR)/%_cc.o: $(SDIR)/%.cc
+	$(CXX) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
 
 ifeq ($(UNAME_S),Darwin)
 $(ODIR)/%_s.o: $(SDIR)/%.s

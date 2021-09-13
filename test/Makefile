@@ -29,13 +29,13 @@ $(BIN_DIR)/%: $(ODIR)/%_c.o $(LIBUTIL)
 	$(CC) $(CFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
 $(BIN_DIR)/%: $(ODIR)/%_cc.o $(LIBUTIL)
-	$(PCC) $(CPPFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
+	$(CXX) $(CPPFLAGS) $< -o $@ $(IFLAGS) $(LDFLAGS) -lutil
 
 $(ODIR)/%_c.o: %.c
 	$(CC) $(CFLAGS) $< -c -o $@ $(IFLAGS)
 
 $(ODIR)/%_cc.o: %.cc
-	$(PCC) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
+	$(CXX) $(CPPFLAGS) $< -c -o $@ $(IFLAGS)
 
 
 -include $(wildcard $(DEPFILES))
