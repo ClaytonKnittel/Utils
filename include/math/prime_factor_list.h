@@ -31,6 +31,14 @@ prime_factor_list_free(prime_factor_list_t*);
 #define FOR_EACH_PRIME_FACTOR_END \
 	}
 
+#define FOR_EACH_PRIME(pf_list, prime) \
+	for (uint64_t prime = 2; prime <= (pf_list).max; prime++) { \
+		if ((pf_list).factors[prime] == prime) {
+
+#define FOR_EACH_PRIME_END \
+		} \
+	}
+
 
 #else /* __cplusplus */
 

@@ -6,7 +6,7 @@
 int
 main(int argc, char* argv[])
 {
-	const constexpr uint64_t n = 500000;
+	const constexpr uint64_t n = 100000;
 	PrimeFactorList primes(n);
 
 	const std::vector<uint64_t>& factors = primes.get_factors();
