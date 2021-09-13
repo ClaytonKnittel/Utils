@@ -21,7 +21,7 @@ prime_factor_list_free(prime_factor_list_t*);
 
 #define FOR_EACH_PRIME_FACTOR(pf_list, n, factor, pow) \
 	for (uint64_t __i = n; __i > 1;) { \
-		uint64_t factor = __i; \
+		uint64_t factor = (pf_list).factors[__i]; \
 		uint64_t pow = 0; \
 		do { \
 			__i /= factor; \
