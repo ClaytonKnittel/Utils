@@ -11,6 +11,10 @@ main(int argc, char* argv[])
 	prime_factor_list_init(&list, n);
 
 	for (uint64_t i = 2; i <= n; i++) {
+		assert(list.factors[i] > 1);
+	}
+
+	for (uint64_t i = 2; i <= n; i++) {
 		uint64_t smallest_factor = list.factors[i];
 		assert(i % smallest_factor == 0);
 
