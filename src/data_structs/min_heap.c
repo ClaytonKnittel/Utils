@@ -1,13 +1,12 @@
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
 
 #include <data_structs/min_heap.h>
+#include <util.h>
 
 
-
-#define HEAP_ASSERT(expr) assert(expr)
+#define HEAP_ASSERT(expr) dbg_assert(expr)
 
 
 #define LEFT_CHILD 0x1
@@ -70,7 +69,9 @@ int heap_init(heap_t * h) {
 }
 
 
-void heap_destroy(heap_t * h) {}
+void heap_destroy(heap_t * h) {
+	(void) h;
+}
 
 
 

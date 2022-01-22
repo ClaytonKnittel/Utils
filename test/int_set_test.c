@@ -6,7 +6,7 @@
 #include <data_structs/int_set.h>
 
 int
-main(int argc, char* argv[])
+main()
 {
 	uint64_t n = 1000;
 	uint64_t max = 0x1000000;

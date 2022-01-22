@@ -20,7 +20,7 @@ static int node_less(const struct irb_node * a, const struct irb_node * b) {
 IRB_DEFINE_TYPE(node, node_less);
 
 
-int main(int argc, char * argv[]) {
+int main() {
     irb_tree tree;
     struct timespec start, end;
 

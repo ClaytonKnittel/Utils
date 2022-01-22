@@ -30,7 +30,7 @@
 
 
 
-#include "../util/util.h"
+#include <util.h>
 
 // 256 color sets
 #define P_256_COLOR(id) "\u001b[38;5;" STR(id) "m"

@@ -1,11 +1,9 @@
 
-#include <assert.h>
 #include <stdio.h>
 
 #include <data_structs/min_heap.h>
 
-
-#define TEST_ASSERT(expr) assert(expr)
+#include "test_utils.h"
 
 
 int main(int argc, char * argv[]) {
@@ -31,7 +29,7 @@ int main(int argc, char * argv[]) {
     heap_decrease_key(&h, &nodes[2], 2);
     heap_validate(&h);
 
-    assert(heap_find_min(&h)->key == 2);
+    test_assert(heap_find_min(&h)->key == 2);
 
     heap_destroy(&h);
 
@@ -83,36 +81,36 @@ int main(int argc, char * argv[]) {
     }
 
     heap_node * min = heap_extract_min(&h);
-    TEST_ASSERT(min == &nodes3[0]);
+    test_assert(min == &nodes3[0]);
     heap_validate(&h);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 2);
+    test_assert(min->key == 2);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 3);
+    test_assert(min->key == 3);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 4);
+    test_assert(min->key == 4);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 5);
+    test_assert(min->key == 5);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 6);
+    test_assert(min->key == 6);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 8);
+    test_assert(min->key == 8);
 
     min = heap_extract_min(&h);
     heap_validate(&h);
-    TEST_ASSERT(min->key == 10);
+    test_assert(min->key == 10);
 
     heap_destroy(&h);
 
@@ -138,10 +136,10 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < N_TESTS; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == i);
+        test_assert(m->key == i);
     }
 
-    TEST_ASSERT(heap_extract_min(&h) == NULL);
+    test_assert(heap_extract_min(&h) == NULL);
 
     heap_destroy(&h);
 
@@ -164,7 +162,7 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 25; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == 1 + i * 2);
+        test_assert(m->key == 1 + i * 2);
     }
 
     // delete every other remaining node
@@ -176,10 +174,10 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 12; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == 53 + i * 4);
+        test_assert(m->key == 53 + i * 4);
     }
 
-    TEST_ASSERT(heap_extract_min(&h) == NULL);
+    test_assert(heap_extract_min(&h) == NULL);
 
     heap_destroy(&h);
 
@@ -202,7 +200,7 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 75; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == (2 * i) / 3);
+        test_assert(m->key == (2 * i) / 3);
     }
 
     // now just 50, 52, ... 98 remain
@@ -215,10 +213,10 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 25; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == 50 + 4 * (i / 2));
+        test_assert(m->key == 50 + 4 * (i / 2));
     }
 
-    TEST_ASSERT(heap_extract_min(&h) == NULL);
+    test_assert(heap_extract_min(&h) == NULL);
 
 
     heap_destroy(&h);
@@ -246,7 +244,7 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 75; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == 2 * ((2 * (i + 2)) / 3 - 1));
+        test_assert(m->key == 2 * ((2 * (i + 2)) / 3 - 1));
     }
 
     heap_validate(&h);
@@ -254,7 +252,7 @@ int main(int argc, char * argv[]) {
     // now just 102, 106, ... 198 remain
 
     for (int i = 51; i < N_TESTS; i += 4) {
-        assert(nodes4[i].key == i * 2);
+        test_assert(nodes4[i].key == i * 2);
         heap_increase_key(&h, &nodes4[i], i * 2 + 8);
         heap_validate(&h);
     }
@@ -262,10 +260,10 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i < 25; i++) {
         heap_node * m = heap_extract_min(&h);
         heap_validate(&h);
-        TEST_ASSERT(m->key == 106 + 4 * i || (i == 24 && m->key == 206));
+        test_assert(m->key == 106 + 4 * i || (i == 24 && m->key == 206));
     }
 
-    TEST_ASSERT(heap_extract_min(&h) == NULL);
+    test_assert(heap_extract_min(&h) == NULL);
 
     heap_destroy(&h);
 

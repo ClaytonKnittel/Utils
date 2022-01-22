@@ -1,10 +1,17 @@
-#ifndef _STDUTIL_H
-#define _STDUTIL_H
+#ifndef _UTIL_UTIL_H
+#define _UTIL_UTIL_H
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 
+
+#ifdef DEBUG
+#define dbg_assert(expr) assert(expr)
+#else
+#define dbg_assert(expr) (void) (expr)
+#endif
 
 #define printerr(f, fmt, ...) \
     fprintf((f), __FILE__ ":%d " fmt, __LINE__, __VA_ARGS__)
@@ -26,12 +33,12 @@ typedef uint32_t ptr_int_t;
 namespace util {
 
 template<typename T, typename U>
-constexpr const T align_up(const U & val, const T & algn) {
+constexpr T align_up(const U & val, const T & algn) {
     return (val + algn - 1) & ~(algn - 1);
 }
 
 template<typename T, typename U>
-constexpr const T align_down(const U & val, const T & algn) {
+constexpr T align_down(const U & val, const T & algn) {
     return val & ~(algn - 1);
 }
 
@@ -43,7 +50,7 @@ constexpr const T align_down(const U & val, const T & algn) {
  * returns 1 + index of the first set bit of val, or undefined if val is 0
  */
 template<typename T>
-constexpr const int ffs_unsafe(const T & val) {
+constexpr int ffs_unsafe(const T & val) {
     if constexpr (sizeof(val) > sizeof(uint32_t)) {
         return 1 + __builtin_ctzl(val);
     }
@@ -56,7 +63,7 @@ constexpr const int ffs_unsafe(const T & val) {
  * returns 1 + index of the first set bit of val, or 0 if val is 0
  */
 template<typename T>
-constexpr const int ffs(const T & val) {
+constexpr int ffs(const T & val) {
     if constexpr (sizeof(val) > sizeof(uint32_t)) {
         return __builtin_ffsl(val);
     }
@@ -69,7 +76,7 @@ constexpr const int ffs(const T & val) {
  * returns 1 + index of the last set bit of val, or undefined if val is 0
  */
 template<typename T>
-constexpr const T fls_unsafe(const T & val) {
+constexpr T fls_unsafe(const T & val) {
     if constexpr (sizeof(val) > sizeof(uint32_t)) {
         return 8 * sizeof(uint64_t) - __builtin_clzl(val);
     }
@@ -83,7 +90,7 @@ constexpr const T fls_unsafe(const T & val) {
  * returns 1 + index of the last set bit of val, or 0 if val is 0
  */
 template<typename T>
-constexpr const T fls(const T & val) {
+constexpr T fls(const T & val) {
     if (val == 0) {
         return 0;
     }
@@ -98,7 +105,7 @@ constexpr const T fls(const T & val) {
  * val is 0
  */
 template<typename T>
-constexpr const T next_pow2_unsafe(const T & val) {
+constexpr T next_pow2_unsafe(const T & val) {
     return T(1) << (fls(val - 1));
 }
 
@@ -107,7 +114,7 @@ constexpr const T next_pow2_unsafe(const T & val) {
  * val is 0
  */
 template<typename T>
-constexpr const T next_pow2(const T & val) {
+constexpr T next_pow2(const T & val) {
     if (val == 0) {
         return 0;
     }
@@ -149,7 +156,7 @@ static const uint64_t log10_ten_to[] = {
  * representation of val
  */
 template<typename T>
-constexpr const T log10(const T & val) {
+constexpr T ceil_log10(const T & val) {
 
     uint32_t width = fls(val);
     uint32_t guess = log10_pow2_guess[width];
@@ -179,4 +186,4 @@ boolstr(bool b)
 #endif /* __cplusplus */
 
 
-#endif /* _STDUTIL_H */
+#endif /* _UTIL_UTIL_H */

@@ -3,21 +3,19 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 
+#include <util.h>
 
 
-#define IRB_ASSERT(expr, tree) \
+#ifdef DEBUG
+#define IRB_DBG_ASSERT(expr) \
     if (__builtin_expect(!(expr), 0)) { \
         printf("tree %p:\n", (tree));   \
         irb_print(tree);                 \
     }                                   \
-    assert(expr)
-
-#ifdef DEBUG
-#define IRB_DBG_ASSERT(...) IRB_ASSERT(__VA_ARGS__)
+    dbg_assert(expr)
 #else
 #define IRB_DBG_ASSERT(...)
 #endif /* DEBUG */
@@ -261,12 +259,13 @@ static int irb_insert_ ## name(struct __int_irb_tree *tree, irb_node* node) {   
 }
 
 
-void _irb_remove_helper(struct __int_irb_tree *tree, irb_node *node);
+void _irb_remove_helper(irb_node *node);
 
 #define IRB_DEFINE_REMOVE(name) \
 static void irb_remove_ ## name(struct __int_irb_tree *tree, irb_node *node) {  \
     IRB_DBG_ASSERT(irb_contains_ ## name(tree, node), tree);     \
-    _irb_remove_helper(tree, node);                              \
+	(void) tree;                                           \
+    _irb_remove_helper(node);                              \
 }
 
 
@@ -328,11 +327,11 @@ void _irb_validate_helper(struct __int_irb_tree *tree);
 #define IRB_DEFINE_BST_CHECK(name, less_fn) \
 static void _bst_check_ ## name(irb_node *node) {             \
     if (irb_get_left(node) != ILEAF) {                        \
-        assert(!less_fn(node, irb_get_left(node)));           \
+        dbg_assert(!less_fn(node, irb_get_left(node)));           \
         _bst_check_ ## name(irb_get_left(node));              \
     }                                                         \
     if (irb_get_right(node) != ILEAF) {                       \
-        assert(!less_fn(irb_get_right(node), node));          \
+        dbg_assert(!less_fn(irb_get_right(node), node));          \
         _bst_check_ ## name(irb_get_right(node));             \
     }                                                         \
 }

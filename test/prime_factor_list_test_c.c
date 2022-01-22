@@ -1,7 +1,8 @@
 
-#include <assert.h>
-
 #include <math/prime_factor_list.h>
+
+#include "test_utils.h"
+
 
 int
 main(int argc, char* argv[])
@@ -11,15 +12,15 @@ main(int argc, char* argv[])
 	prime_factor_list_init(&list, n);
 
 	for (uint64_t i = 2; i <= n; i++) {
-		assert(list.factors[i] > 1);
+		test_assert(list.factors[i] > 1);
 	}
 
 	for (uint64_t i = 2; i <= n; i++) {
 		uint64_t smallest_factor = list.factors[i];
-		assert(i % smallest_factor == 0);
+		test_assert(i % smallest_factor == 0);
 
 		for (uint64_t j = 2; j < smallest_factor; j++) {
-			assert(i % j != 0);
+			test_assert(i % j != 0);
 		}
 	}
 
@@ -28,7 +29,7 @@ main(int argc, char* argv[])
 		uint64_t prev_factor = 1;
 
 		FOR_EACH_PRIME_FACTOR(list, i, factor, repeats) {
-			assert(prev_factor < factor);
+			test_assert(prev_factor < factor);
 
 			for (uint64_t j = 0; j < repeats; j++) {
 				val *= factor;
@@ -38,11 +39,11 @@ main(int argc, char* argv[])
 		}
 		FOR_EACH_PRIME_FACTOR_END
 
-		assert(val == i);
+		test_assert(val == i);
 	}
 
 
-	const uint64_t n_primes = 168;
+#define n_primes 168lu
 
 	uint64_t primes[n_primes] = {
 		2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
@@ -61,7 +62,7 @@ main(int argc, char* argv[])
 
 	uint64_t i = 0;
 	FOR_EACH_PRIME(list, prime) {
-		assert(prime == primes[i]);
+		test_assert(prime == primes[i]);
 		i++;
 		if (i == n_primes) {
 			break;

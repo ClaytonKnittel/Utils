@@ -4,10 +4,10 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 
+#include <util.h>
 
 
 #define RB_ASSERT(expr, tree) \
@@ -15,7 +15,7 @@
 		printf("tree %p:\n", (tree)); \
 		rb_print(tree); \
 	} \
-	assert(expr)
+	dbg_assert(expr)
 
 
 // declare red-black nodes early for usage in this struct
@@ -261,11 +261,11 @@ void _rb_validate_helper(struct __int_rb_tree *tree);
 #define RB_DEFINE_BST_CHECK(name, cmp_fn) \
 static void _bst_check_ ## name(rb_node_t *node) { \
 	if (rb_get_left(node) != LEAF) { \
-		assert(cmp_fn(node, rb_get_left(node)) >= 0); \
+		dbg_assert(cmp_fn(node, rb_get_left(node)) >= 0); \
 		_bst_check_ ## name(rb_get_left(node)); \
 	} \
 	if (rb_get_right(node) != LEAF) { \
-		assert(cmp_fn(rb_get_right(node), node) >= 0); \
+		dbg_assert(cmp_fn(rb_get_right(node), node) >= 0); \
 		_bst_check_ ## name(rb_get_right(node)); \
 	} \
 }
@@ -476,12 +476,12 @@ static void _bst_check_ ## name(rb_node_t *node) { \
 	s_type node_val = rb_ ## name ## _val(node); \
 	if (rb_get_left(node) != LEAF) { \
 		s_type left_val = rb_ ## name ## _val(rb_get_left(node)); \
-		assert(left_val <= node_val); \
+		dbg_assert(left_val <= node_val); \
 		_bst_check_ ## name(rb_get_left(node)); \
 	} \
 	if (rb_get_right(node) != LEAF) { \
 		s_type right_val = rb_ ## name ## _val(rb_get_right(node)); \
-		assert(node_val <= right_val); \
+		dbg_assert(node_val <= right_val); \
 		_bst_check_ ## name(rb_get_right(node)); \
 	} \
 }

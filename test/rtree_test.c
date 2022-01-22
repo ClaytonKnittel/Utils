@@ -1,11 +1,13 @@
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <data_structs/rtree.h>
+
+#include "test_utils.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -25,9 +27,9 @@ int main(int argc, char* argv[])
 		int64_t lx, ly;
 		int64_t postal_code;
 
-		assert(fread(&lx, sizeof(lx), 1, f) == 1);
-		assert(fread(&ly, sizeof(ly), 1, f) == 1);
-		assert(fread(&postal_code, sizeof(postal_code), 1, f) == 1);
+		test_assert(fread(&lx, sizeof(lx), 1, f) == 1);
+		test_assert(fread(&ly, sizeof(ly), 1, f) == 1);
+		test_assert(fread(&postal_code, sizeof(postal_code), 1, f) == 1);
 
 		printf("rect: %lld, %lld, %lld (%llu)\n", lx, ly, postal_code, i+1);
 
@@ -66,7 +68,7 @@ int main(int argc, char* argv[])
 
 	rtree_print(&tree);
 	rtree_check(&tree);
-	for (int i = 0; i < n_rects; i++) {
+	for (uint64_t i = 0; i < n_rects; i++) {
 		printf("Inserting: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\t(%d)\n",
 				rects[i].bb.lx, rects[i].bb.ly, rects[i].bb.ux, rects[i].bb.uy, i);
 		rtree_insert(&tree, &rects[i].bb, rects[i].udata);
@@ -76,8 +78,8 @@ int main(int argc, char* argv[])
 		/*
 		for (int j = 0; j <= i; j++) {
 			rtree_el_t* el = rtree_find_exact(&tree, &rects[j].bb);
-			assert(el != NULL);
-			assert(el->udata == rects[j].udata);
+			test_assert(el != NULL);
+			test_assert(el->udata == rects[j].udata);
 		}*/
 	}
 	rtree_print(&tree);

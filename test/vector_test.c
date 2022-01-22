@@ -1,8 +1,10 @@
 
-#include <assert.h>
 #include <stdio.h>
 
 #include <data_structs/vector.h>
+
+#include "test_utils.h"
+
 
 int
 main(int argc, char* argv[])
@@ -18,7 +20,7 @@ main(int argc, char* argv[])
 	}
 
 	for (uint64_t i = 0; i < uppb - lowb; i++) {
-		assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
+		test_assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
 	}
 
 	for (uint64_t j = 0; j < (uppb - lowb) * 10 / 11; j += 10) {
@@ -26,7 +28,7 @@ main(int argc, char* argv[])
 	}
 
 	for (uint64_t i = 0; i < (uppb - lowb) * 10 / 11; i++) {
-		assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
+		test_assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
 	}
 
 	vector_free(&v);

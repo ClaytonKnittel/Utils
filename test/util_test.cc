@@ -1,6 +1,6 @@
 
 #include <timing/timing.h>
-#include <util/util.h>
+#include <util.h>
 
 using namespace util;
 
@@ -13,7 +13,7 @@ int main(int argc, char * argv[]) {
         // int fs = fls(i);
         // printf("%x -> %d (%d)\n", i, fs, next_pow2(fs));
 
-        printf("floor(log10(%d)) = %d\n", i, log10(i));
+        printf("ceil(log10(%d)) = %d\n", i, ceil_log10(i));
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
 

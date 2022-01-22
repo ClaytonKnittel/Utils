@@ -1,5 +1,4 @@
 
-#include <assert.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
@@ -9,7 +8,7 @@
 #include <algorithms/sort.h>
 #include <data_structs/int_set.h>
 #include <data_structs/rtree.h>
-#include <util/util.h>
+#include <util.h>
 
 
 static __attribute__((always_inline)) inline rtree_coord_t
@@ -684,7 +683,7 @@ static void _do_inner_insert(rtree_t* tree, rtree_node_t* n,
 
 static void
 _do_reinsert_leaf(rtree_t* tree, rtree_leaf_t* parent, int_set_t reinserted_levels,
-		uint64_t depth, rtree_rect_t* rect, void* udata)
+		rtree_rect_t* rect, void* udata)
 {
 	uint32_t m_max = tree->m_max;
 	uint32_t reinsert_p = tree->reinsert_p;
@@ -869,8 +868,8 @@ _do_inner_insert(rtree_t* tree, rtree_node_t* n, int_set_t reinserted_levels, ui
 	rtree_rect_t* rect = &n->base.bb;
 	rtree_node_base_t* new_parent = tree->root;
 
-	assert(depth != 0);
-	assert(depth != tree->depth);
+	dbg_assert(depth != 0);
+	dbg_assert(depth != tree->depth);
 
 	for (uint64_t i = 0; i < depth - 1; i++) {
 		// this node's children are inner nodes, so we find the node
@@ -943,7 +942,7 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 		// perform reinsertion
 		int_set_insert(reinserted_levels, depth);
 
-		_do_reinsert_leaf(tree, leaf, reinserted_levels, depth, rect, udata);
+		_do_reinsert_leaf(tree, leaf, reinserted_levels, rect, udata);
 	}
 	else {
 		// perform a split
@@ -961,7 +960,9 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 static void
 _do_delete(rtree_t* tree, rtree_leaf_t* parent, uint64_t to_delete_idx)
 {
-
+	(void) tree;
+	(void) parent;
+	(void) to_delete_idx;
 }
 
 
@@ -1021,7 +1022,8 @@ rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
 void
 rtree_delete(rtree_t* tree, rtree_el_id_t* id)
 {
-
+	(void) tree;
+	(void) id;
 }
 
 static rtree_el_id_t
@@ -1089,6 +1091,8 @@ rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
 rtree_el_id_t
 rtree_intersects_id(const rtree_t* tree, const rtree_rect_t* rect)
 {
+	(void) tree;
+	(void) rect;
 	return (rtree_el_id_t) {
 		.parent = NULL
 	};
@@ -1105,12 +1109,20 @@ rtree_intersects(const rtree_t* tree, const rtree_rect_t* rect)
 rtree_el_id_t*
 rtree_k_nearest_id(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_id_t* ids, uint32_t k)
 {
+	(void) tree;
+	(void) rect;
+	(void) ids;
+	(void) k;
 	return NULL;
 }
 
 rtree_el_t**
 rtree_k_nearest(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_t** els, uint32_t k)
 {
+	(void) tree;
+	(void) rect;
+	(void) els;
+	(void) k;
 	return NULL;
 }
 
@@ -1158,22 +1170,24 @@ rtree_print(const rtree_t* tree)
 
 static void
 _rtree_check_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
-		const rtree_node_base_t* parent, uint64_t depth)
+		const rtree_node_base_t* parent)
 {
-	assert(leaf->base.parent == parent);
+	(void) tree;
+	(void) parent;
+	dbg_assert(leaf->base.parent == parent);
 
 	uint32_t n_children = leaf->base.n;
 	if (leaf->base.parent != NULL) {
 		// only check if this isn't the root
-		assert(tree->m_min <= n_children);
+		dbg_assert(tree->m_min <= n_children);
 	}
-	assert(n_children <= tree->m_max);
+	dbg_assert(n_children <= tree->m_max);
 
 	rtree_rect_t bb;
 
 	for (uint32_t i = 0; i < n_children; i++) {
 		const rtree_el_t* el = &leaf->elements[i];
-		assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
+		dbg_assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
 
 		if (i == 0) {
 			bb = el->bb;
@@ -1184,10 +1198,10 @@ _rtree_check_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 	}
 
 	if (n_children > 0) {
-		assert(bb.lx == leaf->base.bb.lx);
-		assert(bb.ly == leaf->base.bb.ly);
-		assert(bb.ux == leaf->base.bb.ux);
-		assert(bb.uy == leaf->base.bb.uy);
+		dbg_assert(bb.lx == leaf->base.bb.lx);
+		dbg_assert(bb.ly == leaf->base.bb.ly);
+		dbg_assert(bb.ux == leaf->base.bb.ux);
+		dbg_assert(bb.uy == leaf->base.bb.uy);
 	}
 }
 
@@ -1196,24 +1210,24 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 		const rtree_node_base_t* parent, uint64_t depth)
 {
 	if (depth == tree->depth) {
-		_rtree_check_leaf(tree, (const rtree_leaf_t*) n, parent, depth);
+		_rtree_check_leaf(tree, (const rtree_leaf_t*) n, parent);
 	}
 	else {
 		const rtree_node_t* node = (const rtree_node_t*) n;
 		uint32_t n_children = node->base.n;
 		if (node->base.parent != NULL) {
 			// only check if this isn't the root
-			assert(tree->m_min <= n_children);
+			dbg_assert(tree->m_min <= n_children);
 		}
-		assert(n_children <= tree->m_max);
+		dbg_assert(n_children <= tree->m_max);
 
-		assert(node->base.parent == parent);
+		dbg_assert(node->base.parent == parent);
 
 		rtree_rect_t bb;
 
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
-			assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
+			dbg_assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
 			_rtree_check_node(tree, &child->base, n, depth + 1);
 
 			if (i == 0) {
@@ -1224,10 +1238,10 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 			}
 		}
 
-		assert(bb.lx == node->base.bb.lx);
-		assert(bb.ly == node->base.bb.ly);
-		assert(bb.ux == node->base.bb.ux);
-		assert(bb.uy == node->base.bb.uy);
+		dbg_assert(bb.lx == node->base.bb.lx);
+		dbg_assert(bb.ly == node->base.bb.ly);
+		dbg_assert(bb.ux == node->base.bb.ux);
+		dbg_assert(bb.uy == node->base.bb.uy);
 	}
 }
 

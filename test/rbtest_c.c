@@ -1,6 +1,8 @@
 
 #include <data_structs/rbtree.h>
 
+#include "test_utils.h"
+
 
 int main(int argc, char * argv[]) {
     rb_tree_t tree;
@@ -22,11 +24,11 @@ int main(int argc, char * argv[]) {
     }
 
     for (int i = 0; i < N_NODES - 1; i++) {
-        assert(rb_find_succ(&nodes[i]) == &nodes[i + 1]);
+        test_assert(rb_find_succ(&nodes[i]) == &nodes[i + 1]);
     }
 
     for (int i = 1; i < N_NODES; i++) {
-        assert(rb_find_pred(&nodes[i]) == &nodes[i - 1]);
+        test_assert(rb_find_pred(&nodes[i]) == &nodes[i - 1]);
     }
 
     for (uint64_t addr = (uint64_t) &nodes[0];
@@ -41,9 +43,9 @@ int main(int argc, char * argv[]) {
                 + ((addr - ((uint64_t) &nodes[0]) + sizeof(rb_node_t) - 1)
                       / sizeof(rb_node_t))
                     * sizeof(rb_node_t);
-        assert(rb_upper_bound_ptr(&tree, (rb_node_t *) addr)
+        test_assert(rb_upper_bound_ptr(&tree, (rb_node_t *) addr)
             == (rb_node_t *) upper_bound);
-        assert(rb_lower_bound_ptr(&tree, (rb_node_t *) addr)
+        test_assert(rb_lower_bound_ptr(&tree, (rb_node_t *) addr)
             == (rb_node_t *) lower_bound);
     }
 
@@ -91,35 +93,35 @@ int main(int argc, char * argv[]) {
 	uint64_t idx = 0;
 	rb_for_each(&tree, _node) {
 		rb_int_node_t* node = (rb_int_node_t*) _node;
-		assert(inodes[idx] == node);
-		assert(vals[idx] == node->val);
+		test_assert(inodes[idx] == node);
+		test_assert(vals[idx] == node->val);
 
 		idx++;
 	}
 
     for (int i = 0; i < N_NODES; i++) {
 		rb_node_t* res = rb_find_int(&tree, vals[i]);
-		assert(res == &inodes[i]->base);
-		assert(((rb_int_node_t*) res)->val == vals[i]);
+		test_assert(res == &inodes[i]->base);
+		test_assert(((rb_int_node_t*) res)->val == vals[i]);
 
 		rb_node_t* pred = rb_upper_bound_int(&tree, vals[i]);
-		assert(pred == &inodes[i]->base);
+		test_assert(pred == &inodes[i]->base);
 		rb_node_t* succ = rb_lower_bound_int(&tree, vals[i]);
-		assert(succ == &inodes[i]->base);
+		test_assert(succ == &inodes[i]->base);
 
 		pred = rb_upper_bound_int(&tree, vals[i] - 1);
 		succ = rb_lower_bound_int(&tree, vals[i] + 1);
 		if (i > 0) {
-			assert(pred == &inodes[i - 1]->base);
+			test_assert(pred == &inodes[i - 1]->base);
 		}
 		else {
-			assert(pred == NULL);
+			test_assert(pred == NULL);
 		}
 		if (i < N_NODES - 1) {
-			assert(succ == &inodes[i + 1]->base);
+			test_assert(succ == &inodes[i + 1]->base);
 		}
 		else {
-			assert(succ == NULL);
+			test_assert(succ == NULL);
 		}
     }
 

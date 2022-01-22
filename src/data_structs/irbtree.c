@@ -415,7 +415,7 @@ static void _irb_update_roff_remove(irb_node * node) {
  * Remove irb_node from the tree. This does not free the
  * memory.
  */
-void _irb_remove_helper(struct __int_irb_tree *tree, irb_node *node) {
+void _irb_remove_helper(irb_node *node) {
     irb_node *replacer, *child, *par;
 
     // if this node is internal (has 2 children), then we want to
@@ -672,17 +672,17 @@ void _irb_validate_helper(struct __int_irb_tree *tree) {
 
     root = get_root(tree);
 
-    IRB_ASSERT(!is_red(root), tree);
-    IRB_ASSERT(black_depth(root) != -1LU, tree);
-    IRB_ASSERT(no_red_red(root), tree);
-    IRB_ASSERT(parents_valid(root), tree);
+    IRB_DBG_ASSERT(!is_red(root), tree);
+    IRB_DBG_ASSERT(black_depth(root) != -1LU, tree);
+    IRB_DBG_ASSERT(no_red_red(root), tree);
+    IRB_DBG_ASSERT(parents_valid(root), tree);
 
     if (root != ILEAF) {
-        IRB_ASSERT(is_root(root), tree);
-        IRB_ASSERT(get_parent(root) == (irb_node*) tree, tree);
-        IRB_ASSERT(no_other_roots(get_left(root)) &&
+        IRB_DBG_ASSERT(is_root(root), tree);
+        IRB_DBG_ASSERT(get_parent(root) == (irb_node*) tree, tree);
+        IRB_DBG_ASSERT(no_other_roots(get_left(root)) &&
                 no_other_roots(get_right(root)), tree);
-        IRB_ASSERT(validate_idxs(root) != -1l, tree);
+        IRB_DBG_ASSERT(validate_idxs(root) != -1l, tree);
     }
 }
 

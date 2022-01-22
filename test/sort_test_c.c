@@ -1,5 +1,4 @@
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,6 +7,8 @@
 #include <algorithms/sort.h>
 #include <math/random.h>
 #include <timing/timing.h>
+
+#include "test_utils.h"
 
 
 DEFINE_CSORT_DEFAULT_FNS_NAMED(uint32_t, uint32_t, __default_sort_cmp, __default_sort_cswap);
@@ -76,7 +77,7 @@ int check_correctness(int N) {
 
 			const_sort_uint32_t(vals, N);
 			for (int j = 0; j < N; j++) {
-				assert(vals[j] == j + 1);
+				test_assert(vals[j] == (uint32_t) (j + 1));
 			}
 		}
 	}
@@ -95,7 +96,7 @@ int check_correctness(int N) {
 
 			const_sort_uint32_t(vals, N);
 			for (int j = 0; j < N; j++) {
-				assert(vals[j] == j + 1);
+				test_assert(vals[j] == (uint32_t) (j + 1))
 			}
 		}
 	}
@@ -103,14 +104,14 @@ int check_correctness(int N) {
 		uint32_t* all = (uint32_t*) malloc(N * sizeof(uint32_t));
 
 		for (uint64_t i = 0; i < 65536; i++) {
-			for (uint32_t j = 0; j < N; j++) {
+			for (uint32_t j = 0; j < (uint32_t) N; j++) {
 				vals[j] = gen_rand_r(0x7ffffffflu);
 				all[j] = vals[j];
 			}
 			naive_sort(all, N);
 			const_sort_uint32_t(vals, N);
-			for (int j = 0; j < N; j++) {
-				assert(vals[j] == all[j]);
+			for (uint32_t j = 0; j < (uint32_t) N; j++) {
+				test_assert(vals[j] == all[j]);
 			}
 		}
 
@@ -132,7 +133,7 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t*,size_
 	};
 
 	for (uint64_t i = 0; i < n_trials; i++) {
-		for (uint32_t j = 0; j < N; j++) {
+		for (uint32_t j = 0; j < (uint32_t) N; j++) {
 			vals[j] = gen_rand_r(0x7ffffffflu);
 			if (check) {
 				all[j] = vals[j];
@@ -149,7 +150,7 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t*,size_
 
 		if (check) {
 			for (int j = 0; j < N; j++) {
-				assert(vals[j] == all[j]);
+				test_assert(vals[j] == all[j]);
 			}
 		}
 
