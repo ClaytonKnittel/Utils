@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 
-#include <data_structs/irbtree.h>
+#include <utils/data_structs/irbtree.h>
 
 #include "test_utils.h"
 

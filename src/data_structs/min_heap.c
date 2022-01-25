@@ -2,8 +2,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <data_structs/min_heap.h>
-#include <util.h>
+#include <utils/data_structs/min_heap.h>
+#include <utils/utils.h>
 
 
 #define HEAP_ASSERT(expr) dbg_assert(expr)

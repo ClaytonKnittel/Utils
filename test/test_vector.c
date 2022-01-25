@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include <data_structs/vector.h>
+#include <utils/data_structs/vector.h>
 
 #include "test_utils.h"
 

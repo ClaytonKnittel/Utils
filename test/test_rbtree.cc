@@ -1,5 +1,5 @@
 
-#include <data_structs/rbtree.h>
+#include <utils/data_structs/rbtree.h>
 
 #include "test_utils.h"
 

@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#include <data_structs/min_heap.h>
+#include <utils/data_structs/min_heap.h>
 
 #include "test_utils.h"
 

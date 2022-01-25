@@ -2,9 +2,9 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include <data_structs/irbtree.h>
-#include <timing/timing.h>
-#include <math/random.h>
+#include <utils/data_structs/irbtree.h>
+#include <utils/timing/timing.h>
+#include <utils/math/random.h>
 
 
 struct node {

@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 
-#include <math/prime_factor_list.h>
+#include <utils/math/prime_factor_list.h>
 
 static void
 _calc_factor_list(prime_factor_list_t* l)

@@ -2,8 +2,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include <data_structs/union_find.h>
-#include <util.h>
+#include <utils/data_structs/union_find.h>
+#include <utils/utils.h>
 
 
 /*

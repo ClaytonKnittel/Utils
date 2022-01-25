@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <algorithms/sort.h>
-#include <math/random.h>
-#include <timing/timing.h>
+#include <utils/algorithms/sort.h>
+#include <utils/math/random.h>
+#include <utils/timing/timing.h>
 
 #include "test_utils.h"
 

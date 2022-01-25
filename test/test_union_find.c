@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data_structs/union_find.h>
-#include <math/random.h>
-#include <timing/timing.h>
+#include <utils/data_structs/union_find.h>
+#include <utils/math/random.h>
+#include <utils/timing/timing.h>
 
 #include "test_utils.h"
 

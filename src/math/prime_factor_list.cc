@@ -1,5 +1,5 @@
 
-#include <math/prime_factor_list.h>
+#include <utils/math/prime_factor_list.h>
 
 void
 PrimeFactorList::_calc_factor_list()

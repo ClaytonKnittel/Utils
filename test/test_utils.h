@@ -6,7 +6,7 @@
 
 #include <check.h>
 
-#include <util.h>
+#include <utils/utils.h>
 
 #define test_assert0(expr) \
 	if (__builtin_expect(!(expr), 0)) { \

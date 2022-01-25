@@ -1,7 +1,7 @@
 
 #include <string.h>
 
-#include <data_structs/vector.h>
+#include <utils/data_structs/vector.h>
 
 
 int

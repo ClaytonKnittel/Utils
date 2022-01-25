@@ -1,7 +1,7 @@
 
 #include <stdint.h>
 
-#include <timing/timing.h>
+#include <utils/timing/timing.h>
 
 
 double timespec_diff(struct timespec* t1, struct timespec* t2) {

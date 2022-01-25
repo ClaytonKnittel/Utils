@@ -7,7 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <string/string.h>
+#include <utils/string/string.h>
 
 #include "test_utils.h"
 

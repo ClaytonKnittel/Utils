@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <util.h>
+#include <utils/utils.h>
 
 
 #define RB_ASSERT(expr, tree) \

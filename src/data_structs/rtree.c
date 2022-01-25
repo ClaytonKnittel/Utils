@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <algorithms/sort.h>
-#include <data_structs/int_set.h>
-#include <data_structs/rtree.h>
-#include <util.h>
+#include <utils/algorithms/sort.h>
+#include <utils/data_structs/int_set.h>
+#include <utils/data_structs/rtree.h>
+#include <utils/utils.h>
 
 
 static __attribute__((always_inline)) inline rtree_coord_t

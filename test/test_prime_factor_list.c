@@ -1,5 +1,5 @@
 
-#include <math/prime_factor_list.h>
+#include <utils/math/prime_factor_list.h>
 
 #include "test_utils.h"
 

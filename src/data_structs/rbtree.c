@@ -1,7 +1,7 @@
 
 #include <inttypes.h>
 
-#include <data_structs/rbtree.h>
+#include <utils/data_structs/rbtree.h>
 
 
 #define set_parent rb_set_parent

@@ -14,6 +14,10 @@ add_executable(utils_unit_testing
 	${C_TEST_SRC} ${CXX_TEST_SRC}
 )
 
+add_custom_target(run_tests
+	${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME} DEPENDS utils_unit_testing
+)
+
 target_compile_options(utils_unit_testing PRIVATE
 	-Wpedantic -Wall -Wextra -march=native -mtune=native -Wno-unused-function
 	-Wno-extra-semi -Wno-format-pedantic -Wno-gnu-zero-variadic-macro-arguments
