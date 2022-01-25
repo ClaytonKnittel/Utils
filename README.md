@@ -3,29 +3,27 @@
 A library containing common data structures/algorithms/etc. that I commonly use.
 
 
-## Usage
+## Building from source
 
-Add as a submodule for a project
+First clone the repository and cd into the directory made
 ```bash
-$ git submodule add https://github.com/ClaytonKnittel/Utils util
+$ git clone https://github.com/ClaytonKnittel/Utils.git
+$ cd Utils
 ```
-then add this line to your Makefile:
-```make
-.PHONY: util
-util:
-  (make -C util LIB_DIR=<path_to_lib_dir>)
-```
-and make util a dependency of all targets that require it.
-
-Then, add the following to your make variable declarations:
-```make
-INCLUDES += -Iutil/include/
-LDFLAGS  += <path_to_lib_dir>/libutil.a
+Then create a build directory and run CMake from within it
+```bash
+$ mkdir build && cd build
+$ cmake .. -DCMAKE_BUILD_TYPE=Release
+$ make
+$ make install
 ```
 
-And lastly, add this line to your clean target:
-```make
-clean:
-  ...
-  (make -C util clean)
-```
+The utils library is installed at `${CMAKE_INSTALL_PREFIX}/lib`, and the header files at `${CMAKE_INSTALL_PREFIX}/include`.
+
+
+### CMake options
+
+| Option | Default Value | Description |
+| ------ | ------------- | ----------- |
+| BUILD_SHARED_LIBRARY | ON | When enabled, build libutils as a shared library, otherwise build as a static library. |
+| ENABLE_TESTING | OFF | When enabled, build all unit tests. The unit tests can then be run from within the build directory with `make run_tests`. |
