@@ -4,7 +4,8 @@
 #include "test_utils.h"
 
 
-int main(int argc, char * argv[]) {
+START_TEST(test_basic)
+{
     rb_tree_t tree;
 
     rb_init(&tree);
@@ -24,11 +25,11 @@ int main(int argc, char * argv[]) {
     }
 
     for (int i = 0; i < N_NODES - 1; i++) {
-        test_assert(rb_find_succ(&nodes[i]) == &nodes[i + 1]);
+        ck_assert(rb_find_succ(&nodes[i]) == &nodes[i + 1]);
     }
 
     for (int i = 1; i < N_NODES; i++) {
-        test_assert(rb_find_pred(&nodes[i]) == &nodes[i - 1]);
+        ck_assert(rb_find_pred(&nodes[i]) == &nodes[i - 1]);
     }
 
     for (uint64_t addr = (uint64_t) &nodes[0];
@@ -43,9 +44,9 @@ int main(int argc, char * argv[]) {
                 + ((addr - ((uint64_t) &nodes[0]) + sizeof(rb_node_t) - 1)
                       / sizeof(rb_node_t))
                     * sizeof(rb_node_t);
-        test_assert(rb_upper_bound_ptr(&tree, (rb_node_t *) addr)
+        ck_assert(rb_upper_bound_ptr(&tree, (rb_node_t *) addr)
             == (rb_node_t *) upper_bound);
-        test_assert(rb_lower_bound_ptr(&tree, (rb_node_t *) addr)
+        ck_assert(rb_lower_bound_ptr(&tree, (rb_node_t *) addr)
             == (rb_node_t *) lower_bound);
     }
 
@@ -93,35 +94,35 @@ int main(int argc, char * argv[]) {
 	uint64_t idx = 0;
 	rb_for_each(&tree, _node) {
 		rb_int_node_t* node = (rb_int_node_t*) _node;
-		test_assert(inodes[idx] == node);
-		test_assert(vals[idx] == node->val);
+		ck_assert(inodes[idx] == node);
+		ck_assert(vals[idx] == node->val);
 
 		idx++;
 	}
 
     for (int i = 0; i < N_NODES; i++) {
 		rb_node_t* res = rb_find_int(&tree, vals[i]);
-		test_assert(res == &inodes[i]->base);
-		test_assert(((rb_int_node_t*) res)->val == vals[i]);
+		ck_assert(res == &inodes[i]->base);
+		ck_assert(((rb_int_node_t*) res)->val == vals[i]);
 
 		rb_node_t* pred = rb_upper_bound_int(&tree, vals[i]);
-		test_assert(pred == &inodes[i]->base);
+		ck_assert(pred == &inodes[i]->base);
 		rb_node_t* succ = rb_lower_bound_int(&tree, vals[i]);
-		test_assert(succ == &inodes[i]->base);
+		ck_assert(succ == &inodes[i]->base);
 
 		pred = rb_upper_bound_int(&tree, vals[i] - 1);
 		succ = rb_lower_bound_int(&tree, vals[i] + 1);
 		if (i > 0) {
-			test_assert(pred == &inodes[i - 1]->base);
+			ck_assert(pred == &inodes[i - 1]->base);
 		}
 		else {
-			test_assert(pred == NULL);
+			ck_assert(pred == NULL);
 		}
 		if (i < N_NODES - 1) {
-			test_assert(succ == &inodes[i + 1]->base);
+			ck_assert(succ == &inodes[i + 1]->base);
 		}
 		else {
-			test_assert(succ == NULL);
+			ck_assert(succ == NULL);
 		}
     }
 
@@ -132,6 +133,19 @@ int main(int argc, char * argv[]) {
     }
 
 	rb_free(&tree);
-
-    return 0;
 }
+
+Suite*
+test_rbtree()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("Red-black tree");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
+}
+

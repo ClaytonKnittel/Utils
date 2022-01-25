@@ -9,6 +9,8 @@
 
 #include <string/string.h>
 
+#include "test_utils.h"
+
 #ifdef __APPLE__
 
 void gen_rand_str(char* rand_str, uint64_t len) {
@@ -219,7 +221,8 @@ void calc_avg_times_lower(uint64_t len, uint32_t n_trials, double* naive_s,
 	free(_str2);
 }
 
-int main() {
+START_TEST(test_basic)
+{
 	srand(time(NULL));
 	double naive_s, my_s;
 
@@ -270,13 +273,30 @@ int main() {
 		}
 	}
 	printf("}}\n");*/
-	return 0;
+}
+END_TEST
+
+Suite*
+test_to_upper_lower()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("To upper/lower");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
 }
 
 #else
 
-int main() {
-	return 0;
+Suite*
+test_to_upper_lower()
+{
+	Suite* s = suite_create("To upper/lower");
+	return s;
 }
 
 #endif /* __APPLE__ */

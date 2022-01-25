@@ -4,23 +4,22 @@
 #include "test_utils.h"
 
 
-int
-main(int argc, char* argv[])
+START_TEST(test_basic)
 {
-	const uint64_t n = 100000;
+	const uint64_t n = 1000;
 	prime_factor_list_t list;
 	prime_factor_list_init(&list, n);
 
 	for (uint64_t i = 2; i <= n; i++) {
-		test_assert(list.factors[i] > 1);
+		ck_assert(list.factors[i] > 1);
 	}
 
 	for (uint64_t i = 2; i <= n; i++) {
 		uint64_t smallest_factor = list.factors[i];
-		test_assert(i % smallest_factor == 0);
+		ck_assert(i % smallest_factor == 0);
 
 		for (uint64_t j = 2; j < smallest_factor; j++) {
-			test_assert(i % j != 0);
+			ck_assert(i % j != 0);
 		}
 	}
 
@@ -29,7 +28,7 @@ main(int argc, char* argv[])
 		uint64_t prev_factor = 1;
 
 		FOR_EACH_PRIME_FACTOR(list, i, factor, repeats) {
-			test_assert(prev_factor < factor);
+			ck_assert(prev_factor < factor);
 
 			for (uint64_t j = 0; j < repeats; j++) {
 				val *= factor;
@@ -39,7 +38,7 @@ main(int argc, char* argv[])
 		}
 		FOR_EACH_PRIME_FACTOR_END
 
-		test_assert(val == i);
+		ck_assert(val == i);
 	}
 
 
@@ -62,7 +61,7 @@ main(int argc, char* argv[])
 
 	uint64_t i = 0;
 	FOR_EACH_PRIME(list, prime) {
-		test_assert(prime == primes[i]);
+		ck_assert(prime == primes[i]);
 		i++;
 		if (i == n_primes) {
 			break;
@@ -71,7 +70,20 @@ main(int argc, char* argv[])
 	FOR_EACH_PRIME_END
 
 	prime_factor_list_free(&list);
+}
 
-	return 0;
+
+Suite*
+test_prime_factor_list()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("Prime factor list");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
 }
 

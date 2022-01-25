@@ -1,13 +1,13 @@
 project(utils_unit_testing)
 
 # Use boost for unit testing
-find_package(Boost 1.23.0 REQUIRED COMPONENTS unit_test_framework)
+find_library(check check REQUIRED)
 
 file(GLOB_RECURSE C_TEST_SRC
-	"${PROJECT_SOURCE_DIR}/*.c"
+	"${PROJECT_SOURCE_DIR}/test_*.c"
 )
 file(GLOB_RECURSE CXX_TEST_SRC
-	"${PROJECT_SOURCE_DIR}/*.cc"
+	"${PROJECT_SOURCE_DIR}/test_*.cc"
 )
 
 add_executable(utils_unit_testing
@@ -15,16 +15,25 @@ add_executable(utils_unit_testing
 )
 
 target_compile_options(utils_unit_testing PRIVATE
-	-Wpedantic -Wall -Wextra -march=native -mtune=native -Wno-unused-function -Wno-extra-semi -Wno-format-pedantic
+	-Wpedantic -Wall -Wextra -march=native -mtune=native -Wno-unused-function
+	-Wno-extra-semi -Wno-format-pedantic -Wno-gnu-zero-variadic-macro-arguments
 )
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+
+target_include_directories(utils_unit_testing
+	PUBLIC "/usr/local/include"
+)
+
+target_link_directories(utils_unit_testing
+	PUBLIC "/usr/local/lib"
+)
 
 target_link_libraries(utils_unit_testing
 	PRIVATE
 		utils
 	PUBLIC
-		Boost::boost
+		check
 )
 
 get_filename_component(UTILS_DIR ../ ABSOLUTE)

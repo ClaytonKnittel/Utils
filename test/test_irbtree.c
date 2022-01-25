@@ -5,39 +5,37 @@
 
 #include "test_utils.h"
 
-
-int main() {
+START_TEST(test_basic)
+{
     irb_tree tree;
-
     irb_init(&tree);
 
 #define N_NODES 1000
-
     irb_node * nodes = (irb_node *) malloc(N_NODES * sizeof(irb_node));
 
     for (int i = 1; i < N_NODES; i += 2) {
         irb_insert_ptr(&tree, &nodes[i]);
         irb_validate_ptr(&tree);
     }
-
-    for (int i = 0; i < N_NODES; i += 2) {
+	
+	for (int i = 0; i < N_NODES; i += 2) {
         irb_insert_ptr(&tree, &nodes[i]);
         irb_validate_ptr(&tree);
     }
 
-    test_assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[0]) - 1)) == 0);
+    ck_assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[0]) - 1)) == 0);
     for (int i = 0; i < N_NODES; i++) {
-        test_assert(irb_get_idx_unsafe(&nodes[i]) == i);
-        test_assert(irb_get_idx_ptr(&tree, &nodes[i]) == i);
-        test_assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[i]) + 1)) == i + 1);
+        ck_assert(irb_get_idx_unsafe(&nodes[i]) == i);
+        ck_assert(irb_get_idx_ptr(&tree, &nodes[i]) == i);
+        ck_assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[i]) + 1)) == i + 1);
     }
 
     for (int i = 0; i < N_NODES - 1; i++) {
-        test_assert(irb_find_succ(&nodes[i]) == &nodes[i + 1]);
+        ck_assert(irb_find_succ(&nodes[i]) == &nodes[i + 1]);
     }
 
     for (int i = 1; i < N_NODES; i++) {
-        test_assert(irb_find_pred(&nodes[i]) == &nodes[i - 1]);
+        ck_assert(irb_find_pred(&nodes[i]) == &nodes[i - 1]);
     }
 
     for (uint64_t addr = (uint64_t) &nodes[0];
@@ -52,9 +50,9 @@ int main() {
                 + ((addr - ((uint64_t) &nodes[0]) + sizeof(irb_node) - 1)
                       / sizeof(irb_node))
                     * sizeof(irb_node);
-        test_assert(irb_upper_bound_ptr(&tree, (irb_node *) addr)
+        ck_assert(irb_upper_bound_ptr(&tree, (irb_node *) addr)
             == (irb_node *) upper_bound);
-        test_assert(irb_lower_bound_ptr(&tree, (irb_node *) addr)
+        ck_assert(irb_lower_bound_ptr(&tree, (irb_node *) addr)
             == (irb_node *) lower_bound);
     }
 
@@ -65,6 +63,20 @@ int main() {
     }
 
     free(nodes);
-
-    return 0;
 }
+END_TEST
+
+Suite*
+test_irbtree()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("Indexed red-black tree");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
+}
+

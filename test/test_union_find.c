@@ -7,9 +7,7 @@
 #include <math/random.h>
 #include <timing/timing.h>
 
-
-#define TEST_ASSERT(expr) assert(expr)
-
+#include "test_utils.h"
 
 
 // returns time taken to execute test
@@ -36,7 +34,7 @@ double test_alg_1(uint32_t w, uint32_t h) {
                     break;
                 default:
                     // rand range can't be outside the range
-                    TEST_ASSERT(0);
+                    ck_assert(0);
             }
         }
     }
@@ -103,29 +101,30 @@ double test_alg_1(uint32_t w, uint32_t h) {
 }
 
 
-int main() {
+START_TEST(test_basic)
+{
     union_find uf;
 
     uf_init(&uf, 10);
 
 
     for (uf_node_t i = 0; i < 10; i++) {
-        TEST_ASSERT(uf_find(&uf, i) == i);
+        ck_assert(uf_find(&uf, i) == i);
     }
 
     uf_union(&uf, 1, 3);
     uf_union(&uf, 4, 5);
     uf_union(&uf, 1, 5);
 
-    TEST_ASSERT(uf_find(&uf, 1) == uf_find(&uf, 3));
-    TEST_ASSERT(uf_find(&uf, 1) == uf_find(&uf, 4));
-    TEST_ASSERT(uf_find(&uf, 1) == uf_find(&uf, 5));
-    TEST_ASSERT(uf_find(&uf, 0) == 0);
-    TEST_ASSERT(uf_find(&uf, 2) == 2);
-    TEST_ASSERT(uf_find(&uf, 6) == 6);
-    TEST_ASSERT(uf_find(&uf, 7) == 7);
-    TEST_ASSERT(uf_find(&uf, 8) == 8);
-    TEST_ASSERT(uf_find(&uf, 9) == 9);
+    ck_assert(uf_find(&uf, 1) == uf_find(&uf, 3));
+    ck_assert(uf_find(&uf, 1) == uf_find(&uf, 4));
+    ck_assert(uf_find(&uf, 1) == uf_find(&uf, 5));
+    ck_assert(uf_find(&uf, 0) == 0);
+    ck_assert(uf_find(&uf, 2) == 2);
+    ck_assert(uf_find(&uf, 6) == 6);
+    ck_assert(uf_find(&uf, 7) == 7);
+    ck_assert(uf_find(&uf, 8) == 8);
+    ck_assert(uf_find(&uf, 9) == 9);
 
     uf_destroy(&uf);
 
@@ -157,6 +156,7 @@ int main() {
         times[i] = test_alg_1(widths[i], heights[i]);
     }
 
+	/*
     printf("{");
     for (int i = 0; i < NUM_TRIALS; i++) {
         printf("{%u,%f}", widths[i] * heights[i], times[i]);
@@ -165,7 +165,20 @@ int main() {
         }
     }
     printf("}\n");
-
-
-    return 0;
+	*/
 }
+
+Suite*
+test_union_find()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("Indexed red-black tree");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
+}
+

@@ -6,8 +6,7 @@
 #include "test_utils.h"
 
 
-int
-main(int argc, char* argv[])
+START_TEST(test_basic)
 {
 	vector_t v;
 	vector_init(&v, sizeof(uint64_t), 8);
@@ -20,7 +19,7 @@ main(int argc, char* argv[])
 	}
 
 	for (uint64_t i = 0; i < uppb - lowb; i++) {
-		test_assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
+		ck_assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
 	}
 
 	for (uint64_t j = 0; j < (uppb - lowb) * 10 / 11; j += 10) {
@@ -28,11 +27,23 @@ main(int argc, char* argv[])
 	}
 
 	for (uint64_t i = 0; i < (uppb - lowb) * 10 / 11; i++) {
-		test_assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
+		ck_assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
 	}
 
 	vector_free(&v);
+}
 
-	return 0;
+Suite*
+test_vector()
+{
+	TCase* tc_basic;
+
+	Suite* s = suite_create("Vector");
+
+	tc_basic = tcase_create("Basic");
+	tcase_add_test(tc_basic, test_basic);
+	suite_add_tcase(s, tc_basic);
+
+	return s;
 }
 
