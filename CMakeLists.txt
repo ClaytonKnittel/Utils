@@ -21,6 +21,9 @@ project(utils VERSION 0.1)
 
 set(BUILD_SHARED_LIBRARY ON CACHE BOOL "When enabled, builds libutils as a
 	shared library, otherwise building as a static library")
+set(ENABLE_TESTING OFF CACHE BOOL "When enabled, build all unit tests. The
+	unit tests can then be run from within the build directory with
+	'make run_tests'.")
 
 
 ############################################################
@@ -79,7 +82,6 @@ target_include_directories(utils
 		${PROJECT_SOURCE_DIR}/include
 )
 
-option(ENABLE_TESTING "Enable testing" OFF)
 if (${ENABLE_TESTING})
     enable_testing()
 
@@ -92,7 +94,11 @@ endif()
 ############################################################
 
 # Library
-install(TARGETS utils LIBRARY DESTINATION lib)
+if(${BUILD_SHARED_LIBRARY})
+	install(TARGETS utils LIBRARY DESTINATION lib)
+else()
+	install(TARGETS utils ARCHIVE DESTINATION lib)
+endif()
 
 # Header files
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
