@@ -34,7 +34,7 @@ int main()
 	srunner_add_suite(sr, test_rbtree());
 	//srunner_add_suite(sr, test_rtree());
 	srunner_add_suite(sr, test_sort());
-	srunner_add_suite(sr, test_to_upper_lower());
+	//srunner_add_suite(sr, test_to_upper_lower());
 	srunner_add_suite(sr, test_union_find());
 	srunner_add_suite(sr, test_vector());
 	srunner_add_suite(sr, test_prime_factor_list_cc());
