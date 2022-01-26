@@ -45,7 +45,7 @@ jobs:
         sudo apt-get install -y subunit lsb-release
         echo $LD_LIBRARY_PATH
         echo "2"
-        ls /usr/lib
+        ls /usr/local/lib
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
