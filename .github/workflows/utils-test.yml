@@ -42,7 +42,7 @@ jobs:
     - name: install ubuntu dependencies
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get install -y subunit lsb-release
+        sudo apt-get install -y subunit-dev lsb-release
         echo $LD_LIBRARY_PATH
         echo "2"
         ls /usr/local/lib
