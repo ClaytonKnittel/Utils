@@ -25,7 +25,7 @@ jobs:
       if: steps.cache-libcheck.outputs.cache-hit != 'true'
       with:
         repository: "libcheck/check"
-        ref: "tags/0.15.2"
+        ref: "0.15.2"
         path: check-0.15.2
     - name: Build libcheck
       id: build-libcheck
