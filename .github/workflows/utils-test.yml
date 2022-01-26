@@ -32,6 +32,7 @@ jobs:
       if: steps.cache-libcheck.outputs.cache-hit != 'true'
       working-directory: check-0.15.2
       run: |
+        ls
         ./configure
         make
     - name: install libcheck
