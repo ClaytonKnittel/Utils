@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Initialize and Build
       run: |
+        pwd
+        ls
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
         make
