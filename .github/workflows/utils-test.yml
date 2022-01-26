@@ -12,6 +12,32 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+    - name: Download libcheck
+      uses: dsaltares/fetch-gh-release-asset@0.0.5
+      with:
+        repo: "libcheck/check"
+        version: "tags/0.15.2"
+        file: check-0.15.2.tar.gz
+    - name: Cache libcheck
+      id: cache-libcheck
+      uses: actions/cache@v2
+      env:
+        cache-name: libcheck
+      with:
+        path: check-0.15.2
+        key: check-0.15.2-${{ runner.os }}
+    - name: Build libcheck
+      id: build-libcheck
+      if: steps.cache-libcheck.outputs.cache-hit != 'true'
+      run: |
+        tar xvfz check-0.15.2.tar.gz && cd check-0.15.2
+        ./configure
+        make
+    - name: install libcheck
+      run: |
+        cd check-0.15.2
+        sudo make install
+        sudo ldconfig
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
