@@ -39,6 +39,10 @@ jobs:
       working-directory: check-0.15.2/build
       run: |
         sudo make install
+    - name: install ubuntu dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install -y subunit
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
