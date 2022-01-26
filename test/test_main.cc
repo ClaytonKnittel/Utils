@@ -32,14 +32,14 @@ int main()
 	srunner_add_suite(sr, test_min_heap());
 	srunner_add_suite(sr, test_prime_factor_list());
 	srunner_add_suite(sr, test_rbtree());
-	srunner_add_suite(sr, test_rtree());
+	//srunner_add_suite(sr, test_rtree());
 	srunner_add_suite(sr, test_sort());
 	srunner_add_suite(sr, test_to_upper_lower());
 	srunner_add_suite(sr, test_union_find());
 	srunner_add_suite(sr, test_vector());
 	srunner_add_suite(sr, test_prime_factor_list_cc());
 	srunner_add_suite(sr, test_rbtree_cc());
-	srunner_add_suite(sr, test_sort_cc());
+	//srunner_add_suite(sr, test_sort_cc());
 
 	srunner_set_fork_status(sr, CK_NOFORK);
 
