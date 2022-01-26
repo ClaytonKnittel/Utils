@@ -1,7 +1,7 @@
 project(utils_unit_testing)
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-	find_program(LSB_RELEASE_EXEC lsb_release)
+	find_program(LSB_RELEASE_EXEC lsb_release REQUIRED)
 	execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
 		OUTPUT_VARIABLE LINUX_DISTR
 		OUTPUT_STRIP_TRAILING_WHITESPACE

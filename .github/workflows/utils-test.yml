@@ -42,7 +42,7 @@ jobs:
     - name: install ubuntu dependencies
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get install -y subunit
+        sudo apt-get install -y subunit lsb-release
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
