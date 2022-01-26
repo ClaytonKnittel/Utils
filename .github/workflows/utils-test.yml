@@ -36,7 +36,7 @@ jobs:
         cmake ..
         make
     - name: install libcheck
-      working-directory: check-0.15.2
+      working-directory: check-0.15.2/build
       run: |
         sudo make install
     - name: Check out Utils
