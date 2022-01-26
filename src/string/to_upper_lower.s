@@ -1,10 +1,8 @@
-
-.intel_syntax noprefix
 .global _to_upper_osx
 .global _to_lower_osx
 
-.data:
-.align 5
+.data
+#.align 5
 # to shift all lowercase letters to the highest signed-byte range
 upper_offset_array:
 	.quad 0x0505050505050505
@@ -36,7 +34,7 @@ upper_to_lower:
 	.quad 0x2020202020202020
 	.quad 0x2020202020202020
 
-.text:
+.text
 _to_upper_osx:
 	test rsi, rsi
 	je _up_return

@@ -62,10 +62,13 @@ if(NOT can_use_assembler)
 endif()
 
 target_compile_options(utils PRIVATE
-	-Wpedantic -Wall -Wextra -Wno-unused-function -Wno-extra-semi -Wno-format-pedantic
+	$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:-Wpedantic -Wall -Wextra
+	-Wno-unused-function -Wno-format
+	-march=native -mtune=native>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
-target_compile_options(utils PRIVATE $<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:-march=native -mtune=native>)
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:--64 -msyntax=intel -mnaked-reg>)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
@@ -79,7 +82,7 @@ endif()
 
 target_include_directories(utils
 	PRIVATE
-		${PROJECT_SOURCE_DIR}/include
+		$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:${PROJECT_SOURCE_DIR}/include>
 )
 
 if (${ENABLE_TESTING})

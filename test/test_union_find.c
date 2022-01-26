@@ -154,6 +154,7 @@ START_TEST(test_basic)
 
     for (int i = 0; i < NUM_TRIALS; i++) {
         times[i] = test_alg_1(widths[i], heights[i]);
+		(void) times[i];
     }
 
 	/*

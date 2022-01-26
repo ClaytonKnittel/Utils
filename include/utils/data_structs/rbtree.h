@@ -342,7 +342,7 @@ static int ptr_cmp(rb_node_t* a, rb_node_t* b) {
 	return ((uint64_t) a) < ((uint64_t) b) ? -1 : ((uint64_t) a) == ((uint64_t) b) ? 0 : 1;
 }
 
-RB_DEFINE_TYPE(ptr, ptr_cmp);
+RB_DEFINE_TYPE(ptr, ptr_cmp)
 
 
 #define RB_DEFINE_GET_VAL(name, s_type) \
@@ -520,8 +520,8 @@ typedef struct rb_uint_node {
 	uint64_t val;
 } rb_uint_node_t;
 
-RB_DEFINE_SCALAR_TYPE(int, int64_t);
-RB_DEFINE_SCALAR_TYPE(uint, uint64_t);
+RB_DEFINE_SCALAR_TYPE(int, int64_t)
+RB_DEFINE_SCALAR_TYPE(uint, uint64_t)
 
 
 /*#ifdef __cplusplus

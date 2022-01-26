@@ -292,8 +292,8 @@ _shrunk_node_bb(rtree_node_base_t* node)
 		(b) = m; \
 	} while (0)*/
 
-DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_x, rect_x_sort_cmp, rect_x_sort_cswap);
-DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_y, rect_y_sort_cmp, rect_y_sort_cswap);
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_x, rect_x_sort_cmp, rect_x_sort_cswap)
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_rect_t*, rtree_rect_y, rect_y_sort_cmp, rect_y_sort_cswap)
 
 struct split_cost {
 	rtree_coord_t overlap;
@@ -672,7 +672,7 @@ struct node_dist {
 		} \
 	} while (0)
 
-DEFINE_CSORT_DEFAULT_FNS_NAMED_16(struct node_dist, node_dist, node_dist_sort_cmp, node_dist_sort_cswap);
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(struct node_dist, node_dist, node_dist_sort_cmp, node_dist_sort_cswap)
 
 
 // forward declarations for use in __continue_split
