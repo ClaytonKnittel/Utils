@@ -16,10 +16,11 @@ jobs:
       run: |
         pwd
         ls
+        ls ${{ github.workspace }}
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
         make
     - name: Run Unit Tests
+      working-directory: build
       run: |
-        cd build
         make run_tests
