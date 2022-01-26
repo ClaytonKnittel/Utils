@@ -12,15 +12,18 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+    - name: Check out Utils
+      uses: actions/checkout@v2
+      with:
+        path: utils
+        submodules: recursive
     - name: Initialize and Build
+      working-directory: utils
       run: |
-        pwd
-        ls
-        ls ${{ github.workspace }}
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
         make
     - name: Run Unit Tests
-      working-directory: build
+      working-directory: utils/build
       run: |
         make run_tests
