@@ -43,11 +43,9 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get install -y subunit lsb-release
-        ls /usr/lib/libsubunit*
-        echo "1"
         echo $LD_LIBRARY_PATH
         echo "2"
-        ls /usr/local/lib/libsubunit*
+        ls /lib/libsubunit*
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
