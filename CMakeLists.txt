@@ -58,17 +58,24 @@ if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64")
 endif()
 
 if(NOT can_use_assembler)
-	message(SEND_ERROR "No as/gas assembler found")
+	message(SEND_ERROR "No assembler found")
 endif()
 
 target_compile_options(utils PRIVATE
 	$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:-Wpedantic -Wall -Wextra
-	-Wno-unused-function -Wno-format
+	-Wno-unused-function -Wno-format -Wno-format-pedantic
 	-march=native -mtune=native>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
-target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:--64 -msyntax=intel -mnaked-reg>)
+
+if("${CMAKE_ASM-ATT_COMPILER_ID}" MATCHES "GNU")
+	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:--64 -msyntax=intel -mnaked-reg>)
+elseif("${CMAKE_ASM-ATT_COMPILER_ID}" MATCHES "Clang")
+	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:-masm=intel>)
+else()
+	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM-ATT_COMPILER_ID})")
+endif()
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
