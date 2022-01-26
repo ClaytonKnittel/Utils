@@ -1,5 +1,19 @@
 project(utils_unit_testing)
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+	find_program(LSB_RELEASE_EXEC lsb_release)
+	execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
+		OUTPUT_VARIABLE LINUX_DISTR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	if("${LINUX_DISTR}" MATCHES "Ubuntu")
+		list(APPEND LINK_LIBS "rt;pthread;subunit")
+	endif()
+else()
+	set(LINUX_DISTR "")
+endif()
+
 # Use boost for unit testing
 find_library(check check REQUIRED)
 
@@ -39,7 +53,7 @@ target_link_libraries(utils_unit_testing
 	PRIVATE
 		utils
 	PUBLIC
-		check $<$<PLATFORM_ID:Linux>:"rt pthread subunit">
+		check "${LINK_LIBS}"
 )
 
 get_filename_component(UTILS_DIR ../ ABSOLUTE)
