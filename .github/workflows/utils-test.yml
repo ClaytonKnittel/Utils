@@ -32,14 +32,13 @@ jobs:
       if: steps.cache-libcheck.outputs.cache-hit != 'true'
       working-directory: check-0.15.2
       run: |
-        ls
-        ./configure
+        mkdir build && cd build
+        cmake ..
         make
     - name: install libcheck
       working-directory: check-0.15.2
       run: |
         sudo make install
-        sudo ldconfig
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
