@@ -19,7 +19,7 @@ add_custom_target(run_tests
 )
 
 target_compile_options(utils_unit_testing PRIVATE
-	-Wpedantic -Wall -Wextra -Wno-unused-function -Wno-format
+	-Wpedantic -Wall -Wextra -Wno-unused-function -Wno-format -Wno-format-pedantic
 	-Wno-gnu-zero-variadic-macro-arguments -march=native -mtune=native
 )
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
@@ -39,7 +39,7 @@ target_link_libraries(utils_unit_testing
 	PRIVATE
 		utils
 	PUBLIC
-		check
+		check $<$<PLATFORM_ID:Linux>:"rt pthread subunit">
 )
 
 get_filename_component(UTILS_DIR ../ ABSOLUTE)

@@ -71,6 +71,7 @@ START_TEST(test_basic)
 
 	prime_factor_list_free(&list);
 }
+END_TEST
 
 
 Suite*

@@ -90,6 +90,7 @@ START_TEST(test_basic)
 
 	rtree_free(&tree);
 }
+END_TEST
 
 Suite*
 test_rtree()

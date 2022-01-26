@@ -168,6 +168,7 @@ START_TEST(test_basic)
     printf("}\n");
 	*/
 }
+END_TEST
 
 Suite*
 test_union_find()

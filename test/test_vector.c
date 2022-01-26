@@ -32,6 +32,7 @@ START_TEST(test_basic)
 
 	vector_free(&v);
 }
+END_TEST
 
 Suite*
 test_vector()

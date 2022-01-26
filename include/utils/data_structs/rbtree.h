@@ -18,6 +18,10 @@
 	dbg_assert(expr)
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // declare red-black nodes early for usage in this struct
 typedef struct rb_node {
 	struct rb_node *left;
@@ -524,7 +528,9 @@ RB_DEFINE_SCALAR_TYPE(int, int64_t)
 RB_DEFINE_SCALAR_TYPE(uint, uint64_t)
 
 
-/*#ifdef __cplusplus
+#ifdef __cplusplus
+// terminate the extern "C"
+}
 
 
 template<typename T>
@@ -543,12 +549,11 @@ public:
 };
 
 
-#else*/
+#else
 
 typedef struct __int_rb_tree rb_tree_t;
 
-//#endif /* __cplusplus */
-
+#endif /* __cplusplus */
 
 
 #endif /* _RB_TREE_H */

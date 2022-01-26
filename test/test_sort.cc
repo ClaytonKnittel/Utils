@@ -134,82 +134,98 @@ START_TEST(test_const_sort_2)
 {
 	run_const_sort_test<2>();
 }
+END_TEST
 
 START_TEST(test_const_sort_3)
 {
 	run_const_sort_test<3>();
 }
+END_TEST
 
 START_TEST(test_const_sort_4)
 {
 	run_const_sort_test<4>();
 }
+END_TEST
 
 START_TEST(test_const_sort_5)
 {
 	run_const_sort_test<5>();
 }
+END_TEST
 
 START_TEST(test_const_sort_6)
 {
 	run_const_sort_test<6>();
 }
+END_TEST
 
 START_TEST(test_const_sort_7)
 {
 	run_const_sort_test<7>();
 }
+END_TEST
 
 START_TEST(test_const_sort_8)
 {
 	run_const_sort_test<8>();
 }
+END_TEST
 
 START_TEST(test_const_sort_9)
 {
 	run_const_sort_test<9>();
 }
+END_TEST
 
 START_TEST(test_const_sort_10)
 {
 	run_const_sort_test<10>();
 }
+END_TEST
 
 START_TEST(test_const_sort_11)
 {
 	run_const_sort_test<11>();
 }
+END_TEST
 
 START_TEST(test_const_sort_12)
 {
 	run_const_sort_test<12>();
 }
+END_TEST
 
 START_TEST(test_const_sort_13)
 {
 	run_const_sort_test<13>();
 }
+END_TEST
 
 START_TEST(test_const_sort_14)
 {
 	run_const_sort_test<14>();
 }
+END_TEST
 
 START_TEST(test_const_sort_15)
 {
 	run_const_sort_test<15>();
 }
+END_TEST
 
 START_TEST(test_const_sort_16)
 {
 	run_const_sort_test<16>();
 }
+END_TEST
 
 
 START_TEST(test_64)
 {
 	run_csort_test(64);
 }
+END_TEST
 
 
 Suite*

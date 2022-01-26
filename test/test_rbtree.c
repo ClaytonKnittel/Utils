@@ -134,6 +134,7 @@ START_TEST(test_basic)
 
 	rb_free(&tree);
 }
+END_TEST
 
 Suite*
 test_rbtree()
