@@ -64,7 +64,7 @@ run_csort_test(int N)
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 	uint32_t* all = (uint32_t*) malloc(N * sizeof(uint32_t));
 
-	for (uint64_t i = 0; i < 65536; i++) {
+	for (uint64_t i = 0; i < 1024; i++) {
 		for (uint32_t j = 0; j < (uint32_t) N; j++) {
 			vals[j] = gen_rand_r(0x7ffffffflu);
 			all[j] = vals[j];
@@ -153,7 +153,7 @@ run_const_sort_test(int N)
 		}
 	}
 	else if (N <= 16) {
-		for (uint64_t i = 0; i < 65536; i++) {
+		for (uint64_t i = 0; i < 512; i++) {
 			uint16_t mask = 0xffffu;
 
 			uint64_t perm = gen_rand_r64(n_fact);
