@@ -1,0 +1,22 @@
+name: Build and Unit Test
+
+on:
+  push: master
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Initialize and Build
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
+        make
+    - name: Run Unit Tests
+      run: |
+        cd build
+        make run_tests
