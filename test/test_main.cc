@@ -14,6 +14,7 @@ Suite* test_rtree();
 Suite* test_sort();
 Suite* test_to_upper_lower();
 Suite* test_union_find();
+Suite* test_utils();
 Suite* test_vector();
 
 }
@@ -36,6 +37,7 @@ int main()
 	srunner_add_suite(sr, test_sort());
 	//srunner_add_suite(sr, test_to_upper_lower());
 	srunner_add_suite(sr, test_union_find());
+	srunner_add_suite(sr, test_utils());
 	srunner_add_suite(sr, test_vector());
 	srunner_add_suite(sr, test_prime_factor_list_cc());
 	srunner_add_suite(sr, test_rbtree_cc());
