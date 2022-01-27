@@ -233,7 +233,7 @@ START_TEST(test_basic)
 
 	int sz = max;
 	//for (int sz = 16; sz < max; sz += 16) {
-		calc_avg_times_upper(sz, 100, &naive_s, &my_s, true, 0);
+		calc_avg_times_upper(sz, 1000, &naive_s, &my_s, true, 0);
 
 		/*printf("upper:\n");
 		printf("average naive: %.9f\n", naive_s);
@@ -249,7 +249,7 @@ START_TEST(test_basic)
 		fflush(stdout);*/
 		//usleep(10000);
 
-		calc_avg_times_lower(sz, 200, &naive_s, &my_s, true, 0);
+		calc_avg_times_lower(sz, 1000, &naive_s, &my_s, true, 0);
 
 		/*printf("lower:\n");
 		printf("average naive: %.9f\n", naive_s);
