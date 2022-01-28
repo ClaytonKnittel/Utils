@@ -1,6 +1,7 @@
 #ifndef _R_TREE_H_
 #define _R_TREE_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /*
@@ -88,6 +89,18 @@ typedef struct rtree {
 	uint64_t depth;
 } rtree_t;
 
+/*
+ * Callback method signatures for find-all-intersecting methods. The current
+ * intersecting rect in the rtree is passed via el_id/el.
+ *
+ * If these callbacks return false, iteration is stopped, otherwise continuing
+ * until all intersecting rectangles have been found.
+ */
+typedef bool (*rtree_intersects_id_cb)(rtree_el_id_t el_id,
+		const rtree_rect_t* rect, const rtree_t* tree);
+typedef bool (*rtree_intersects_cb)(const rtree_el_t* el,
+		const rtree_rect_t* rect, const rtree_t* tree);
+
 
 /*
  * given an rtree_el_id_t, returns a pointer to the corresponding rtree_el_t
@@ -95,18 +108,20 @@ typedef struct rtree {
 rtree_el_t* rtree_el_id_get(rtree_el_id_t id);
 
 
-void rtree_init(rtree_t*, uint32_t m_min, uint32_t m_max);
+int rtree_init(rtree_t*, uint32_t m_min, uint32_t m_max);
 void rtree_free(rtree_t*);
 
-void rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
+int rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
 
-void rtree_delete(rtree_t*, rtree_el_id_t*);
+int rtree_delete(rtree_t*, rtree_el_id_t*);
 
 rtree_el_id_t rtree_find_exact_id(const rtree_t*, const rtree_rect_t* rect);
 rtree_el_t* rtree_find_exact(const rtree_t*, const rtree_rect_t* rect);
 
-rtree_el_id_t rtree_intersects_id(const rtree_t*, const rtree_rect_t* rect);
-rtree_el_t* rtree_intersects(const rtree_t*, const rtree_rect_t* rect);
+void rtree_intersects_id_foreach(const rtree_t*, const rtree_rect_t* rect,
+		rtree_intersects_id_cb callback);
+void rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
+		rtree_intersects_cb callback);
 
 rtree_el_id_t* rtree_k_nearest_id(const rtree_t*, const rtree_rect_t* rect,
 		rtree_el_id_t* ids, uint32_t k);

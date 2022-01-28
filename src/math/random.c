@@ -1,6 +1,7 @@
 
-#include <utils/math/random.h>
+#include <pthread.h>
 
+#include <utils/math/random.h>
 
 
 struct rand_state {
@@ -24,7 +25,7 @@ __thread struct rand_state __state = {
 
 uint32_t __rand_hash(uint32_t seed) {
     uint64_t v = (uint64_t) seed;
-    v          = (~v) + (v << 18);
+    v = (~v) + (v << 18);
     v ^= v >> 31;
     v *= 21;
     v &= v >> 11;
@@ -83,8 +84,8 @@ uint64_t gen_rand64() {
 }
 
 static uint32_t _gen_rand_r(struct rand_state * state, uint32_t max) {
-    // mathematically equivalent to 0x100000000lu % max, but is done with
-    // 32-bit numbers so is faster
+    // equivalent to 0x100000000lu % max, but is done with 32-bit numbers so
+	// it's faster
     uint32_t thresh = -max % max;
 
     // range is limited to thresh and above, to eliminate any bias (i.e. if
@@ -103,7 +104,6 @@ uint32_t gen_rand_r(uint32_t max) {
     return _gen_rand_r(&__state, max);
 }
 
-#include <stdio.h>
 static uint64_t _gen_rand_r64(struct rand_state * state, uint64_t max) {
     // mathematically equivalent to 0x10000000000000000lu % max
     uint64_t thresh = -max % max;

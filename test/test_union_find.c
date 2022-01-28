@@ -175,7 +175,7 @@ test_union_find()
 {
 	TCase* tc_basic;
 
-	Suite* s = suite_create("Indexed red-black tree");
+	Suite* s = suite_create("Union Find");
 
 	tc_basic = tcase_create("Basic");
 	tcase_add_test(tc_basic, test_basic);
