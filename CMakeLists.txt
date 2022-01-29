@@ -51,8 +51,8 @@ else()
 endif()
 
 if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64")
-	enable_language(ASM-ATT)
-	if(CMAKE_ASM-ATT_COMPILER_WORKS)
+	enable_language(ASM)
+	if(CMAKE_ASM_COMPILER_WORKS)
 		set(can_use_assembler TRUE)
 	endif()
 endif()
@@ -62,19 +62,19 @@ if(NOT can_use_assembler)
 endif()
 
 target_compile_options(utils PRIVATE
-	$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:-Wpedantic -Wall -Wextra
+	$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Wpedantic -Wall -Wextra
 	-Wno-unused-function -Wno-format -Wno-format-pedantic
 	-march=native -mtune=native>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
 
-if("${CMAKE_ASM-ATT_COMPILER_ID}" MATCHES "GNU")
-	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:--64 -msyntax=intel -mnaked-reg>)
-elseif("${CMAKE_ASM-ATT_COMPILER_ID}" MATCHES "Clang")
-	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM-ATT>:-masm=intel>)
+if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
+	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg>)
+elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
+	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-masm=intel>)
 else()
-	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM-ATT_COMPILER_ID})")
+	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM_COMPILER_ID})")
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -89,7 +89,7 @@ endif()
 
 target_include_directories(utils
 	PRIVATE
-		$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:${PROJECT_SOURCE_DIR}/include>
+		$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:${PROJECT_SOURCE_DIR}/include>
 )
 
 if (${ENABLE_TESTING})
