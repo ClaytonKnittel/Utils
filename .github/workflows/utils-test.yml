@@ -23,7 +23,7 @@ jobs:
         cache-name: libcheck
       with:
         path: check-0.15.2
-        key: check-0.15.2-${{ runner.os }}
+        key: check-0.15.2-${{ runner.os }}-v2
     - name: Download libcheck
       uses: actions/checkout@v2
       if: steps.cache-libcheck.outputs.cache-hit != 'true'
