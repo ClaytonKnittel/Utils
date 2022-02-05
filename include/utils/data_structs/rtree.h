@@ -115,9 +115,17 @@ int rtree_insert(rtree_t*, rtree_rect_t* rect, void* udata);
 
 int rtree_delete(rtree_t*, rtree_el_id_t*);
 
+/*
+ * Finds the rtree node with rectangle exactly matching that of the rectangle
+ * passed. Will only return one rectangle if multiple matches exist in the tree.
+ */
 rtree_el_id_t rtree_find_exact_id(const rtree_t*, const rtree_rect_t* rect);
 rtree_el_t* rtree_find_exact(const rtree_t*, const rtree_rect_t* rect);
 
+/*
+ * Iterates over every element in the tree that intersects with the given
+ * rectangle, calling callback on each instance.
+ */
 void rtree_intersects_id_foreach(const rtree_t*, const rtree_rect_t* rect,
 		rtree_intersects_id_cb callback);
 void rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
@@ -130,6 +138,8 @@ rtree_el_t** rtree_k_nearest(const rtree_t*, const rtree_rect_t* rect,
 
 void rtree_print(const rtree_t*);
 
-void rtree_check(const rtree_t*);
+#ifdef DO_TESTING
+void rtree_validate(const rtree_t*);
+#endif /* DO_TESTING */
 
 #endif /* _R_TREE_H_ */

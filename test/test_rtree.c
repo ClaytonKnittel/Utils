@@ -1,4 +1,8 @@
 
+/**********************************************************
+ *                       Includes                         *
+ **********************************************************/
+
 #include <fcntl.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -10,6 +14,11 @@
 #include <utils/utils.h>
 
 #include "test_utils.h"
+
+
+/**********************************************************
+ *                 Silence Test Fixtures                  *
+ **********************************************************/
 
 static int stderr_tmp;
 static int dev_null_fd;
@@ -91,13 +100,13 @@ START_TEST(test_basic)
 	}*/
 
 	rtree_print(&tree);
-	rtree_check(&tree);
+	rtree_validate(&tree);
 	for (uint64_t i = 0; i < n_rects; i++) {
 		printf("Inserting: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\t(%" PRIu64")\n",
 				rects[i].bb.lx, rects[i].bb.ly, rects[i].bb.ux, rects[i].bb.uy, i);
 		rtree_insert(&tree, &rects[i].bb, rects[i].udata);
 		//rtree_print(&tree);
-		rtree_check(&tree);
+		rtree_validate(&tree);
 
 		/*
 		for (int j = 0; j <= i; j++) {
@@ -116,6 +125,11 @@ START_TEST(test_basic)
 END_TEST
 #endif
 
+
+/**********************************************************
+ *                      Test Utils                        *
+ **********************************************************/
+
 #define INIT_RTREE(m_min, m_max) \
 	rtree_t tree; \
 	ck_assert_int_eq(rtree_init(&tree, m_min, m_max), 0)
@@ -126,6 +140,10 @@ END_TEST
 	ck_assert_int_eq((r1)->ux, (r2)->ux); \
 	ck_assert_int_eq((r1)->uy, (r2)->uy)
 
+
+/**********************************************************
+ *                       Test Init                        *
+ **********************************************************/
 
 START_TEST(test_init_half_min)
 {
@@ -156,6 +174,11 @@ START_TEST(test_init_1_min)
 	rtree_t tree;
 	ck_assert_int_ne(rtree_init(&tree, 1, 5), 0);
 }
+
+
+/**********************************************************
+ *                      Test Insert                       *
+ **********************************************************/
 
 START_TEST(test_insert_1)
 {
@@ -191,6 +214,7 @@ END_TEST
 
 START_TEST(test_insert_10000_random)
 {
+	seed_rand(15, 0);
 	INIT_RTREE(10, 30);
 
 	for (uint32_t i = 0; i < 10000; i++) {
@@ -207,10 +231,16 @@ START_TEST(test_insert_10000_random)
 			.uy = y + wy
 		};
 		ck_assert_int_eq(rtree_insert(&tree, &rect, NULL), 0);
+		rtree_validate(&tree);
 	}
 	rtree_free(&tree);
 }
 END_TEST
+
+
+/**********************************************************
+ *                       Test Find                        *
+ **********************************************************/
 
 START_TEST(test_find_single)
 {
@@ -256,7 +286,7 @@ START_TEST(test_find_single_fail)
 	rtree_free(&tree);
 }
 
-START_TEST(test_find_100_with_udata)
+START_TEST(test_find_100_grid_with_udata)
 {
 	INIT_RTREE(3, 6);
 
@@ -268,7 +298,7 @@ START_TEST(test_find_100_with_udata)
 			.uy = (i / 10) * 10 + (10 / 2)
 		};
 		ck_assert_int_eq(rtree_insert(&tree, &rect, (void*) (ptr_int_t) i), 0);
-		rtree_check(&tree);
+		rtree_validate(&tree);
 	}
 
 	for (uint32_t i = 0; i < 10 * 10; i++) {
@@ -288,12 +318,122 @@ START_TEST(test_find_100_with_udata)
 }
 END_TEST
 
+static void
+_run_randomized_find_udata_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
+		uint64_t seed)
+{
+	seed_rand(seed, 0);
+	INIT_RTREE(m_min, m_max);
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		uint64_t x = gen_rand_r(65536);
+		uint64_t y = gen_rand_r(65536);
+
+		uint64_t wx = gen_rand_r(32);
+		uint64_t wy = gen_rand_r(32);
+		rtree_rect_t rect = {
+			.lx = x,
+			.ly = y,
+			.ux = x + wx,
+			.uy = y + wy
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &rect, (void*) (ptr_int_t) i), 0);
+		rtree_validate(&tree);
+	}
+
+	// reset the seed so we see the same sequence of rectangles
+	seed_rand(seed, 0);
+	for (uint32_t i = 0; i < n_rects; i++) {
+		uint64_t x = gen_rand_r(65536);
+		uint64_t y = gen_rand_r(65536);
+
+		uint64_t wx = gen_rand_r(32);
+		uint64_t wy = gen_rand_r(32);
+		rtree_rect_t rect = {
+			.lx = x,
+			.ly = y,
+			.ux = x + wx,
+			.uy = y + wy
+		};
+		rtree_el_t* el = rtree_find_exact(&tree, &rect);
+		ck_assert_ptr_ne(el, NULL);
+		ASSERT_RECT_EQ(&el->bb, &rect);
+		ck_assert_ptr_eq(el->udata, (void*) (ptr_int_t) i);
+	}
+
+	rtree_free(&tree);
+}
+
+START_TEST(test_find_100_random_with_udata)
+{
+	_run_randomized_find_udata_test(100, 3, 6, 16);
+}
+END_TEST
+
+START_TEST(test_find_10000_random_with_udata)
+{
+	_run_randomized_find_udata_test(10000, 3, 6, 23);
+}
+END_TEST
+
+
+/**********************************************************
+ *                    Test Intersects                     *
+ **********************************************************/
+
+static int intersects_single_cnt = 0;
+static bool
+_intersects_single_cb(const rtree_el_t* el, const rtree_rect_t* rect,
+		const rtree_t* tree)
+{
+	(void) tree;
+	rtree_rect_t expected_rect = {
+		.lx = 0,
+		.ly = 0,
+		.ux = 5,
+		.uy = 5
+	};
+
+	ASSERT_RECT_EQ(rect, &expected_rect);
+	ASSERT_RECT_EQ(rect, &el->bb);
+	ck_assert_ptr_eq(el->udata, NULL);
+
+	ck_assert_int_eq(intersects_single_cnt, 0);
+	intersects_single_cnt++;
+
+	return true;
+}
+
+START_TEST(test_intersects_single)
+{
+	INIT_RTREE(5, 10);
+
+	rtree_rect_t rect = {
+		.lx = 0,
+		.ly = 0,
+		.ux = 5,
+		.uy = 5
+	};
+	ck_assert_int_eq(rtree_insert(&tree, &rect, NULL), 0);
+
+	rtree_intersects_foreach(&tree, &rect, _intersects_single_cb);
+	ck_assert_int_eq(intersects_single_cnt, 1);
+
+	rtree_free(&tree);
+}
+
+
+/**********************************************************
+ *                      Test Suite                        *
+ **********************************************************/
+
 Suite*
 test_rtree()
 {
 	TCase* tc_init;
 	TCase* tc_insert;
 	TCase* tc_find_exact;
+	TCase* tc_intersects;
 
 	Suite* s = suite_create("R* tree");
 
@@ -316,8 +456,14 @@ test_rtree()
 	tc_find_exact = tcase_create("Find Exact");
 	tcase_add_test(tc_find_exact, test_find_single);
 	tcase_add_test(tc_find_exact, test_find_single_fail);
-	tcase_add_test(tc_find_exact, test_find_100_with_udata);
+	tcase_add_test(tc_find_exact, test_find_100_grid_with_udata);
+	tcase_add_test(tc_find_exact, test_find_100_random_with_udata);
+	tcase_add_test(tc_find_exact, test_find_10000_random_with_udata);
 	suite_add_tcase(s, tc_find_exact);
+
+	tc_intersects = tcase_create("Intersects");
+	tcase_add_test(tc_intersects, test_intersects_single);
+	suite_add_tcase(s, tc_intersects);
 
 	return s;
 }

@@ -64,12 +64,10 @@ endif()
 target_compile_options(utils PRIVATE
 	$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Wpedantic -Wall -Wextra
 	-Wno-unused-function -Wno-format -Wno-format-pedantic
-	-march=native -mtune=native -pg>
+	-march=native -mtune=native>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
-#SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-#SET(CMAKE_STATIC_LINKER_FLAGS  "${CMAKE_STATIC_LINKER_FLAGS} -pg")
 
 if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
 	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg>)
@@ -87,6 +85,10 @@ if (COMPILER_SUPPORTS_CXX17)
 else()
 	message(SEND_ERROR "The compiler ${CMAKE_CXX_COMPILER} does not support "
 		"c++17, please use a different compiler")
+endif()
+
+if (${ENABLE_TESTING})
+	target_compile_definitions(utils PRIVATE DO_TESTING)
 endif()
 
 target_include_directories(utils

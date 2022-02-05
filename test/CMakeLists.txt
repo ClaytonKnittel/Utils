@@ -34,13 +34,14 @@ add_custom_target(run_tests
 
 target_compile_options(utils_unit_testing PRIVATE
 	-Wpedantic -Wall -Wextra -Wno-unused-function -Wno-format -Wno-format-pedantic
-	-Wno-gnu-zero-variadic-macro-arguments -march=native -mtune=native -pg
+	-Wno-gnu-zero-variadic-macro-arguments -march=native -mtune=native
 )
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 	-std=c++17 -Wno-extra-semi
 >)
-SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg")
+
+target_compile_definitions(utils_unit_testing PRIVATE DO_TESTING)
 
 target_include_directories(utils_unit_testing
 	PUBLIC "/usr/local/include"

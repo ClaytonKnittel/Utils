@@ -1,4 +1,8 @@
 
+/**********************************************************
+ *                       Includes                         *
+ **********************************************************/
+
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
@@ -9,6 +13,134 @@
 #include <utils/data_structs/int_set.h>
 #include <utils/data_structs/rtree.h>
 #include <utils/utils.h>
+
+
+/**********************************************************
+ *                  RTree ID to Element                   *
+ **********************************************************/
+
+rtree_el_t*
+rtree_el_id_get(rtree_el_id_t id)
+{
+	return &id.parent->elements[id.idx];
+}
+
+
+/**********************************************************
+ *                 Node Allocation Helpers                *
+ **********************************************************/
+
+static rtree_node_base_t*
+_new_inner_node(uint32_t m_max)
+{
+	// TODO: test calloc vs clear first bit
+	rtree_node_t* n = (rtree_node_t*) malloc(sizeof(rtree_node_t) +
+			m_max * sizeof(rtree_node_base_t*));
+
+	if (n == NULL) {
+		return NULL;
+	}
+
+	return &n->base;
+}
+
+static rtree_node_base_t*
+_new_empty_leaf_node(uint32_t m_max)
+{
+	// TODO: test calloc vs clear first bit
+	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
+			m_max * sizeof(rtree_el_t));
+
+	if (n == NULL) {
+		return NULL;
+	}
+
+	// set everything but the children pointers to 0
+	memset(n, 0, sizeof(rtree_leaf_t));
+	return &n->base;
+}
+
+static rtree_node_base_t*
+_new_leaf_node(uint32_t m_max)
+{
+	// TODO: test calloc vs clear first bit
+	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
+			m_max * sizeof(rtree_el_t));
+
+	if (n == NULL) {
+		return NULL;
+	}
+
+	return &n->base;
+}
+
+
+/**********************************************************
+ *                      RTree Init                        *
+ **********************************************************/
+
+int
+rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
+{
+	if (m_min < 2) {
+		fprintf(stderr, "R* tree m_min must be at least 2\n");
+		return -1;
+	}
+	if (m_min > m_max / 2) {
+		fprintf(stderr, "R* tree m_min must be no more than half of m_max\n");
+		return -1;
+	}
+
+	rtree_node_base_t* root = _new_empty_leaf_node(m_max);
+	if (root == NULL) {
+		return -1;
+	}
+
+	tree->root = root;
+	tree->m_min = m_min;
+	tree->m_max = m_max;
+	tree->reinsert_p = (uint32_t) nearbyintf((float) m_max * DEFAULT_REINSERT_P_PCT);
+	tree->reinsert_p = MAX(tree->reinsert_p, 1);
+	tree->depth = 0;
+	return 0;
+}
+
+
+/**********************************************************
+ *                      RTree Free                        *
+ **********************************************************/
+
+static void
+_rtree_leaf_free(rtree_leaf_t* leaf)
+{
+	free(leaf);
+}
+
+static void
+_rtree_node_free(rtree_node_base_t* node, uint64_t depth)
+{
+	if (depth == 0) {
+		_rtree_leaf_free((rtree_leaf_t*) node);
+	}
+	else {
+		rtree_node_t* inode = (rtree_node_t*) node;
+		for (uint32_t i = 0; i < inode->base.n; i++) {
+			_rtree_node_free(inode->children[i], depth - 1);
+		}
+		free(inode);
+	}
+}
+
+void
+rtree_free(rtree_t* tree)
+{
+	_rtree_node_free(tree->root, tree->depth);
+}
+
+
+/**********************************************************
+ *                 RTree Rectangle Helpers                *
+ **********************************************************/
 
 static __attribute__((always_inline)) inline rtree_coord_t
 _rtree_rect_area(const rtree_rect_t* r)
@@ -117,49 +249,10 @@ _rtree_rect_extend(rtree_rect_t* base, const rtree_rect_t* rect)
 	return _rtree_rect_combine(base, base, rect);
 }
 
-static rtree_node_base_t*
-_new_inner_node(uint32_t m_max)
-{
-	// TODO: test calloc vs clear first bit
-	rtree_node_t* n = (rtree_node_t*) malloc(sizeof(rtree_node_t) +
-			m_max * sizeof(rtree_node_base_t*));
 
-	if (n == NULL) {
-		return NULL;
-	}
-
-	return &n->base;
-}
-
-static rtree_node_base_t*
-_new_empty_leaf_node(uint32_t m_max)
-{
-	// TODO: test calloc vs clear first bit
-	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t));
-
-	if (n == NULL) {
-		return NULL;
-	}
-
-	// set everything but the children pointers to 0
-	memset(n, 0, sizeof(rtree_leaf_t));
-	return &n->base;
-}
-
-static rtree_node_base_t*
-_new_leaf_node(uint32_t m_max)
-{
-	// TODO: test calloc vs clear first bit
-	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t));
-
-	if (n == NULL) {
-		return NULL;
-	}
-
-	return &n->base;
-}
+/**********************************************************
+ *                      RTree Insert                      *
+ **********************************************************/
 
 /*
  * returns the index of the child with least overlap increase
@@ -992,6 +1085,18 @@ _do_insert(rtree_t* tree, rtree_rect_t* rect, void* udata, int_set_t reinserted_
 	}
 }
 
+int
+rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
+{
+	int_set_t iset;
+	int_set_inita(iset, tree->depth);
+	return _do_insert(tree, rect, udata, iset);
+}
+
+
+/**********************************************************
+ *                     RTree Delete                       *
+ **********************************************************/
 
 static void
 _do_delete(rtree_t* tree, rtree_leaf_t* parent, uint64_t to_delete_idx)
@@ -1001,75 +1106,6 @@ _do_delete(rtree_t* tree, rtree_leaf_t* parent, uint64_t to_delete_idx)
 	(void) to_delete_idx;
 }
 
-
-rtree_el_t*
-rtree_el_id_get(rtree_el_id_t id)
-{
-	return &id.parent->elements[id.idx];
-}
-
-
-int
-rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max)
-{
-	if (m_min < 2) {
-		fprintf(stderr, "R* tree m_min must be at least 2\n");
-		return -1;
-	}
-	if (m_min > m_max / 2) {
-		fprintf(stderr, "R* tree m_min must be no more than half of m_max\n");
-		return -1;
-	}
-
-	rtree_node_base_t* root = _new_empty_leaf_node(m_max);
-	if (root == NULL) {
-		return -1;
-	}
-
-	tree->root = root;
-	tree->m_min = m_min;
-	tree->m_max = m_max;
-	tree->reinsert_p = (uint32_t) nearbyintf((float) m_max * DEFAULT_REINSERT_P_PCT);
-	tree->reinsert_p = MAX(tree->reinsert_p, 1);
-	tree->depth = 0;
-	return 0;
-}
-
-static void
-_rtree_leaf_free(rtree_leaf_t* leaf)
-{
-	free(leaf);
-}
-
-static void
-_rtree_node_free(rtree_node_base_t* node, uint64_t depth)
-{
-	if (depth == 0) {
-		_rtree_leaf_free((rtree_leaf_t*) node);
-	}
-	else {
-		rtree_node_t* inode = (rtree_node_t*) node;
-		for (uint32_t i = 0; i < inode->base.n; i++) {
-			_rtree_node_free(inode->children[i], depth - 1);
-		}
-		free(inode);
-	}
-}
-
-void
-rtree_free(rtree_t* tree)
-{
-	_rtree_node_free(tree->root, tree->depth);
-}
-
-int
-rtree_insert(rtree_t* tree, rtree_rect_t* rect, void* udata)
-{
-	int_set_t iset;
-	int_set_inita(iset, tree->depth);
-	return _do_insert(tree, rect, udata, iset);
-}
-
 int
 rtree_delete(rtree_t* tree, rtree_el_id_t* id)
 {
@@ -1077,6 +1113,11 @@ rtree_delete(rtree_t* tree, rtree_el_id_t* id)
 	(void) id;
 	return -1;
 }
+
+
+/**********************************************************
+ *                    RTree Find Exact                    *
+ **********************************************************/
 
 static rtree_el_id_t
 _rtree_find_exact_leaf(const rtree_leaf_t* leaf, const rtree_rect_t* rect)
@@ -1140,20 +1181,138 @@ rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
 }
 
 
-void
-rtree_intersects_id(const rtree_t* tree, const rtree_rect_t* rect)
+/**********************************************************
+ *                    RTree Intersects                    *
+ **********************************************************/
+
+static bool
+_rtree_intersects_leaf_id(const rtree_t* tree, const rtree_leaf_t* leaf,
+		const rtree_rect_t* rect, rtree_intersects_id_cb callback)
 {
-	(void) tree;
-	(void) rect;
+	for (uint32_t i = 0; i < leaf->base.n; i++) {
+		if (_rtree_rect_contains(&leaf->elements[i].bb, rect)) {
+			bool should_continue = callback((rtree_el_id_t) {
+				.parent = (rtree_leaf_t*) leaf,
+				.idx = i
+			}, rect, tree);
+
+			if (!should_continue) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+static bool
+_rtree_intersects_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
+		const rtree_rect_t* rect, rtree_intersects_cb callback)
+{
+	for (uint32_t i = 0; i < leaf->base.n; i++) {
+		if (_rtree_rect_contains(&leaf->elements[i].bb, rect)) {
+			if (!callback(&leaf->elements[i], rect, tree)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+static bool
+_rtree_intersects_id(const rtree_t* tree, const rtree_node_t* node,
+		const rtree_rect_t* rect, rtree_intersects_id_cb callback, int depth)
+{
+	for (uint32_t i = 0; i < node->base.n; i++) {
+		if (!_rtree_rect_contains(&node->base.bb, rect)) {
+			continue;
+		}
+
+		if (depth == 0) {
+			if (!_rtree_intersects_leaf_id(tree,
+						(const rtree_leaf_t*) node->children[i], rect,
+						callback)) {
+				return false;
+			}
+		}
+		else {
+			if (!_rtree_intersects_id(tree,
+						(const rtree_node_t*) node->children[i], rect, callback,
+						depth - 1)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+static bool
+_rtree_intersects(const rtree_t* tree, const rtree_node_t* node,
+		const rtree_rect_t* rect, rtree_intersects_cb callback, int depth)
+{
+	for (uint32_t i = 0; i < node->base.n; i++) {
+		if (!_rtree_rect_contains(&node->base.bb, rect)) {
+			continue;
+		}
+
+		if (depth == 0) {
+			if (!_rtree_intersects_leaf(tree,
+					(const rtree_leaf_t*) node->children[i], rect, callback)) {
+				return false;
+			}
+		}
+		else {
+			if (!_rtree_intersects(tree,
+						(const rtree_node_t*) node->children[i], rect, callback,
+						depth - 1)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 void
-rtree_intersects(const rtree_t* tree, const rtree_rect_t* rect)
+rtree_intersects_id_foreach(const rtree_t* tree, const rtree_rect_t* rect,
+		rtree_intersects_id_cb callback)
 {
-	(void) tree;
-	(void) rect;
+	rtree_node_base_t* n = tree->root;
+	uint64_t depth = tree->depth;
+
+	if (depth > 0) {
+		_rtree_intersects_id(tree, (const rtree_node_t*) n, rect, callback,
+				depth - 1);
+	}
+	else {
+		_rtree_intersects_leaf_id(tree, (const rtree_leaf_t*) n, rect,
+				callback);
+	}
 }
 
+void
+rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
+		rtree_intersects_cb callback)
+{
+	rtree_node_base_t* n = tree->root;
+	uint64_t depth = tree->depth;
+
+	if (depth > 0) {
+		_rtree_intersects(tree, (const rtree_node_t*) n, rect, callback,
+				depth - 1);
+	}
+	else {
+		_rtree_intersects_leaf(tree, (const rtree_leaf_t*) n, rect,
+				callback);
+	}
+}
+
+
+/**********************************************************
+ *                    RTree K-Nearest                     *
+ **********************************************************/
 
 rtree_el_id_t*
 rtree_k_nearest_id(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_id_t* ids, uint32_t k)
@@ -1175,6 +1334,10 @@ rtree_k_nearest(const rtree_t* tree, const rtree_rect_t* rect, rtree_el_t** els,
 	return NULL;
 }
 
+
+/**********************************************************
+ *                      RTree Print                       *
+ **********************************************************/
 
 static void
 rtree_print_leaf(const rtree_leaf_t* leaf, int depth)
@@ -1216,8 +1379,15 @@ rtree_print(const rtree_t* tree)
 	printf("\n");
 }
 
+
+#ifdef DO_TESTING
+
+/**********************************************************
+ *                   RTree Validation                     *
+ **********************************************************/
+
 static void
-_rtree_check_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
+_rtree_validate_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 		const rtree_node_base_t* parent)
 {
 	(void) tree;
@@ -1254,7 +1424,7 @@ _rtree_check_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 }
 
 static void
-_rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
+_rtree_validate_node(const rtree_t* tree, const rtree_node_base_t* n,
 		const rtree_node_base_t* parent, uint64_t depth)
 {
 	if (depth == 0) {
@@ -1262,7 +1432,7 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 	}
 
 	if (depth == tree->depth) {
-		_rtree_check_leaf(tree, (const rtree_leaf_t*) n, parent);
+		_rtree_validate_leaf(tree, (const rtree_leaf_t*) n, parent);
 	}
 	else {
 		const rtree_node_t* node = (const rtree_node_t*) n;
@@ -1280,7 +1450,7 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			dbg_assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
-			_rtree_check_node(tree, &child->base, n, depth + 1);
+			_rtree_validate_node(tree, &child->base, n, depth + 1);
 
 			if (i == 0) {
 				bb = child->base.bb;
@@ -1298,8 +1468,10 @@ _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 }
 
 void
-rtree_check(const rtree_t* tree)
+rtree_validate(const rtree_t* tree)
 {
-	_rtree_check_node(tree, tree->root, NULL, 0);
+	_rtree_validate_node(tree, tree->root, NULL, 0);
 }
+
+#endif /* DO_TESTING */
 
