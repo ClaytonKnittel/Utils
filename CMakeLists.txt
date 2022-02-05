@@ -68,6 +68,8 @@ target_compile_options(utils PRIVATE
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
+#SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+#SET(CMAKE_STATIC_LINKER_FLAGS  "${CMAKE_STATIC_LINKER_FLAGS} -pg")
 
 if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
 	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg>)

@@ -7,7 +7,6 @@
 
 #include <utils/data_structs/rtree.h>
 #include <utils/math/random.h>
-#include <utils/timing/timing.h>
 #include <utils/utils.h>
 
 #include "test_utils.h"
@@ -259,42 +258,31 @@ START_TEST(test_find_single_fail)
 
 START_TEST(test_find_100_with_udata)
 {
-	INIT_RTREE(30, 100);
-#define BASE 200
+	INIT_RTREE(3, 6);
 
-	printf("inserting: ");
-	fflush(stdout);
-	struct timespec start, end;
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	for (uint32_t i = 0; i < BASE * BASE; i++) {
+	for (uint32_t i = 0; i < 10 * 10; i++) {
 		rtree_rect_t rect = {
-			.lx = (i % BASE) * BASE,
-			.ly = (i / BASE) * BASE,
-			.ux = (i % BASE) * BASE + (BASE / 2),
-			.uy = (i / BASE) * BASE + (BASE / 2)
+			.lx = (i % 10) * 10,
+			.ly = (i / 10) * 10,
+			.ux = (i % 10) * 10 + (10 / 2),
+			.uy = (i / 10) * 10 + (10 / 2)
 		};
 		ck_assert_int_eq(rtree_insert(&tree, &rect, (void*) (ptr_int_t) i), 0);
+		rtree_check(&tree);
 	}
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	printf("%g s\n", timespec_diff(&start, &end));
 
-	printf("finding: ");
-	fflush(stdout);
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	for (uint32_t i = 0; i < BASE * BASE; i++) {
+	for (uint32_t i = 0; i < 10 * 10; i++) {
 		rtree_rect_t rect = {
-			.lx = (i % BASE) * BASE,
-			.ly = (i / BASE) * BASE,
-			.ux = (i % BASE) * BASE + (BASE / 2),
-			.uy = (i / BASE) * BASE + (BASE / 2)
+			.lx = (i % 10) * 10,
+			.ly = (i / 10) * 10,
+			.ux = (i % 10) * 10 + (10 / 2),
+			.uy = (i / 10) * 10 + (10 / 2)
 		};
 		rtree_el_t* el = rtree_find_exact(&tree, &rect);
 		ck_assert_ptr_ne(el, NULL);
 		ASSERT_RECT_EQ(&el->bb, &rect);
 		ck_assert_ptr_eq(el->udata, (void*) (ptr_int_t) i);
 	}
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	printf("%g s\n", timespec_diff(&start, &end));
 
 	rtree_free(&tree);
 }

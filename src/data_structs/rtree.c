@@ -10,7 +10,6 @@
 #include <utils/data_structs/rtree.h>
 #include <utils/utils.h>
 
-
 static __attribute__((always_inline)) inline rtree_coord_t
 _rtree_rect_area(const rtree_rect_t* r)
 {
@@ -117,7 +116,6 @@ _rtree_rect_extend(rtree_rect_t* base, const rtree_rect_t* rect)
 {
 	return _rtree_rect_combine(base, base, rect);
 }
-
 
 static rtree_node_base_t*
 _new_inner_node(uint32_t m_max)
@@ -814,8 +812,12 @@ _do_reinsert(rtree_t* tree, rtree_node_t* parent, int_set_t reinserted_levels,
 	// change up the tree
 	_shrunk_node_bb(&parent->base);
 
+	// since tree depth may change between successive _do_inner_insert calls,
+	// measure depth as distane from the leaves
+	uint64_t inv_depth = tree->depth - depth;
 	for (; i <= m_max; i++) {
-		_do_inner_insert(tree, (rtree_node_t*) dists[i].node, reinserted_levels, depth);
+		_do_inner_insert(tree, (rtree_node_t*) dists[i].node, reinserted_levels,
+				tree->depth - inv_depth);
 	}
 }
 
@@ -1214,7 +1216,6 @@ rtree_print(const rtree_t* tree)
 	printf("\n");
 }
 
-
 static void
 _rtree_check_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 		const rtree_node_base_t* parent)
@@ -1256,6 +1257,10 @@ static void
 _rtree_check_node(const rtree_t* tree, const rtree_node_base_t* n,
 		const rtree_node_base_t* parent, uint64_t depth)
 {
+	if (depth == 0) {
+		dbg_assert(n->parent == NULL);
+	}
+
 	if (depth == tree->depth) {
 		_rtree_check_leaf(tree, (const rtree_leaf_t*) n, parent);
 	}
