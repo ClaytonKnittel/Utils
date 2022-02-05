@@ -12,6 +12,10 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.12
+      with:
+        cmake-version: '3.22.1'
     - name: Cache libcheck
       id: cache-libcheck
       uses: actions/cache@v2
