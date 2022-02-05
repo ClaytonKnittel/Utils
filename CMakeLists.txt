@@ -64,7 +64,7 @@ endif()
 target_compile_options(utils PRIVATE
 	$<$<NOT:$<COMPILE_LANGUAGE:ASM-ATT>>:-Wpedantic -Wall -Wextra
 	-Wno-unused-function -Wno-format -Wno-format-pedantic
-	-march=native -mtune=native>
+	-march=native -mtune=native -pg>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
