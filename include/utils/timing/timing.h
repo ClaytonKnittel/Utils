@@ -9,7 +9,7 @@ extern "C" {
 #include <time.h>
 
 // returns the difference of two timespecs in seconds
-double timespec_diff(struct timespec* t1, struct timespec* t2);
+double timespec_diff(struct timespec* start, struct timespec* end);
 
 // adds t to dst
 void timespec_add(struct timespec* dst, struct timespec* t);

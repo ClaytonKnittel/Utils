@@ -4,9 +4,9 @@
 #include <utils/timing/timing.h>
 
 
-double timespec_diff(struct timespec* t1, struct timespec* t2) {
-    return (t1->tv_sec - t2->tv_sec)
-        + (((double) (t1->tv_nsec - t2->tv_nsec)) / 1000000000.);
+double timespec_diff(struct timespec* start, struct timespec* end) {
+    return (end->tv_sec - start->tv_sec)
+        + (((double) (end->tv_nsec - start->tv_nsec)) / 1000000000.);
 }
 
 void timespec_add(struct timespec* dst, struct timespec* t)
