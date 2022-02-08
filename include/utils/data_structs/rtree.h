@@ -96,9 +96,9 @@ typedef struct rtree {
  * If these callbacks return false, iteration is stopped, otherwise continuing
  * until all intersecting rectangles have been found.
  */
-typedef bool (*rtree_intersects_id_cb)(rtree_el_id_t el_id,
+typedef bool (*rtree_intersects_id_cb)(rtree_el_id_t el_id, void* udata,
 		const rtree_rect_t* rect, const rtree_t* tree);
-typedef bool (*rtree_intersects_cb)(const rtree_el_t* el,
+typedef bool (*rtree_intersects_cb)(const rtree_el_t* el, void* udata,
 		const rtree_rect_t* rect, const rtree_t* tree);
 
 
@@ -127,9 +127,9 @@ rtree_el_t* rtree_find_exact(const rtree_t*, const rtree_rect_t* rect);
  * rectangle, calling callback on each instance.
  */
 void rtree_intersects_id_foreach(const rtree_t*, const rtree_rect_t* rect,
-		rtree_intersects_id_cb callback);
+		rtree_intersects_id_cb callback, void* udata);
 void rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
-		rtree_intersects_cb callback);
+		rtree_intersects_cb callback, void* udata);
 
 rtree_el_id_t* rtree_k_nearest_id(const rtree_t*, const rtree_rect_t* rect,
 		rtree_el_id_t* ids, uint32_t k);

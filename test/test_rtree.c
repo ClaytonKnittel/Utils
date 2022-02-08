@@ -381,24 +381,18 @@ END_TEST
  *                    Test Intersects                     *
  **********************************************************/
 
-static int intersects_single_cnt = 0;
+static volatile int intersects_single_cnt = 0;
 static bool
-_intersects_single_cb(const rtree_el_t* el, const rtree_rect_t* rect,
-		const rtree_t* tree)
+_intersects_single_cb(const rtree_el_t* el, void* expected_rtree_el,
+		const rtree_rect_t* rect, const rtree_t* tree)
 {
 	(void) tree;
-	rtree_rect_t expected_rect = {
-		.lx = 0,
-		.ly = 0,
-		.ux = 5,
-		.uy = 5
-	};
+	rtree_el_t* expected_el = (rtree_el_t*) expected_rtree_el;
 
-	ASSERT_RECT_EQ(rect, &expected_rect);
+	ASSERT_RECT_EQ(rect, &expected_el->bb);
 	ASSERT_RECT_EQ(rect, &el->bb);
-	ck_assert_ptr_eq(el->udata, NULL);
+	ck_assert_ptr_eq(el->udata, expected_el->udata);
 
-	ck_assert_int_eq(intersects_single_cnt, 0);
 	intersects_single_cnt++;
 
 	return true;
@@ -416,11 +410,233 @@ START_TEST(test_intersects_single)
 	};
 	ck_assert_int_eq(rtree_insert(&tree, &rect, NULL), 0);
 
-	rtree_intersects_foreach(&tree, &rect, _intersects_single_cb);
+	rtree_el_t expected_el = {
+		.bb = {
+			.lx = 0,
+			.ly = 0,
+			.ux = 5,
+			.uy = 5
+		},
+		.udata = NULL
+	};
+
+	intersects_single_cnt = 0;
+	rtree_intersects_foreach(&tree, &rect, _intersects_single_cb, &expected_el);
 	ck_assert_int_eq(intersects_single_cnt, 1);
 
 	rtree_free(&tree);
 }
+
+static void
+_run_grid_intersects_single_test(uint64_t sqrt_n_rects, uint32_t m_min,
+		uint32_t m_max)
+{
+	INIT_RTREE(m_min, m_max);
+
+	uint64_t n_rects = sqrt_n_rects * sqrt_n_rects;
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		rtree_rect_t rect = {
+			.lx = (i % sqrt_n_rects) * sqrt_n_rects,
+			.ly = (i / sqrt_n_rects) * sqrt_n_rects,
+			.ux = (i % sqrt_n_rects) * sqrt_n_rects + (sqrt_n_rects / 2),
+			.uy = (i / sqrt_n_rects) * sqrt_n_rects + (sqrt_n_rects / 2)
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &rect, (void*) (ptr_int_t) i), 0);
+		rtree_validate(&tree);
+	}
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		rtree_el_t expected_el = {
+			.bb = {
+				.lx = (i % sqrt_n_rects) * sqrt_n_rects,
+				.ly = (i / sqrt_n_rects) * sqrt_n_rects,
+				.ux = (i % sqrt_n_rects) * sqrt_n_rects + (sqrt_n_rects / 2),
+				.uy = (i / sqrt_n_rects) * sqrt_n_rects + (sqrt_n_rects / 2)
+			},
+			.udata = (void*) (ptr_int_t) i
+		};
+
+		intersects_single_cnt = 0;
+		rtree_intersects_foreach(&tree, &expected_el.bb, _intersects_single_cb,
+				&expected_el);
+		ck_assert_int_eq(intersects_single_cnt, 1);
+	}
+
+	rtree_free(&tree);
+}
+
+START_TEST(test_intersects_grid_single_100_with_udata)
+{
+	_run_grid_intersects_single_test(10, 5, 10);
+}
+END_TEST
+
+START_TEST(test_intersects_grid_single_10000_with_udata)
+{
+	_run_grid_intersects_single_test(100, 3, 6);
+}
+END_TEST
+
+
+typedef struct grid_neighbors {
+	const uint64_t sqrt_n_rects;
+	const uint32_t i;
+
+	uint32_t neighbors;
+} grid_neighbors_t;
+
+#define RECT_W 10
+
+/*
+ * Checks whether idx is one of the neighbors of this square.
+ */
+static bool
+expected_neighbor(const grid_neighbors_t* gn, uint32_t idx)
+{
+	uint64_t x = gn->i % gn->sqrt_n_rects;
+	uint64_t y = gn->i / gn->sqrt_n_rects;
+
+	uint64_t _x = idx % gn->sqrt_n_rects;
+	uint64_t _y = idx / gn->sqrt_n_rects;
+
+	return (_x - x + 1 <= 2) && (_y - y + 1 <= 2);
+}
+
+static uint32_t
+neighbor_idx(const grid_neighbors_t* gn, uint32_t idx)
+{
+	uint64_t x = gn->i % gn->sqrt_n_rects;
+	uint64_t y = gn->i / gn->sqrt_n_rects;
+
+	uint64_t _x = idx % gn->sqrt_n_rects;
+	uint64_t _y = idx / gn->sqrt_n_rects;
+
+	return (_x - x + 1) + 3 * (_y - y + 1);
+}
+
+static bool
+mark_neighbor(grid_neighbors_t* gn, uint32_t idx)
+{
+	uint32_t n_idx = neighbor_idx(gn, idx);
+	if (((gn->neighbors >> n_idx) & 1) != 0) {
+		return false;
+	}
+
+	gn->neighbors |= (1u << n_idx);
+	return true;
+}
+
+static void
+all_neighbors_marked(grid_neighbors_t* gn)
+{
+	uint64_t x = gn->i % gn->sqrt_n_rects;
+	uint64_t y = gn->i / gn->sqrt_n_rects;
+	uint32_t n_mask = 0x1ffu;
+
+	if (x == 0) {
+		n_mask &= 0x1b6u;
+	}
+	if (x == gn->sqrt_n_rects - 1) {
+		n_mask &= 0x0dbu;
+	}
+	if (y == 0) {
+		n_mask &= 0x1f8u;
+	}
+	if (y == gn->sqrt_n_rects - 1) {
+		n_mask &= 0x03fu;
+	}
+
+	ck_assert_msg(n_mask == gn->neighbors, "Unexpected neighbor list, expected "
+			"0x%03x, but got 0x%03x at index %u", n_mask, gn->neighbors, gn->i);
+	ck_assert_int_eq(n_mask, gn->neighbors);
+}
+
+static bool
+_intersects_all_neighbors_cb(const rtree_el_t* el, void* gn_ptr,
+		const rtree_rect_t* rect, const rtree_t* tree)
+{
+	(void) tree;
+	grid_neighbors_t* gn = (grid_neighbors_t*) gn_ptr;
+
+	uint32_t i = gn->i;
+	uint64_t sqrt_n_rects = gn->sqrt_n_rects;
+	rtree_rect_t expected_rect = {
+		.lx = (i % sqrt_n_rects) * RECT_W,
+		.ly = (i / sqrt_n_rects) * RECT_W,
+		.ux = (i % sqrt_n_rects) * RECT_W + (3 * RECT_W / 2),
+		.uy = (i / sqrt_n_rects) * RECT_W + (3 * RECT_W / 2)
+	};
+
+	ck_assert_int_eq(el->bb.ux - el->bb.lx, expected_rect.ux - expected_rect.lx);
+	ck_assert_int_eq(el->bb.uy - el->bb.ly, expected_rect.uy - expected_rect.ly);
+
+	ck_assert_int_eq(el->bb.lx % RECT_W, 0);
+	ck_assert_int_eq(el->bb.ly % RECT_W, 0);
+
+	ASSERT_RECT_EQ(rect, &expected_rect);
+
+	uint32_t el_idx = (el->bb.lx / RECT_W) + sqrt_n_rects * (el->bb.ly / RECT_W);
+	ck_assert_ptr_eq(el->udata, (void*) (ptr_int_t) el_idx);
+
+	ck_assert(expected_neighbor(gn, el_idx));
+	ck_assert(mark_neighbor(gn, el_idx));
+
+	return true;
+}
+
+static void
+_run_grid_intersects_all_neighbors_test(uint64_t sqrt_n_rects, uint32_t m_min,
+		uint32_t m_max)
+{
+	INIT_RTREE(m_min, m_max);
+
+	uint64_t n_rects = sqrt_n_rects * sqrt_n_rects;
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		rtree_rect_t rect = {
+			.lx = (i % sqrt_n_rects) * RECT_W,
+			.ly = (i / sqrt_n_rects) * RECT_W,
+			.ux = (i % sqrt_n_rects) * RECT_W + (3 * RECT_W / 2),
+			.uy = (i / sqrt_n_rects) * RECT_W + (3 * RECT_W / 2)
+		};
+
+		ck_assert_int_eq(rtree_insert(&tree, &rect, (void*) (ptr_int_t) i), 0);
+		rtree_validate(&tree);
+	}
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		rtree_rect_t rect = {
+			.lx = (i % sqrt_n_rects) * RECT_W,
+			.ly = (i / sqrt_n_rects) * RECT_W,
+			.ux = (i % sqrt_n_rects) * RECT_W + (3 * RECT_W / 2),
+			.uy = (i / sqrt_n_rects) * RECT_W + (3 * RECT_W / 2)
+		};
+
+		grid_neighbors_t gn = {
+			.sqrt_n_rects = sqrt_n_rects,
+			.i = i,
+			.neighbors = 0x000u
+		};
+		rtree_intersects_foreach(&tree, &rect,
+				_intersects_all_neighbors_cb, &gn);
+		all_neighbors_marked(&gn);
+	}
+
+	rtree_free(&tree);
+}
+
+START_TEST(test_intersects_grid_all_neighbors_100_with_udata)
+{
+	_run_grid_intersects_all_neighbors_test(10, 5, 10);
+}
+END_TEST
+
+START_TEST(test_intersects_grid_all_neighbors_10000_with_udata)
+{
+	_run_grid_intersects_all_neighbors_test(100, 4, 12);
+}
+END_TEST
 
 
 /**********************************************************
@@ -463,6 +679,10 @@ test_rtree()
 
 	tc_intersects = tcase_create("Intersects");
 	tcase_add_test(tc_intersects, test_intersects_single);
+	tcase_add_test(tc_intersects, test_intersects_grid_single_100_with_udata);
+	tcase_add_test(tc_intersects, test_intersects_grid_single_10000_with_udata);
+	tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_100_with_udata);
+	tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_10000_with_udata);
 	suite_add_tcase(s, tc_intersects);
 
 	return s;

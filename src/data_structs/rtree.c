@@ -1187,14 +1187,14 @@ rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect)
 
 static bool
 _rtree_intersects_leaf_id(const rtree_t* tree, const rtree_leaf_t* leaf,
-		const rtree_rect_t* rect, rtree_intersects_id_cb callback)
+		const rtree_rect_t* rect, rtree_intersects_id_cb callback, void* udata)
 {
 	for (uint32_t i = 0; i < leaf->base.n; i++) {
-		if (_rtree_rect_contains(&leaf->elements[i].bb, rect)) {
+		if (_rtree_rect_intersects(&leaf->elements[i].bb, rect)) {
 			bool should_continue = callback((rtree_el_id_t) {
 				.parent = (rtree_leaf_t*) leaf,
 				.idx = i
-			}, rect, tree);
+			}, udata, rect, tree);
 
 			if (!should_continue) {
 				return false;
@@ -1207,11 +1207,11 @@ _rtree_intersects_leaf_id(const rtree_t* tree, const rtree_leaf_t* leaf,
 
 static bool
 _rtree_intersects_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
-		const rtree_rect_t* rect, rtree_intersects_cb callback)
+		const rtree_rect_t* rect, rtree_intersects_cb callback, void* udata)
 {
 	for (uint32_t i = 0; i < leaf->base.n; i++) {
-		if (_rtree_rect_contains(&leaf->elements[i].bb, rect)) {
-			if (!callback(&leaf->elements[i], rect, tree)) {
+		if (_rtree_rect_intersects(&leaf->elements[i].bb, rect)) {
+			if (!callback(&leaf->elements[i], udata, rect, tree)) {
 				return false;
 			}
 		}
@@ -1222,24 +1222,25 @@ _rtree_intersects_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 
 static bool
 _rtree_intersects_id(const rtree_t* tree, const rtree_node_t* node,
-		const rtree_rect_t* rect, rtree_intersects_id_cb callback, int depth)
+		const rtree_rect_t* rect, rtree_intersects_id_cb callback, void* udata,
+		int depth)
 {
 	for (uint32_t i = 0; i < node->base.n; i++) {
-		if (!_rtree_rect_contains(&node->base.bb, rect)) {
+		if (!_rtree_rect_intersects(&node->children[i]->bb, rect)) {
 			continue;
 		}
 
 		if (depth == 0) {
 			if (!_rtree_intersects_leaf_id(tree,
 						(const rtree_leaf_t*) node->children[i], rect,
-						callback)) {
+						callback, udata)) {
 				return false;
 			}
 		}
 		else {
 			if (!_rtree_intersects_id(tree,
-						(const rtree_node_t*) node->children[i], rect, callback,
-						depth - 1)) {
+						(const rtree_node_t*) node->children[i], rect,
+						callback, udata, depth - 1)) {
 				return false;
 			}
 		}
@@ -1250,23 +1251,25 @@ _rtree_intersects_id(const rtree_t* tree, const rtree_node_t* node,
 
 static bool
 _rtree_intersects(const rtree_t* tree, const rtree_node_t* node,
-		const rtree_rect_t* rect, rtree_intersects_cb callback, int depth)
+		const rtree_rect_t* rect, rtree_intersects_cb callback, void* udata,
+		int depth)
 {
 	for (uint32_t i = 0; i < node->base.n; i++) {
-		if (!_rtree_rect_contains(&node->base.bb, rect)) {
+		if (!_rtree_rect_intersects(&node->children[i]->bb, rect)) {
 			continue;
 		}
 
 		if (depth == 0) {
 			if (!_rtree_intersects_leaf(tree,
-					(const rtree_leaf_t*) node->children[i], rect, callback)) {
+					(const rtree_leaf_t*) node->children[i], rect, callback,
+					udata)) {
 				return false;
 			}
 		}
 		else {
 			if (!_rtree_intersects(tree,
 						(const rtree_node_t*) node->children[i], rect, callback,
-						depth - 1)) {
+						udata, depth - 1)) {
 				return false;
 			}
 		}
@@ -1277,35 +1280,35 @@ _rtree_intersects(const rtree_t* tree, const rtree_node_t* node,
 
 void
 rtree_intersects_id_foreach(const rtree_t* tree, const rtree_rect_t* rect,
-		rtree_intersects_id_cb callback)
+		rtree_intersects_id_cb callback, void* udata)
 {
 	rtree_node_base_t* n = tree->root;
 	uint64_t depth = tree->depth;
 
 	if (depth > 0) {
 		_rtree_intersects_id(tree, (const rtree_node_t*) n, rect, callback,
-				depth - 1);
+				udata, depth - 1);
 	}
 	else {
 		_rtree_intersects_leaf_id(tree, (const rtree_leaf_t*) n, rect,
-				callback);
+				callback, udata);
 	}
 }
 
 void
 rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
-		rtree_intersects_cb callback)
+		rtree_intersects_cb callback, void* udata)
 {
 	rtree_node_base_t* n = tree->root;
 	uint64_t depth = tree->depth;
 
 	if (depth > 0) {
 		_rtree_intersects(tree, (const rtree_node_t*) n, rect, callback,
-				depth - 1);
+				udata, depth - 1);
 	}
 	else {
 		_rtree_intersects_leaf(tree, (const rtree_leaf_t*) n, rect,
-				callback);
+				callback, udata);
 	}
 }
 
