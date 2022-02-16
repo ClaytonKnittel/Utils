@@ -221,6 +221,8 @@ START_TEST(test_insert_10000_random)
 	seed_rand(15, 0);
 	INIT_RTREE(10, 30);
 
+	rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
+
 	for (uint32_t i = 0; i < 10000; i++) {
 		uint64_t x = gen_rand_r(65536);
 		uint64_t y = gen_rand_r(65536);
@@ -228,7 +230,7 @@ START_TEST(test_insert_10000_random)
 		uint64_t wx = gen_rand_r(32);
 		uint64_t wy = gen_rand_r(32);
 
-		rtree_el_t el = {
+		els[i] = (rtree_el_t) {
 			.bb = {
 				.lx = x,
 				.ly = y,
@@ -236,9 +238,10 @@ START_TEST(test_insert_10000_random)
 				.uy = y + wy
 			}
 		};
-		ck_assert_int_eq(rtree_insert(&tree, &el), 0);
-		rtree_validate(&tree);
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
 	}
+	rtree_validate(&tree);
+	free(els);
 	rtree_free(&tree);
 }
 END_TEST
@@ -353,8 +356,8 @@ _run_randomized_find_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
 			.uy = y + wy
 		};
 		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
-		rtree_validate(&tree);
 	}
+	rtree_validate(&tree);
 
 	// reset the seed so we see the same sequence of rectangles
 	seed_rand(seed, 0);
@@ -461,8 +464,8 @@ _run_grid_intersects_single_test(uint64_t sqrt_n_rects, uint32_t m_min,
 			.uy = (i / sqrt_n_rects) * sqrt_n_rects + (sqrt_n_rects / 2)
 		};
 		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
-		rtree_validate(&tree);
 	}
+	rtree_validate(&tree);
 
 	for (uint32_t i = 0; i < n_rects; i++) {
 		rtree_el_t expected_el = {
@@ -625,8 +628,8 @@ _run_grid_intersects_all_neighbors_test(uint64_t sqrt_n_rects, uint32_t m_min,
 		};
 
 		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
-		rtree_validate(&tree);
 	}
+	rtree_validate(&tree);
 
 	for (uint32_t i = 0; i < n_rects; i++) {
 		rtree_rect_t rect = {

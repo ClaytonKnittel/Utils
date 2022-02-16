@@ -14,7 +14,6 @@ else()
 	set(LINUX_DISTR "")
 endif()
 
-# Use boost for unit testing
 find_library(check check REQUIRED)
 
 file(GLOB_RECURSE C_TEST_SRC

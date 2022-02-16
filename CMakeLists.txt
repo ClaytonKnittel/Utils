@@ -7,6 +7,20 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		"RelWithDebInfo")
 endif()
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+	find_program(LSB_RELEASE_EXEC lsb_release REQUIRED)
+	execute_process(COMMAND ${LSB_RELEASE_EXEC} -is
+		OUTPUT_VARIABLE LINUX_DISTR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	if("${LINUX_DISTR}" MATCHES "Ubuntu")
+		list(APPEND LINK_LIBS "rt;pthread;subunit")
+	endif()
+else()
+	set(LINUX_DISTR "")
+endif()
+
 
 ############################################################
 # Utils Library
@@ -88,15 +102,31 @@ else()
 endif()
 
 if (${ENABLE_TESTING})
-	target_compile_definitions(utils PRIVATE DO_TESTING)
+	target_compile_definitions(utils PRIVATE DO_TESTING DEBUG)
+elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+	target_compile_definitions(utils PRIVATE DEBUG)
 endif()
 
 target_include_directories(utils
 	PRIVATE
 		$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:${PROJECT_SOURCE_DIR}/include>
+	PUBLIC "/usr/local/include"
 )
 
 if (${ENABLE_TESTING})
+	find_library(check check REQUIRED)
+
+	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-gnu-zero-variadic-macro-arguments>)
+
+	target_link_directories(utils
+		PUBLIC "/usr/local/lib"
+	)
+
+	target_link_libraries(utils
+		PUBLIC
+			check "${LINK_LIBS}"
+	)
+
     enable_testing()
 
 	add_subdirectory(test)

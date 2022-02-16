@@ -1,14 +1,27 @@
 #ifndef _UTIL_UTIL_H
 #define _UTIL_UTIL_H
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 
-#ifdef DEBUG
-#define dbg_assert(expr) assert(expr)
+#if defined(DO_TESTING)
+#include <check.h>
+
+#define dbg_assert(expr) \
+	ck_assert(expr)
+
+#elif defined(DEBUG)
+#define dbg_assert(expr) \
+	do { \
+		if (__builtin_expect(!(expr), 0)) { \
+			printerr(stderr, "Assertion %s failed", #expr); \
+			abort(); \
+		} \
+	} while (0)
+
 #else
 #define dbg_assert(expr) (void) (expr)
 #endif

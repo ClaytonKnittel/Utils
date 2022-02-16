@@ -10,7 +10,7 @@
 
 
 #ifdef DEBUG
-#define IRB_DBG_ASSERT(expr) \
+#define IRB_DBG_ASSERT(expr, tree) \
     if (__builtin_expect(!(expr), 0)) { \
         printf("tree %p:\n", (tree));   \
         irb_print(tree);                 \

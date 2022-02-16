@@ -38,7 +38,7 @@ _new_empty_leaf_node(uint32_t m_max)
 {
 	// TODO: test calloc vs clear first bit
 	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t));
+			m_max * sizeof(rtree_el_t*));
 
 	if (n == NULL) {
 		return NULL;
@@ -54,7 +54,7 @@ _new_leaf_node(uint32_t m_max)
 {
 	// TODO: test calloc vs clear first bit
 	rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
-			m_max * sizeof(rtree_el_t));
+			m_max * sizeof(rtree_el_t*));
 
 	if (n == NULL) {
 		return NULL;
@@ -623,12 +623,13 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 		split_node->base.bb = x_cost.upper_bb;
 		split_node->base.n = n - x_cost.split_idx;
 
-		// udate the children of both nodes
+		// update the children of both nodes
 		for (uint32_t i = 0; i < x_cost.split_idx; i++) {
 			node->elements[i] = x_sort[i];
 		}
 		for (uint32_t i = 0; i < n - x_cost.split_idx; i++) {
 			split_node->elements[i] = x_sort[i + x_cost.split_idx];
+			split_node->elements[i]->parent = split_node;
 		}
 	}
 	else {
@@ -637,12 +638,13 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 		split_node->base.bb = y_cost.upper_bb;
 		split_node->base.n = n - y_cost.split_idx;
 
-		// udate the children of both nodes
+		// update the children of both nodes
 		for (uint32_t i = 0; i < y_cost.split_idx; i++) {
 			node->elements[i] = y_sort[i];
 		}
 		for (uint32_t i = 0; i < n - y_cost.split_idx; i++) {
 			split_node->elements[i] = y_sort[i + y_cost.split_idx];
+			split_node->elements[i]->parent = split_node;
 		}
 	}
 
@@ -1019,6 +1021,9 @@ _do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 
 	// insert into n, which is a leaf node
 	rtree_leaf_t* leaf = (rtree_leaf_t*) n;
+	// reinsertion/split methods assume leaf's parent is already assigned
+	el_ptr->parent = leaf;
+
 	if (leaf->base.n < m_max) {
 		// there is still room for this entry, simply insert it
 		leaf->elements[leaf->base.n++] = el_ptr;
@@ -1294,6 +1299,7 @@ _rtree_validate_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 	for (uint32_t i = 0; i < n_children; i++) {
 		const rtree_el_t* el = leaf->elements[i];
 		dbg_assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
+		dbg_assert(el->parent == leaf);
 
 		if (i == 0) {
 			bb = el->bb;
@@ -1325,13 +1331,13 @@ _rtree_validate_node(const rtree_t* tree, const rtree_node_base_t* n,
 	else {
 		const rtree_node_t* node = (const rtree_node_t*) n;
 		uint32_t n_children = node->base.n;
+
+		dbg_assert(node->base.parent == parent);
 		if (node->base.parent != NULL) {
 			// only check if this isn't the root
 			dbg_assert(tree->m_min <= n_children);
 		}
 		dbg_assert(n_children <= tree->m_max);
-
-		dbg_assert(node->base.parent == parent);
 
 		rtree_rect_t bb;
 
