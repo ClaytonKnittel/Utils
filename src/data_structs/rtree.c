@@ -1074,6 +1074,8 @@ rtree_insert(rtree_t* tree, rtree_el_t* el_ptr)
 static void
 _do_delete_leaf(rtree_t* tree, rtree_el_t* el_ptr)
 {
+	(void) tree;
+	(void) el_ptr;
 }
 
 int
