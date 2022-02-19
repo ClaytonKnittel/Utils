@@ -28,10 +28,12 @@ typedef struct rtree_node_base {
 	// the bounding box of the node
 	rtree_rect_t bb;
 
-	struct rtree_node_base* parent;
+	struct rtree_node* parent;
 
 	// the number of children of this node
 	uint32_t n;
+	// the index of this node in parent's elements list
+	uint32_t parent_idx;
 } rtree_node_base_t;
 
 
@@ -55,6 +57,8 @@ typedef struct rtree_leaf rtree_leaf_t;
 typedef struct rtree_el {
 	rtree_rect_t bb;
 	rtree_leaf_t* parent;
+	// the index of this node in parent's elements list
+	uint32_t parent_idx;
 } rtree_el_t;
 
 /*

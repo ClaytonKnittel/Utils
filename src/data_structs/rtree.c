@@ -333,7 +333,7 @@ static void
 _shrunk_node_bb(rtree_node_base_t* node)
 {
 	rtree_rect_t new_bb;
-	rtree_node_t* p = (rtree_node_t*) node->parent;
+	rtree_node_t* p = node->parent;
 
 	while (p != NULL) {
 		new_bb = p->children[0]->bb;
@@ -349,7 +349,33 @@ _shrunk_node_bb(rtree_node_base_t* node)
 		}
 
 		p->base.bb = new_bb;
-		p = (rtree_node_t*) p->base.parent;
+		p = p->base.parent;
+	}
+}
+
+/*
+ * To be called if the bounding box of a leaf should shrink (due to an element
+ * being removed)
+ */
+static void
+_shrink_leaf_bb(rtree_leaf_t* leaf)
+{
+	if (leaf->base.n == 0) {
+		// it doesn't matter what the bounding box for empty nodes is
+		return;
+	}
+
+	rtree_rect_t new_bb = leaf->elements[0]->bb;
+
+	for (uint32_t i = 1; i < leaf->base.n; i++) {
+		_rtree_rect_extend(&new_bb, &leaf->elements[i]->bb);
+	}
+
+	if (!_rtree_rect_eq(&new_bb, &leaf->base.bb)) {
+		// shrinking this child's bounding changed it, so we need to propagate
+		// this change up the tree
+		leaf->base.bb = new_bb;
+		_shrunk_node_bb(&leaf->base);
 	}
 }
 
@@ -626,10 +652,12 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 		// update the children of both nodes
 		for (uint32_t i = 0; i < x_cost.split_idx; i++) {
 			node->elements[i] = x_sort[i];
+			node->elements[i]->parent_idx = i;
 		}
 		for (uint32_t i = 0; i < n - x_cost.split_idx; i++) {
 			split_node->elements[i] = x_sort[i + x_cost.split_idx];
 			split_node->elements[i]->parent = split_node;
+			split_node->elements[i]->parent_idx = i;
 		}
 	}
 	else {
@@ -641,10 +669,12 @@ _split_leaf(rtree_t* tree, rtree_leaf_t* node, rtree_el_t* to_add)
 		// update the children of both nodes
 		for (uint32_t i = 0; i < y_cost.split_idx; i++) {
 			node->elements[i] = y_sort[i];
+			node->elements[i]->parent_idx = i;
 		}
 		for (uint32_t i = 0; i < n - y_cost.split_idx; i++) {
 			split_node->elements[i] = y_sort[i + y_cost.split_idx];
 			split_node->elements[i]->parent = split_node;
+			split_node->elements[i]->parent_idx = i;
 		}
 	}
 
@@ -693,9 +723,13 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 				(n - x_cost.split_idx) * sizeof(rtree_node_base_t*));
 
 		// update the parent pointers of the nodes that moved under split_node
-		x_sort[x_cost.split_idx]->parent = (rtree_node_base_t*) split_node;
-		for (uint32_t i = x_cost.split_idx + 1; i < n; i++) {
-			x_sort[i]->parent = (rtree_node_base_t*) split_node;
+		for (uint32_t i = 0; i < x_cost.split_idx; i++) {
+			x_sort[i]->parent_idx = i;
+		}
+
+		for (uint32_t i = x_cost.split_idx; i < n; i++) {
+			x_sort[i]->parent = split_node;
+			x_sort[i]->parent_idx = i - x_cost.split_idx;
 		}
 	}
 	else {
@@ -711,9 +745,13 @@ _split_node(rtree_t* tree, rtree_node_t* node, rtree_node_base_t* to_add)
 				(n - y_cost.split_idx) * sizeof(rtree_node_base_t*));
 
 		// update the parent pointers of the nodes that moved under split_node
-		y_sort[y_cost.split_idx]->parent = (rtree_node_base_t*) split_node;
-		for (uint32_t i = y_cost.split_idx + 1; i < n; i++) {
-			y_sort[i]->parent = (rtree_node_base_t*) split_node;
+		for (uint32_t i = 0; i < y_cost.split_idx; i++) {
+			y_sort[i]->parent_idx = i;
+		}
+
+		for (uint32_t i = y_cost.split_idx; i < n; i++) {
+			y_sort[i]->parent = split_node;
+			y_sort[i]->parent_idx = i - y_cost.split_idx;
 		}
 	}
 
@@ -771,7 +809,7 @@ DEFINE_CSORT_DEFAULT_FNS_NAMED_16(struct node_dist, node_dist, node_dist_sort_cm
 // forward declarations for use in __continue_split
 static int _do_insert(rtree_t* tree, rtree_el_t* el_ptr,
 		int_set_t reinserted_levels);
-static int _do_inner_insert(rtree_t* tree, rtree_node_t* n,
+static int _do_inner_insert(rtree_t* tree, rtree_node_base_t* n,
 		int_set_t reinserted_levels, uint64_t depth);
 
 static int
@@ -815,10 +853,12 @@ _do_reinsert_leaf(rtree_t* tree, rtree_leaf_t* parent, int_set_t reinserted_leve
 
 	parent->base.bb = dists[0].el->bb;
 	parent->elements[0] = dists[0].el;
+	parent->elements[0]->parent_idx = 0;
 	uint32_t i;
 	for (i = 1; i < parent->base.n; i++) {
 		_rtree_rect_extend(&parent->base.bb, &dists[i].el->bb);
 		parent->elements[i] = dists[i].el;
+		parent->elements[i]->parent_idx = i;
 	}
 
 	// since the bounding box of parent may have changed, try propagating this
@@ -875,10 +915,12 @@ _do_reinsert(rtree_t* tree, rtree_node_t* parent, int_set_t reinserted_levels,
 
 	parent->base.bb = dists[0].node->bb;
 	parent->children[0] = dists[0].node;
+	parent->children[0]->parent_idx = 0;
 	uint32_t i;
 	for (i = 1; i < parent->base.n; i++) {
 		_rtree_rect_extend(&parent->base.bb, &dists[i].node->bb);
 		parent->children[i] = dists[i].node;
+		parent->children[i]->parent_idx = i;
 	}
 
 	// since the bounding box of parent may have changed, try propagating this
@@ -889,7 +931,7 @@ _do_reinsert(rtree_t* tree, rtree_node_t* parent, int_set_t reinserted_levels,
 	// measure depth as distane from the leaves
 	uint64_t inv_depth = tree->depth - depth;
 	for (; i <= m_max; i++) {
-		_do_inner_insert(tree, (rtree_node_t*) dists[i].node, reinserted_levels,
+		_do_inner_insert(tree, dists[i].node, reinserted_levels,
 				tree->depth - inv_depth);
 	}
 }
@@ -908,7 +950,7 @@ __continue_split(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
 	uint32_t m_max = tree->m_max;
 
 	for (;;) {
-		n = split_child->parent;
+		n = &split_child->parent->base;
 		if (n == NULL) {
 			// we have split the root! Make a new one, make n and the old root its children
 			rtree_node_t* new_root = (rtree_node_t*) _new_inner_node(m_max);
@@ -923,8 +965,10 @@ __continue_split(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
 			new_root->children[0] = old_root;
 			new_root->children[1] = split_child;
 
-			old_root->parent = (rtree_node_base_t*) new_root;
-			split_child->parent = (rtree_node_base_t*) new_root;
+			old_root->parent = new_root;
+			old_root->parent_idx = 0;
+			split_child->parent = new_root;
+			split_child->parent_idx = 1;
 
 			tree->root = &new_root->base;
 			tree->depth++;
@@ -934,13 +978,15 @@ __continue_split(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
 		if (n->n < m_max) {
 			// we can accomodate split_child
 			rtree_node_t* node = (rtree_node_t*) n;
-			node->children[node->base.n++] = split_child;
+			node->children[node->base.n] = split_child;
+			split_child->parent_idx = node->base.n;
+			node->base.n++;
 
 			// update the bounding boxes of all of this node's parents
 			do {
 				_rtree_rect_extend(&n->bb, rect);
 				split_child = n;
-				n = n->parent;
+				n = &n->parent->base;
 			} while (n != NULL);
 			break;
 		}
@@ -972,25 +1018,26 @@ __continue_split(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
  * returns 0 on success and -1 on failure
  */
 static int
-_do_inner_insert(rtree_t* tree, rtree_node_t* n, int_set_t reinserted_levels, uint64_t depth)
+_do_inner_insert(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_levels,
+		uint64_t depth)
 {
-	rtree_rect_t* rect = &n->base.bb;
-	rtree_node_base_t* new_parent = tree->root;
+	rtree_rect_t* rect = &n->bb;
+	// inner insert cannot happen unless the root is an inner node
+	rtree_node_t* new_parent = (rtree_node_t*) tree->root;
 
 	dbg_assert(depth != 0);
-	dbg_assert(depth != tree->depth);
 
 	for (uint64_t i = 0; i < depth - 1; i++) {
 		// this node's children are inner nodes, so we find the node
 		// requiring the least area increase
-		rtree_node_t* node = (rtree_node_t*) new_parent;
+		rtree_node_t* node = new_parent;
 		uint32_t c_idx = _min_area_increase_child(node->children, node->base.n, rect);
-		new_parent = node->children[c_idx];
+		new_parent = (rtree_node_t*) node->children[c_idx];
 	}
 
 	// set the parent of n so that n will be inserted into the new parent
-	n->base.parent = new_parent;
-	return __continue_split(tree, &n->base, reinserted_levels, depth, &n->base.bb);
+	n->parent = new_parent;
+	return __continue_split(tree, n, reinserted_levels, depth, &n->bb);
 }
 
 static int
@@ -1026,7 +1073,9 @@ _do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 
 	if (leaf->base.n < m_max) {
 		// there is still room for this entry, simply insert it
-		leaf->elements[leaf->base.n++] = el_ptr;
+		leaf->elements[leaf->base.n] = el_ptr;
+		el_ptr->parent_idx = leaf->base.n;
+		leaf->base.n++;
 
 		if (leaf->base.n == 1) {
 			// this can only happen for the very first element inserted
@@ -1036,12 +1085,12 @@ _do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 			_rtree_rect_extend(&leaf->base.bb, &el_ptr->bb);
 
 			rtree_node_base_t* child = n;
-			n = child->parent;
+			n = &child->parent->base;
 			// update the bounding boxes of all of this node's parents
 			while (n != NULL) {
 				_rtree_rect_extend(&n->bb, &el_ptr->bb);
 				child = n;
-				n = n->parent;
+				n = &n->parent->base;
 			}
 		}
 		return 0;
@@ -1066,9 +1115,9 @@ _do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 int
 rtree_insert(rtree_t* tree, rtree_el_t* el_ptr)
 {
-	int_set_t iset;
-	int_set_inita(iset, tree->depth);
-	return _do_insert(tree, el_ptr, iset);
+	int_set_t reinserted_levels;
+	int_set_inita(reinserted_levels, tree->depth);
+	return _do_insert(tree, el_ptr, reinserted_levels);
 }
 
 
@@ -1076,17 +1125,129 @@ rtree_insert(rtree_t* tree, rtree_el_t* el_ptr)
  *                     RTree Delete                       *
  **********************************************************/
 
+static void _do_delete_node(rtree_t* tree, rtree_node_base_t* node,
+		int_set_t reinserted_levels, uint64_t depth);
+
+/*
+ * Handles the reinsertion of all children of an underfilled rtree_node node
+ * except the child at delete_idx.
+ *
+ * depth is the level that the children of node are at
+ */
 static void
-_do_delete_leaf(rtree_t* tree, rtree_el_t* el_ptr)
+_reinsert_node_children(rtree_t* tree, rtree_node_t* node,
+		int_set_t reinserted_levels, uint64_t depth, uint32_t delete_idx)
 {
-	(void) tree;
-	(void) el_ptr;
+	uint64_t inv_depth = tree->depth - depth;
+	// remove the node before reinserting it into the tree
+	_do_delete_node(tree, &node->base, reinserted_levels, depth - 1);
+
+	for (uint32_t i = 0; i < delete_idx; i++) {
+		_do_inner_insert(tree, node->children[i], reinserted_levels, tree->depth - inv_depth);
+	}
+
+	for (uint32_t i = delete_idx + 1; i < node->base.n; i++) {
+		_do_inner_insert(tree, node->children[i], reinserted_levels, tree->depth - inv_depth);
+	}
+
+	free(node);
+}
+
+/*
+ * Removes the node from the tree without deleting the node's contents or its
+ * children.
+ *
+ * depth is the level that node is at.
+ */
+static void
+_do_delete_node(rtree_t* tree, rtree_node_base_t* node,
+		int_set_t reinserted_levels, uint64_t depth)
+{
+	rtree_node_t* parent = node->parent;
+
+	if (parent->base.n > tree->m_min || (depth == 1 && parent->base.n > 2)) {
+		// if this node will not be underfilled after deletion, we can remove it
+		// without adjusting any of the rest of the tree
+		for (uint32_t i = node->parent_idx; i < parent->base.n - 1; i++) {
+			rtree_node_base_t* move_el = parent->children[i + 1];
+			parent->children[i] = move_el;
+			move_el->parent_idx = i;
+		}
+		parent->base.n--;
+		_shrunk_node_bb(node);
+	}
+	else if (depth == 1) {
+		// if parent is the root, the deletion would have made the root go down
+		// to one child. Make that child the new root and free the old one.
+		tree->root = parent->children[1 - node->parent_idx];
+		tree->root->parent = NULL;
+		tree->depth--;
+	}
+	else {
+		// this node will be underfilled after removing node, so reinsert all
+		// its children and propagate the deletion updward
+		_reinsert_node_children(tree, parent, reinserted_levels, depth,
+				node->parent_idx);
+	}
+}
+
+/*
+ * Handles the reinsertion of all children of an underfilled rtree_leaf except
+ * the element at delete_idx.
+ */
+static void
+_reinsert_leaf_children(rtree_t* tree, rtree_leaf_t* leaf,
+		int_set_t reinserted_levels, uint32_t delete_idx)
+{
+	// remove the node before reinserting it into the tree
+	_do_delete_node(tree, &leaf->base, reinserted_levels, tree->depth);
+
+	for (uint32_t i = 0; i < delete_idx; i++) {
+		_do_insert(tree, leaf->elements[i], reinserted_levels);
+	}
+
+	for (uint32_t i = delete_idx + 1; i < leaf->base.n; i++) {
+		_do_insert(tree, leaf->elements[i], reinserted_levels);
+	}
+
+	free(leaf);
+}
+
+/*
+ * Deletes el_ptr from the rtree_leaf it is part of.
+ */
+static void
+_do_delete_element(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
+{
+	rtree_leaf_t* parent = el_ptr->parent;
+
+	// if parent is the root, always allow removing one of its chidren without
+	// splitting
+	if (parent->base.n > tree->m_min || (parent->base.parent == NULL)) {
+		// if this node will not be underfilled after deletion, we can remove it
+		// without adjusting any of the rest of the tree
+		for (uint32_t i = el_ptr->parent_idx; i < parent->base.n - 1; i++) {
+			rtree_el_t* move_el = parent->elements[i + 1];
+			parent->elements[i] = move_el;
+			move_el->parent_idx = i;
+		}
+		parent->base.n--;
+
+		_shrink_leaf_bb(parent);
+	}
+	else {
+		// this node will be underfilled after removing el_ptr, so reinsert all its
+		// children and propagate the deletion updward
+		_reinsert_leaf_children(tree, parent, reinserted_levels, el_ptr->parent_idx);
+	}
 }
 
 int
 rtree_delete(rtree_t* tree, rtree_el_t* el)
 {
-	_do_delete_leaf(tree, el);
+	int_set_t reinserted_levels;
+	int_set_inita(reinserted_levels, tree->depth);
+	_do_delete_element(tree, el, reinserted_levels);
 	return 0;
 }
 
@@ -1283,9 +1444,7 @@ static void
 _rtree_validate_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 		const rtree_node_base_t* parent)
 {
-	(void) tree;
-	(void) parent;
-	dbg_assert(leaf->base.parent == parent);
+	dbg_assert(&leaf->base.parent->base == parent);
 
 	uint32_t n_children = leaf->base.n;
 	if (leaf->base.parent != NULL) {
@@ -1300,6 +1459,7 @@ _rtree_validate_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 		const rtree_el_t* el = leaf->elements[i];
 		dbg_assert(_rtree_rect_contains(&leaf->base.bb, &el->bb));
 		dbg_assert(el->parent == leaf);
+		dbg_assert(el->parent_idx == i);
 
 		if (i == 0) {
 			bb = el->bb;
@@ -1332,7 +1492,7 @@ _rtree_validate_node(const rtree_t* tree, const rtree_node_base_t* n,
 		const rtree_node_t* node = (const rtree_node_t*) n;
 		uint32_t n_children = node->base.n;
 
-		dbg_assert(node->base.parent == parent);
+		dbg_assert(&node->base.parent->base == parent);
 		if (node->base.parent != NULL) {
 			// only check if this isn't the root
 			dbg_assert(tree->m_min <= n_children);
@@ -1344,6 +1504,7 @@ _rtree_validate_node(const rtree_t* tree, const rtree_node_base_t* n,
 		for (uint32_t i = 0; i < n_children; i++) {
 			const rtree_node_t* child = (const rtree_node_t*) node->children[i];
 			dbg_assert(_rtree_rect_contains(&node->base.bb, &child->base.bb));
+			dbg_assert(child->base.parent_idx == i);
 			_rtree_validate_node(tree, &child->base, n, depth + 1);
 
 			if (i == 0) {

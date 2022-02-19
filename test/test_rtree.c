@@ -148,12 +148,14 @@ END_TEST
 START_TEST(test_init_half_min)
 {
 	INIT_RTREE(2, 4);
+	rtree_validate(&tree);
 	rtree_free(&tree);
 }
 
 START_TEST(test_init_large_max)
 {
 	INIT_RTREE(5, 100);
+	rtree_validate(&tree);
 	rtree_free(&tree);
 }
 
@@ -193,6 +195,7 @@ START_TEST(test_insert_1)
 		}
 	};
 	ck_assert_int_eq(rtree_insert(&tree, &el), 0);
+	rtree_validate(&tree);
 	rtree_free(&tree);
 }
 END_TEST
@@ -201,8 +204,10 @@ START_TEST(test_insert_100)
 {
 	INIT_RTREE(5, 10);
 
+	rtree_el_t els[100];
+
 	for (uint32_t i = 0; i < 100; i++) {
-		rtree_el_t el = {
+		els[i] = (rtree_el_t) {
 			.bb = {
 				.lx = (i % 10) * 10,
 				.ly = (i / 10) * 10,
@@ -210,7 +215,8 @@ START_TEST(test_insert_100)
 				.uy = (i / 10) * 10 + 5
 			}
 		};
-		ck_assert_int_eq(rtree_insert(&tree, &el), 0);
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
+		rtree_validate(&tree);
 	}
 	rtree_free(&tree);
 }
@@ -394,6 +400,110 @@ START_TEST(test_find_10000_random)
 	_run_randomized_find_test(10000, 3, 6, 23);
 }
 END_TEST
+
+
+/**********************************************************
+ *                      Test Delete                       *
+ **********************************************************/
+
+START_TEST(test_delete_1)
+{
+	INIT_RTREE(5, 10);
+
+	rtree_el_t el = {
+		.bb = {
+			.lx = 0,
+			.ly = 0,
+			.ux = 5,
+			.uy = 5
+		}
+	};
+	ck_assert_int_eq(rtree_insert(&tree, &el), 0);
+	rtree_validate(&tree);
+
+	ck_assert_int_eq(rtree_delete(&tree, &el), 0);
+	rtree_validate(&tree);
+
+	rtree_free(&tree);
+}
+
+static void
+_run_randomized_delete_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
+		uint64_t seed)
+{
+	seed_rand(seed, 0);
+	INIT_RTREE(m_min, m_max);
+
+	rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
+	uint32_t* delete_order = (uint32_t*) malloc(n_rects * sizeof(uint32_t));
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		uint64_t x = gen_rand_r(65536);
+		uint64_t y = gen_rand_r(65536);
+
+		uint64_t wx = gen_rand_r(32);
+		uint64_t wy = gen_rand_r(32);
+
+		els[i] = (rtree_el_t) {
+			.bb = {
+				.lx = x,
+				.ly = y,
+				.ux = x + wx,
+				.uy = y + wy
+			}
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
+	}
+	rtree_validate(&tree);
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		delete_order[i] = i;
+	}
+	for (uint32_t i = 1; i < n_rects; i++) {
+		uint32_t loc = gen_rand_r(i + 1);
+		uint32_t tmp = delete_order[loc];
+		delete_order[loc] = delete_order[i];
+		delete_order[i] = tmp;
+	}
+
+	// make sure all rects were inserted properly
+	for (uint32_t j = 0; j < n_rects; j++) {
+		rtree_el_t* el = rtree_find_exact(&tree, &els[j].bb);
+		ck_assert_ptr_eq(el, &els[j]);
+	}
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		rtree_el_t* el = &els[delete_order[i]];
+		ck_assert_int_eq(rtree_delete(&tree, el), 0);
+
+		// after each deletion, make sure all previously deleted elements don't
+		// exist and all ones that haven't been deleted still do
+		for (uint32_t j = 0; j <= i; j++) {
+			rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
+			ck_assert_ptr_eq(el, NULL);
+		}
+		for (uint32_t j = i + 1; j < n_rects; j++) {
+			rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
+			ck_assert_ptr_eq(el, &els[delete_order[j]]);
+		}
+		rtree_validate(&tree);
+	}
+
+	ck_assert_int_eq(tree.depth, 0);
+	ck_assert_int_eq(tree.root->n, 0);
+
+	rtree_free(&tree);
+}
+
+START_TEST(test_delete_100_random)
+{
+	_run_randomized_delete_test(100, 5, 10, 87);
+}
+
+START_TEST(test_delete_1000_random)
+{
+	_run_randomized_delete_test(1000, 4, 12, 101);
+}
 
 
 /**********************************************************
@@ -678,6 +788,7 @@ test_rtree()
 	TCase* tc_init;
 	TCase* tc_insert;
 	TCase* tc_find_exact;
+	TCase* tc_delete;
 	TCase* tc_intersects;
 
 	Suite* s = suite_create("R* tree");
@@ -705,6 +816,12 @@ test_rtree()
 	tcase_add_test(tc_find_exact, test_find_100_random);
 	tcase_add_test(tc_find_exact, test_find_10000_random);
 	suite_add_tcase(s, tc_find_exact);
+
+	tc_delete = tcase_create("Delete");
+	tcase_add_test(tc_delete, test_delete_1);
+	tcase_add_test(tc_delete, test_delete_100_random);
+	tcase_add_test(tc_delete, test_delete_1000_random);
+	suite_add_tcase(s, tc_delete);
 
 	tc_intersects = tcase_create("Intersects");
 	tcase_add_test(tc_intersects, test_intersects_single);
