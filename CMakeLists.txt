@@ -38,6 +38,9 @@ set(BUILD_SHARED_LIBRARY ON CACHE BOOL "When enabled, builds libutils as a
 set(ENABLE_TESTING OFF CACHE BOOL "When enabled, build all unit tests. The
 	unit tests can then be run from within the build directory with
 	'make run_tests'.")
+set(ENABLE_AVX ON CACHE BOOL "When enabled, builds certain methods using the
+	AVX instruction set. Can disable this manually, but AVX support is
+	automatically checked.")
 
 
 ############################################################
@@ -53,6 +56,9 @@ file(GLOB_RECURSE CXX_SRC
 file(GLOB_RECURSE ASM_SRC
 	"${PROJECT_SOURCE_DIR}/src/*.s"
 )
+
+# remove test_empty.c
+list(REMOVE_ITEM C_SRC "${PROJECT_SOURCE_DIR}/src/test_empty.c")
 
 if(${BUILD_SHARED_LIBRARY})
 	add_library(utils SHARED
@@ -84,11 +90,31 @@ target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi>)
 
 if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
-	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg>)
+	set(ASM_OPTIONS -Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg)
 elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
-	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-masm=intel>)
+	set(ASM_OPTIONS -masm=intel)
 else()
 	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM_COMPILER_ID})")
+endif()
+
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:${ASM_OPTIONS}>)
+
+if(${ENABLE_AVX})
+	set(OLD_CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
+	set(CMAKE_ASM_FLAGS "${ASM_OPTIONS}")
+
+	# check to see if this architecture supports AVX
+	try_compile(AVX_SUPPORTED ${CMAKE_CURRENT_BINARY_DIR} SOURCES
+		${PROJECT_SOURCE_DIR}/src/arch_test/test_avx.s
+		${PROJECT_SOURCE_DIR}/src/arch_test/test_empty.c)
+
+	if (AVX_SUPPORTED)
+		message(VERBOSE "AVX is supported on this architecture/compiler config")
+	else()
+		message(VERBOSE "AVX is not supported on this architecture/compiler config")
+	endif()
+	set(CMAKE_ASM_FLAGS "${OLD_CMAKE_ASM_FLAGS}")
+	unset(OLD_CMAKE_ASM_FLAGS)
 endif()
 
 include(CheckCXXCompilerFlag)
