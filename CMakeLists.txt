@@ -58,7 +58,9 @@ file(GLOB_RECURSE ASM_SRC
 )
 
 # remove test_empty.c
-list(REMOVE_ITEM C_SRC "${PROJECT_SOURCE_DIR}/src/test_empty.c")
+list(FILTER C_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
+list(FILTER CXX_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
+list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
 
 if(${BUILD_SHARED_LIBRARY})
 	add_library(utils SHARED
