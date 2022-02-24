@@ -429,7 +429,7 @@ START_TEST(test_delete_1)
 
 static void
 _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
-		uint64_t seed)
+		uint64_t seed, bool full_check)
 {
 	seed_rand(seed, 0);
 	INIT_RTREE(m_min, m_max);
@@ -476,16 +476,31 @@ _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
 		rtree_el_t* el = &els[delete_order[i]];
 		ck_assert_int_eq(rtree_delete(&tree, el), 0);
 
-		// after each deletion, make sure all previously deleted elements don't
-		// exist and all ones that haven't been deleted still do
-		for (uint32_t j = 0; j <= i; j++) {
-			rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
-			ck_assert_ptr_eq(el, NULL);
+		if (full_check) {
+			// after each deletion, make sure all previously deleted elements don't
+			// exist and all ones that haven't been deleted still do
+			for (uint32_t j = 0; j <= i; j++) {
+				rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
+				ck_assert_ptr_eq(el, NULL);
+			}
+			for (uint32_t j = i + 1; j < n_rects; j++) {
+				rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
+				ck_assert_ptr_eq(el, &els[delete_order[j]]);
+			}
+			rtree_validate(&tree);
 		}
-		for (uint32_t j = i + 1; j < n_rects; j++) {
-			rtree_el_t* el = rtree_find_exact(&tree, &els[delete_order[j]].bb);
-			ck_assert_ptr_eq(el, &els[delete_order[j]]);
+		else {
+			rtree_el_t* el1 = rtree_find_exact(&tree, &els[delete_order[i]].bb);
+			ck_assert_ptr_eq(el1, NULL);
+
+			if (i < n_rects - 1) {
+				rtree_el_t* el2 = rtree_find_exact(&tree, &els[delete_order[i + 1]].bb);
+				ck_assert_ptr_eq(el2, &els[delete_order[i + 1]]);
+			}
 		}
+	}
+
+	if (!full_check) {
 		rtree_validate(&tree);
 	}
 
@@ -497,12 +512,27 @@ _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
 
 START_TEST(test_delete_100_random)
 {
-	_run_randomized_delete_test(100, 5, 10, 87);
+	_run_randomized_delete_test(100, 5, 10, 87, true);
 }
 
 START_TEST(test_delete_1000_random)
 {
-	_run_randomized_delete_test(1000, 4, 12, 101);
+	_run_randomized_delete_test(1000, 4, 12, 101, true);
+}
+
+START_TEST(test_delete_10000_random)
+{
+	_run_randomized_delete_test(1000, 4, 12, 113, false);
+}
+
+START_TEST(test_delete_100000_random)
+{
+	_run_randomized_delete_test(10000, 4, 12, 117, false);
+}
+
+START_TEST(test_delete_1000000_random)
+{
+	_run_randomized_delete_test(100000, 5, 15, 123, false);
 }
 
 
@@ -821,6 +851,9 @@ test_rtree()
 	tcase_add_test(tc_delete, test_delete_1);
 	tcase_add_test(tc_delete, test_delete_100_random);
 	tcase_add_test(tc_delete, test_delete_1000_random);
+	tcase_add_test(tc_delete, test_delete_10000_random);
+	tcase_add_test(tc_delete, test_delete_100000_random);
+	tcase_add_test(tc_delete, test_delete_1000000_random);
 	suite_add_tcase(s, tc_delete);
 
 	tc_intersects = tcase_create("Intersects");
