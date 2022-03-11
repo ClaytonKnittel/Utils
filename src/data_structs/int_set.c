@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <utils/data_structs/int_set.h>
 
@@ -22,6 +23,12 @@ void
 int_set_free(int_set_t iset)
 {
 	free(iset);
+}
+
+void
+int_set_clear(int_set_t iset, uint64_t max)
+{
+	memset(iset, 0, INT_SET_GET_SIZE(max) * sizeof(uint64_t));
 }
 
 bool

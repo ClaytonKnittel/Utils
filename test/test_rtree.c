@@ -40,92 +40,6 @@ silence_stderr_teardown(void)
 }
 
 
-#if 0
-START_TEST(test_basic)
-{
-	rtree_t tree;
-
-	rtree_init(&tree, 8, 25);
-	uint64_t n_rects = 22;
-
-	FILE* f = fopen("../test/test.dat", "r");
-	ck_assert_ptr_ne(f, NULL);
-	fseek(f, 0, SEEK_END);
-	uint64_t len = ftell(f);
-	fseek(f, 0, SEEK_SET);
-	n_rects = len / (24);
-
-	rtree_el_t* rects = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
-	for (uint64_t i = 0; i < n_rects; i++) {
-		int64_t lx, ly;
-		int64_t postal_code;
-
-		ck_assert(fread(&lx, sizeof(lx), 1, f) == 1);
-		ck_assert(fread(&ly, sizeof(ly), 1, f) == 1);
-		ck_assert(fread(&postal_code, sizeof(postal_code), 1, f) == 1);
-
-		printf("rect: %lld, %lld, %lld (%llu)\n", lx, ly, postal_code, i+1);
-
-		rects[i].bb.lx = lx;
-		rects[i].bb.ly = ly;
-		rects[i].bb.ux = lx;
-		rects[i].bb.uy = ly;
-		rects[i].udata = (void*) postal_code;
-	}
-
-	/*
-	srand(0);
-	rtree_rect_t* rects = (rtree_rect_t*) malloc(n_rects * sizeof(rtree_rect_t));
-	for (uint64_t i = 0; i < n_rects; i++) {
-		rtree_coord_t lx = rand() % 1000000;
-		//rtree_coord_t ux = rand() % 600;
-		rtree_coord_t ux = lx;
-		rtree_coord_t ly = rand() % 1000000;
-		//rtree_coord_t uy = rand() % 600;
-		rtree_coord_t uy = ly;
-		if (lx > ux) {
-			rtree_coord_t tmp = lx;
-			lx = ux;
-			ux = tmp;
-		}
-		if (ly > uy) {
-			rtree_coord_t tmp = ly;
-			ly = uy;
-			uy = tmp;
-		}
-		rects[i].lx = lx;
-		rects[i].ux = ux;
-		rects[i].ly = ly;
-		rects[i].uy = uy;
-	}*/
-
-	rtree_print(&tree);
-	rtree_validate(&tree);
-	for (uint64_t i = 0; i < n_rects; i++) {
-		printf("Inserting: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\t(%" PRIu64")\n",
-				rects[i].bb.lx, rects[i].bb.ly, rects[i].bb.ux, rects[i].bb.uy, i);
-		rtree_insert(&tree, &rects[i].bb, rects[i].udata);
-		//rtree_print(&tree);
-		rtree_validate(&tree);
-
-		/*
-		for (int j = 0; j <= i; j++) {
-			rtree_el_t* el = rtree_find_exact(&tree, &rects[j].bb);
-			ck_assert(el != NULL);
-			ck_assert(el->udata == rects[j].udata);
-		}*/
-	}
-	rtree_print(&tree);
-
-	printf("Root bb: <(%" PRIu64 ", %" PRIu64 "), (%" PRIu64 ", %" PRIu64 ")>\n",
-			tree.root->bb.lx, tree.root->bb.ly, tree.root->bb.ux, tree.root->bb.uy);
-
-	rtree_free(&tree);
-}
-END_TEST
-#endif
-
-
 /**********************************************************
  *                      Test Utils                        *
  **********************************************************/
@@ -809,6 +723,112 @@ END_TEST
 
 
 /**********************************************************
+ *                       Test Move                        *
+ **********************************************************/
+
+START_TEST(test_move_single)
+{
+	INIT_RTREE(5, 10);
+
+	rtree_el_t el = {
+		.bb = {
+			.lx = 0,
+			.ly = 0,
+			.ux = 5,
+			.uy = 5
+		}
+	};
+	rtree_rect_t bb2 = {
+		.lx = 5,
+		.ly = 5,
+		.ux = 10,
+		.uy = 10
+	};
+
+	ck_assert_int_eq(rtree_insert(&tree, &el), 0);
+	rtree_validate(&tree);
+
+	ck_assert_int_eq(rtree_move(&tree, &el, &bb2), 0);
+	rtree_validate(&tree);
+	ASSERT_RECT_EQ(&el.bb, &bb2);
+
+	rtree_free(&tree);
+}
+END_TEST
+
+static void
+_run_randomized_wiggle_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
+		uint64_t seed)
+{
+	seed_rand(seed, 0);
+	INIT_RTREE(m_min, m_max);
+
+	rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		uint64_t x = gen_rand_r(65536);
+		uint64_t y = gen_rand_r(65536);
+
+		uint64_t wx = gen_rand_r(32);
+		uint64_t wy = gen_rand_r(32);
+		els[i].bb = (rtree_rect_t) {
+			.lx = x,
+			.ly = y,
+			.ux = x + wx,
+			.uy = y + wy
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
+	}
+	rtree_validate(&tree);
+
+	for (uint32_t i = 0; i < n_rects; i++) {
+		// dx, dy are chosen from {-1, 0, 1}
+		uint64_t dx = gen_rand_r(3) - 1;
+		uint64_t dy = gen_rand_r(3) - 1;
+
+		rtree_rect_t new_rect = {
+			.lx = els[i].bb.lx + dx,
+			.ly = els[i].bb.ly + dy,
+			.ux = els[i].bb.ux + dx,
+			.uy = els[i].bb.uy + dy,
+		};
+		rtree_rect_t new_rect_cpy = new_rect;
+
+		ck_assert_int_eq(rtree_move(&tree, &els[i], &new_rect), 0);
+		ASSERT_RECT_EQ(&new_rect, &new_rect_cpy);
+		ASSERT_RECT_EQ(&els[i].bb, &new_rect_cpy);
+
+		if (dx != 0 || dy != 0) {
+			rtree_rect_t old_rect = {
+				.lx = new_rect.lx - dx,
+				.ly = new_rect.ly - dy,
+				.ux = new_rect.ux - dx,
+				.uy = new_rect.uy - dy,
+			};
+
+			ck_assert_ptr_eq(rtree_find_exact(&tree, &old_rect), NULL);
+		}
+	}
+
+	free(els);
+
+	rtree_free(&tree);
+}
+
+START_TEST(test_wiggle_100)
+{
+	_run_randomized_wiggle_test(100, 3, 6, 151);
+}
+END_TEST
+
+START_TEST(test_wiggle_10000)
+{
+	_run_randomized_wiggle_test(10000, 3, 6, 157);
+}
+END_TEST
+
+
+/**********************************************************
  *                      Test Suite                        *
  **********************************************************/
 
@@ -820,6 +840,7 @@ test_rtree()
 	TCase* tc_find_exact;
 	TCase* tc_delete;
 	TCase* tc_intersects;
+	TCase* tc_move;
 
 	Suite* s = suite_create("R* tree");
 
@@ -863,6 +884,12 @@ test_rtree()
 	tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_100);
 	tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_10000);
 	suite_add_tcase(s, tc_intersects);
+
+	tc_move = tcase_create("Move");
+	tcase_add_test(tc_move, test_move_single);
+	tcase_add_test(tc_move, test_wiggle_100);
+	tcase_add_test(tc_move, test_wiggle_10000);
+	suite_add_tcase(s, tc_move);
 
 	return s;
 }

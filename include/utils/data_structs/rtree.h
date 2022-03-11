@@ -124,7 +124,7 @@ void rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
  * Updates the rtree_el's bounding box to the supplied new bounding box. This
  * method is most efficient when the bounding box changes only slightly.
  */
-void rtree_move(rtree_t*, rtree_el_t*, const rtree_rect_t* new_rect);
+int rtree_move(rtree_t*, rtree_el_t*, const rtree_rect_t* new_rect);
 
 #ifdef DO_TESTING
 void rtree_print(const rtree_t*);

@@ -1040,12 +1040,14 @@ _do_inner_insert(rtree_t* tree, rtree_node_base_t* n, int_set_t reinserted_level
 	return __continue_split(tree, n, reinserted_levels, depth, &n->bb);
 }
 
+/*
+ * Inserts el_ptr under node n. Depth is the depth of the tree rooted at n.
+ */
 static int
-_do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
+_do_insert_under_node(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels,
+		rtree_node_base_t* n, uint64_t depth)
 {
-	rtree_node_base_t* n = tree->root;
 	uint32_t m_max = tree->m_max;
-	uint64_t depth = tree->depth;
 
 	// first, find the node we'll be inserting this element into
 	if (depth > 0) {
@@ -1110,6 +1112,13 @@ _do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 
 		return __continue_split(tree, n, reinserted_levels, depth, &el_ptr->bb);
 	}
+}
+
+static int
+_do_insert(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
+{
+	return _do_insert_under_node(tree, el_ptr, reinserted_levels, tree->root,
+			tree->depth);
 }
 
 int
@@ -1195,7 +1204,7 @@ _do_delete_node(rtree_t* tree, rtree_node_base_t* node,
  * Handles the reinsertion of all children of an underfilled rtree_leaf except
  * the element at delete_idx.
  */
-static void
+static int
 _reinsert_leaf_children(rtree_t* tree, rtree_leaf_t* leaf,
 		int_set_t reinserted_levels, uint32_t delete_idx)
 {
@@ -1203,20 +1212,25 @@ _reinsert_leaf_children(rtree_t* tree, rtree_leaf_t* leaf,
 	_do_delete_node(tree, &leaf->base, reinserted_levels, tree->depth);
 
 	for (uint32_t i = 0; i < delete_idx; i++) {
-		_do_insert(tree, leaf->elements[i], reinserted_levels);
+		if (_do_insert(tree, leaf->elements[i], reinserted_levels) != 0) {
+			return -1;
+		}
 	}
 
 	for (uint32_t i = delete_idx + 1; i < leaf->base.n; i++) {
-		_do_insert(tree, leaf->elements[i], reinserted_levels);
+		if (_do_insert(tree, leaf->elements[i], reinserted_levels) != 0) {
+			return -1;
+		}
 	}
 
 	free(leaf);
+	return 0;
 }
 
 /*
  * Deletes el_ptr from the rtree_leaf it is part of.
  */
-static void
+static int
 _do_delete_element(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_levels)
 {
 	rtree_leaf_t* parent = el_ptr->parent;
@@ -1234,11 +1248,13 @@ _do_delete_element(rtree_t* tree, rtree_el_t* el_ptr, int_set_t reinserted_level
 		parent->base.n--;
 
 		_shrink_leaf_bb(parent);
+		return 0;
 	}
 	else {
 		// this node will be underfilled after removing el_ptr, so reinsert all its
 		// children and propagate the deletion updward
-		_reinsert_leaf_children(tree, parent, reinserted_levels, el_ptr->parent_idx);
+		return _reinsert_leaf_children(tree, parent, reinserted_levels,
+				el_ptr->parent_idx);
 	}
 }
 
@@ -1247,8 +1263,7 @@ rtree_delete(rtree_t* tree, rtree_el_t* el)
 {
 	int_set_t reinserted_levels;
 	int_set_inita(reinserted_levels, tree->depth);
-	_do_delete_element(tree, el, reinserted_levels);
-	return 0;
+	return _do_delete_element(tree, el, reinserted_levels);
 }
 
 
@@ -1374,18 +1389,60 @@ rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
  *                       RTree Move                       *
  **********************************************************/
 
-static void
+static int
 _do_move(rtree_t* tree, rtree_el_t* el_ptr, const rtree_rect_t* new_rect)
 {
-	(void) tree;
-	(void) el_ptr;
-	(void) new_rect;
+	rtree_leaf_t* prev_leaf = el_ptr->parent;
+	if (_rtree_rect_contains(&prev_leaf->base.bb, new_rect)) {
+		el_ptr->bb = *new_rect;
+		_shrink_leaf_bb(prev_leaf);
+		return 0;
+	}
+
+	uint64_t inv_depth = 1;
+	rtree_node_t* node = prev_leaf->base.parent;
+	while (node != NULL && !_rtree_rect_contains(&node->base.bb, new_rect)) {
+		node = node->base.parent;
+		inv_depth++;
+	}
+
+	if (node == NULL) {
+		if (rtree_delete(tree, el_ptr) != 0) {
+			return -1;
+		}
+		el_ptr->bb = *new_rect;
+		if (rtree_insert(tree, el_ptr) != 0) {
+			return -1;
+		}
+		return 0;
+	}
+	else {
+		// replace el_ptr with a temporary rtree_el
+		rtree_el_t old_el = *el_ptr;
+		prev_leaf->elements[old_el.parent_idx] = &old_el;
+
+		// update el_ptr's bb to the new bb
+		el_ptr->bb = *new_rect;
+
+		int_set_t reinserted_levels;
+		int_set_inita(reinserted_levels, tree->depth);
+		if (_do_insert_under_node(tree, el_ptr, reinserted_levels, &node->base,
+				inv_depth) != 0) {
+			return -1;
+		}
+
+		int_set_clear(reinserted_levels, tree->depth);
+		if (_do_delete_element(tree, &old_el, reinserted_levels) != 0) {
+			return -1;
+		}
+		return 0;
+	}
 }
 
-void
+int
 rtree_move(rtree_t* tree, rtree_el_t* el, const rtree_rect_t* new_rect)
 {
-	_do_move(tree, el, new_rect);
+	return _do_move(tree, el, new_rect);
 }
 
 

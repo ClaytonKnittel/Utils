@@ -35,6 +35,10 @@ int int_set_init(int_set_t*, uint64_t max);
 
 void int_set_free(int_set_t);
 
+/*
+ * removes all elements from the int set
+ */
+void int_set_clear(int_set_t, uint64_t max);
 
 /*
  * returns true if val is contained in the int set
