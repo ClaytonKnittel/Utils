@@ -37,7 +37,7 @@ target_compile_options(utils_unit_testing PRIVATE
 )
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils_unit_testing PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
-	-std=c++17 -Wno-extra-semi
+	-std=c++17 -Wno-extra-semi -Wno-c99-extensions
 >)
 
 target_compile_definitions(utils_unit_testing PRIVATE DO_TESTING)

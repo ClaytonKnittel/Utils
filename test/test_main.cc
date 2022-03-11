@@ -21,6 +21,7 @@ Suite* test_vector();
 
 Suite* test_prime_factor_list_cc();
 Suite* test_rbtree_cc();
+Suite* test_rtree_cc();
 Suite* test_sort_cc();
 
 int main()
@@ -41,6 +42,7 @@ int main()
 	srunner_add_suite(sr, test_vector());
 	srunner_add_suite(sr, test_prime_factor_list_cc());
 	srunner_add_suite(sr, test_rbtree_cc());
+	srunner_add_suite(sr, test_rtree_cc());
 	//srunner_add_suite(sr, test_sort_cc());
 
 	srunner_set_fork_status(sr, CK_NOFORK);

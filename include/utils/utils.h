@@ -70,7 +70,7 @@ static const uint64_t log10_ten_to[] = {
 
 #ifdef __cplusplus
 
-namespace util {
+namespace Utils {
 
 template<typename T, typename U>
 constexpr T align_up(const U & val, const T & algn) {
@@ -173,7 +173,7 @@ constexpr T ceil_log10(const T & val) {
     return guess + (val >= log10_ten_to[guess]);
 }
 
-} /* end namespace util */
+} /* end namespace Utils */
 
 #else /* __cplusplus */
 
