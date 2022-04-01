@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <utils/algorithms/sort.h>
 #include <utils/data_structs/rtree.h>
 #include <utils/math/random.h>
 #include <utils/utils.h>
@@ -161,6 +162,242 @@ START_TEST(test_insert_10000_random)
 		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
 	}
 	rtree_validate(&tree);
+	free(els);
+	rtree_free(&tree);
+}
+END_TEST
+
+/**********************************************************
+ *                     Test For Each                      *
+ **********************************************************/
+
+static bool
+_foreach_1_cb(const rtree_el_t* el, void* udata, const rtree_t* tree)
+{
+	(void) udata;
+	(void) tree;
+
+	rtree_rect_t expected_bb = {
+		.lx = 0,
+		.ly = 0,
+		.ux = 5,
+		.uy = 5
+	};
+
+	ASSERT_RECT_EQ(&expected_bb, &el->bb);
+	(*((int*) udata))++;
+
+	return true;
+}
+
+START_TEST(test_foreach_1)
+{
+	INIT_RTREE(5, 10);
+
+	rtree_el_t el = {
+		.bb = {
+			.lx = 0,
+			.ly = 0,
+			.ux = 5,
+			.uy = 5
+		}
+	};
+	ck_assert_int_eq(rtree_insert(&tree, &el), 0);
+	rtree_validate(&tree);
+
+	int cnt = 0;
+	rtree_foreach(&tree, _foreach_1_cb, &cnt);
+	ck_assert_int_eq(cnt, 1);
+	rtree_free(&tree);
+}
+END_TEST
+
+static bool
+_foreach_100_cb(const rtree_el_t* el, void* udata, const rtree_t* tree)
+{
+	(void) udata;
+	(void) tree;
+
+	int i = el->bb.lx / 10 + 10 * (el->bb.ly / 10);
+	ck_assert_int_ge(i, 0);
+	ck_assert_int_lt(i, 100);
+
+	rtree_rect_t expected_bb = {
+		.lx = (i % 10) * 10,
+		.ly = (i / 10) * 10,
+		.ux = (i % 10) * 10 + 5,
+		.uy = (i / 10) * 10 + 5
+	};
+
+	ASSERT_RECT_EQ(&expected_bb, &el->bb);
+
+	uint8_t* found_els = (uint8_t*) udata;
+	ck_assert_int_eq(found_els[i], 0);
+	found_els[i] = 0xff;
+
+	return true;
+}
+
+START_TEST(test_foreach_100)
+{
+	INIT_RTREE(5, 10);
+
+	rtree_el_t els[100];
+
+	for (uint32_t i = 0; i < 100; i++) {
+		els[i] = (rtree_el_t) {
+			.bb = {
+				.lx = (i % 10) * 10,
+				.ly = (i / 10) * 10,
+				.ux = (i % 10) * 10 + 5,
+				.uy = (i / 10) * 10 + 5
+			}
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
+		rtree_validate(&tree);
+	}
+
+	uint8_t found_els[100] = { 0 };
+	rtree_foreach(&tree, _foreach_100_cb, found_els);
+	for (uint32_t i = 0; i < 100; i++) {
+		ck_assert_int_eq(found_els[i], 0xff);
+	}
+
+	rtree_free(&tree);
+}
+END_TEST
+
+struct foreach_10000_data {
+	rtree_el_t** el_ptrs;
+	uint8_t* found_els;
+};
+
+// sort by y-coordinates, then by x
+#define foreach_10000_els_sort_cmp(a, b) \
+	((a)->bb.ly < (b)->bb.ly || \
+	 ((a)->bb.ly == (b)->bb.ly && ((a)->bb.uy < (b)->bb.uy || \
+		 ((a)->bb.uy == (b)->bb.uy && ((a)->bb.lx < (b)->bb.lx || \
+			 ((a)->bb.lx == (b)->bb.lx && (a)->bb.ux < (b)->bb.ux))))))
+
+static int
+foreach_10000_els_cmp(const void* _a, const void* _b)
+{
+	const rtree_el_t* a = (const rtree_el_t*) _a;
+	const rtree_el_t* b = *(const rtree_el_t**) _b;
+
+	/*printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> cmp ",
+			a->bb.lx, a->bb.ly,
+			a->bb.ux, a->bb.uy);
+	printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")>\n",
+			b->bb.lx, b->bb.ly,
+			b->bb.ux, b->bb.uy);*/
+
+	if (a->bb.ly < b->bb.ly) {
+		return -1;
+	}
+	else if (a->bb.ly == b->bb.ly) {
+		if (a->bb.uy < b->bb.uy) {
+			return -1;
+		}
+		else if (a->bb.uy == b->bb.uy) {
+			if (a->bb.lx < b->bb.lx) {
+				return -1;
+			}
+			else if (a->bb.lx == b->bb.lx) {
+				if (a->bb.ux < b->bb.ux) {
+					return -1;
+				}
+				else if (a->bb.ux == b->bb.ux) {
+					return 0;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+#define foreach_10000_els_sort_cswap(T, a, b) \
+	do { \
+		if (!foreach_10000_els_sort_cmp(a, b)) { \
+			T tmp = (a); \
+			(a) = (b); \
+			(b) = tmp; \
+		} \
+	} while (0)
+
+DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_el_t*, foreach_10000_els,
+		foreach_10000_els_sort_cmp, foreach_10000_els_sort_cswap)
+
+static bool
+_foreach_10000_cb(const rtree_el_t* el, void* udata, const rtree_t* tree)
+{
+	(void) udata;
+	(void) tree;
+
+	struct foreach_10000_data* data = (struct foreach_10000_data*) udata;
+	rtree_el_t** el_ptrs = data->el_ptrs;
+	uint8_t* found_els = data->found_els;
+
+	const rtree_el_t** found_el = (const rtree_el_t**) bsearch(el, el_ptrs, 10000,
+			sizeof(rtree_el_t*), foreach_10000_els_cmp);
+
+	ck_assert_ptr_ne(found_el, NULL);
+	ASSERT_RECT_EQ(&(*found_el)->bb, &el->bb);
+
+	uint64_t idx = (((ptr_int_t) found_el) - ((ptr_int_t) el_ptrs)) / sizeof(rtree_el_t*);
+	ck_assert_int_eq(found_els[idx], 0);
+	found_els[idx] = 0xff;
+
+	return true;
+}
+
+START_TEST(test_foreach_10000_random)
+{
+	seed_rand(157, 0);
+	INIT_RTREE(10, 30);
+
+	rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
+
+	for (uint32_t i = 0; i < 10000; i++) {
+		uint64_t x = gen_rand_r(65536);
+		uint64_t y = gen_rand_r(65536);
+
+		uint64_t wx = gen_rand_r(32);
+		uint64_t wy = gen_rand_r(32);
+
+		els[i] = (rtree_el_t) {
+			.bb = {
+				.lx = x,
+				.ly = y,
+				.ux = x + wx,
+				.uy = y + wy
+			}
+		};
+		ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
+	}
+	rtree_validate(&tree);
+
+	rtree_el_t** el_ptrs = (rtree_el_t**) malloc(10000 * sizeof(rtree_el_t*));
+	for (uint64_t i = 0; i < 10000; i++) {
+		el_ptrs[i] = &els[i];
+	}
+	csort_foreach_10000_els(el_ptrs, 10000);
+	for (uint64_t i = 0; i < 9999; i++) {
+		ck_assert(foreach_10000_els_cmp(el_ptrs[i], &el_ptrs[i + 1]) < 0);
+	}
+
+	uint8_t* found_els = (uint8_t*) calloc(10000, sizeof(uint8_t));
+	struct foreach_10000_data data = {
+		.el_ptrs = el_ptrs,
+		.found_els = found_els
+	};
+	rtree_foreach(&tree, _foreach_10000_cb, &data);
+	for (uint32_t i = 0; i < 10000; i++) {
+		ck_assert_int_eq(found_els[i], 0xff);
+	}
+
+	free(found_els);
+	free(el_ptrs);
 	free(els);
 	rtree_free(&tree);
 }
@@ -837,6 +1074,7 @@ test_rtree()
 {
 	TCase* tc_init;
 	TCase* tc_insert;
+	TCase* tc_foreach;
 	TCase* tc_find_exact;
 	TCase* tc_delete;
 	TCase* tc_intersects;
@@ -859,6 +1097,12 @@ test_rtree()
 	tcase_add_test(tc_insert, test_insert_100);
 	tcase_add_test(tc_insert, test_insert_10000_random);
 	suite_add_tcase(s, tc_insert);
+
+	tc_foreach = tcase_create("For Each");
+	tcase_add_test(tc_foreach, test_foreach_1);
+	tcase_add_test(tc_foreach, test_foreach_100);
+	tcase_add_test(tc_foreach, test_foreach_10000_random);
+	suite_add_tcase(s, tc_foreach);
 
 	tc_find_exact = tcase_create("Find Exact");
 	tcase_add_test(tc_find_exact, test_find_single);

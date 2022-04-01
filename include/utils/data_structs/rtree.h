@@ -130,6 +130,15 @@ rtree_coord_t rtree_rect_combine(rtree_rect_t* dst, const rtree_rect_t* base,
  */
 rtree_coord_t rtree_rect_extend(rtree_rect_t* base, const rtree_rect_t* rect);
 
+
+/*
+ * Callback method signature for iterating over all elements of an rtree.
+ *
+ * If this callback returns false, iteration is stopped.
+ */
+typedef bool (*rtree_foreach_cb)(const rtree_el_t* el, void* udata,
+		const rtree_t* tree);
+
 /*
  * Callback method signature for find-all-intersecting methods. The current
  * intersecting rect in the rtree is passed via el.
@@ -152,6 +161,16 @@ int rtree_insert(rtree_t*, rtree_el_t* el_ptr);
 int rtree_delete(rtree_t*, rtree_el_t*);
 
 /*
+ * Iterates over all elements of the rtree.
+ *
+ * Concurrent modification of the tree results in undefined behavior.
+ *
+ * Returns true if the iteration completed successfully, or false if iteration
+ * was interrupted.
+ */
+bool rtree_foreach(const rtree_t*, rtree_foreach_cb callback, void* udata);
+
+/*
  * Finds the rtree node with rectangle exactly matching that of the rectangle
  * passed. Will only return one rectangle if multiple matches exist in the tree.
  */
@@ -160,8 +179,11 @@ rtree_el_t* rtree_find_exact(const rtree_t*, const rtree_rect_t* rect);
 /*
  * Iterates over every element in the tree that intersects with the given
  * rectangle, calling callback on each instance.
+ *
+ * Returns true if the iteration completed successfully, or false if iteration
+ * was interrupted.
  */
-void rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
+bool rtree_intersects_foreach(const rtree_t*, const rtree_rect_t* rect,
 		rtree_intersects_cb callback, void* udata);
 
 /*
@@ -191,6 +213,8 @@ private:
 public:
 	explicit RTreeRect(rtree_coord_t lx, rtree_coord_t ly, rtree_coord_t ux,
 			rtree_coord_t uy) : rect({ lx, ly, ux, uy }) {}
+	explicit RTreeRect(const rtree_rect_t& rect) :
+			rect({ rect.lx, rect.ly, rect.ux, rect.uy }) {}
 	virtual ~RTreeRect() {}
 
 	rtree_coord_t lx() const {
@@ -222,6 +246,10 @@ public:
 		el.bb = rect.rect;
 	}
 	virtual ~RTreeEl() {}
+
+	RTreeRect GetBB() const {
+		return RTreeRect(el.bb);
+	}
 };
 
 class RTree {
@@ -276,30 +304,85 @@ public:
 	virtual ~RTree();
 
 	int Insert(RTreeEl&);
+	int Insert(RTreeEl*);
 	int Insert(rtree_el_t*);
 
 	int Delete(RTreeEl&);
+	int Delete(RTreeEl*);
 	int Delete(rtree_el_t*);
 
 	int Move(RTreeEl&, const RTreeRect& new_rect);
+	int Move(RTreeEl*, const RTreeRect& new_rect);
 	int Move(rtree_el_t*, const rtree_rect_t* new_rect);
+
+	template<typename ForEachCB>
+	bool ForEach(ForEachCB callback) const {
+		const RTreeEl tmp;
+		const size_t el_offset = size_t(&tmp.el) - size_t(&tmp);
+
+		uint64_t depth = tree.depth;
+		const rtree_node_base_t* node = tree.root;
+		uint32_t i = 0;
+		uint32_t n = node->n;
+
+		if (node == NULL) {
+			return true;
+		}
+
+		while (true) {
+			if (i == n) {
+ascent_parent:
+				i = node->parent_idx + 1;
+				node = &node->parent->base;
+
+				if (node == NULL) {
+					return true;
+				}
+
+				n = node->n;
+				depth++;
+				continue;
+			}
+
+			if (depth > 0) {
+				const rtree_node_t* inner_node = (rtree_node_t*) node;
+				node = inner_node->children[i];
+				i = 0;
+				n = node->n;
+				depth--;
+				continue;
+			}
+
+			const rtree_leaf_t* leaf = (rtree_leaf_t*) node;
+			for (; i < n; i++) {
+				uint8_t* el_ptr = reinterpret_cast<uint8_t*>(leaf->elements[i]);
+				if (!callback(std::ref(*reinterpret_cast<RTreeEl*>(el_ptr - el_offset)))) {
+					// stop iteration.
+					return false;
+				}
+			}
+			goto ascent_parent;
+		}
+
+		return true;
+	}
 
 	RTreeEl& FindExact(const RTreeRect&) const;
 	rtree_el_t* FindExact(const rtree_rect_t*) const;
 
 	template<typename IntersectsCB>
-	void IntersectsForEach(const RTreeRect& rect, IntersectsCB callback) const {
+	bool IntersectsForEach(const RTreeRect& rect, IntersectsCB callback) const {
 		rtree_node_base_t* n = tree.root;
 		uint64_t depth = tree.depth;
 
 		if (depth > 0) {
-			_Intersects((const rtree_node_t*) n, &rect.rect, callback, depth - 1);
+			return _Intersects((const rtree_node_t*) n, &rect.rect, callback, depth - 1);
 		}
 		else {
-			_IntersectsLeaf((const rtree_leaf_t*) n, &rect.rect, callback);
+			return _IntersectsLeaf((const rtree_leaf_t*) n, &rect.rect, callback);
 		}
 	}
-	void IntersectsForEach(const rtree_rect_t*, rtree_intersects_cb cb,
+	bool IntersectsForEach(const rtree_rect_t*, rtree_intersects_cb cb,
 			void* udata);
 
 #ifdef DO_TESTING

@@ -1268,6 +1268,61 @@ rtree_delete(rtree_t* tree, rtree_el_t* el)
 
 
 /**********************************************************
+ *                     RTree For Each                     *
+ **********************************************************/
+
+bool
+rtree_foreach(const rtree_t* tree, rtree_foreach_cb callback, void* udata)
+{
+	uint64_t depth = tree->depth;
+	const rtree_node_base_t* node = tree->root;
+	uint32_t i = 0;
+	uint32_t n = node->n;
+
+	if (node == NULL) {
+		return true;
+	}
+
+	while (true) {
+		if (i == n) {
+ascent_parent:
+			i = node->parent_idx + 1;
+			node = &node->parent->base;
+
+			if (node == NULL) {
+				return true;
+			}
+
+			n = node->n;
+			depth++;
+			continue;
+		}
+
+		if (depth > 0) {
+			const rtree_node_t* inner_node = (rtree_node_t*) node;
+			node = inner_node->children[i];
+			i = 0;
+			n = node->n;
+			depth--;
+			continue;
+		}
+
+		const rtree_leaf_t* leaf = (rtree_leaf_t*) node;
+		for (; i < n; i++) {
+			const rtree_el_t* el = leaf->elements[i];
+			if (!callback(el, udata, tree)) {
+				// stop iteration.
+				return false;
+			}
+		}
+		goto ascent_parent;
+	}
+
+	return true;
+}
+
+
+/**********************************************************
  *                    RTree Find Exact                    *
  **********************************************************/
 
@@ -1367,7 +1422,7 @@ _rtree_intersects(const rtree_t* tree, const rtree_node_t* node,
 	return true;
 }
 
-void
+bool
 rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
 		rtree_intersects_cb callback, void* udata)
 {
@@ -1375,11 +1430,11 @@ rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
 	uint64_t depth = tree->depth;
 
 	if (depth > 0) {
-		_rtree_intersects(tree, (const rtree_node_t*) n, rect, callback,
+		return _rtree_intersects(tree, (const rtree_node_t*) n, rect, callback,
 				udata, depth - 1);
 	}
 	else {
-		_rtree_intersects_leaf(tree, (const rtree_leaf_t*) n, rect,
+		return _rtree_intersects_leaf(tree, (const rtree_leaf_t*) n, rect,
 				callback, udata);
 	}
 }

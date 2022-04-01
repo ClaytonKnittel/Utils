@@ -62,21 +62,26 @@ static int
 run_csort_test(int N)
 {
 	uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
-	uint32_t* all = (uint32_t*) malloc(N * sizeof(uint32_t));
 
-	for (uint64_t i = 0; i < 1024; i++) {
+	for (uint64_t i = 0; i < 128; i++) {
 		for (uint32_t j = 0; j < (uint32_t) N; j++) {
-			vals[j] = gen_rand_r(0x7ffffffflu);
-			all[j] = vals[j];
+			vals[j] = j;
 		}
-		naive_sort(all, N);
+
+		for (uint32_t j = 1; j < (uint32_t) N; j++) {
+			uint32_t rand_idx = gen_rand_r(j + 1);
+
+			uint32_t tmp = vals[j];
+			vals[j] = vals[rand_idx];
+			vals[rand_idx] = tmp;
+		}
+
 		csort_uint32_t(vals, N);
 		for (uint32_t j = 0; j < (uint32_t) N; j++) {
-			ck_assert(vals[j] == all[j]);
+			ck_assert_int_eq(vals[j], j);
 		}
 	}
 
-	free(all);
 	free(vals);
 	return 1;
 }
@@ -284,6 +289,18 @@ START_TEST(test_64)
 }
 END_TEST
 
+START_TEST(test_1024)
+{
+	run_csort_test(1024);
+}
+END_TEST
+
+START_TEST(test_10000)
+{
+	run_csort_test(10000);
+}
+END_TEST
+
 
 Suite*
 test_sort()
@@ -313,6 +330,8 @@ test_sort()
 
 	tc_large = tcase_create("Large");
 	tcase_add_test(tc_const, test_64);
+	tcase_add_test(tc_const, test_1024);
+	tcase_add_test(tc_const, test_10000);
 	suite_add_tcase(s, tc_large);
 
 	return s;

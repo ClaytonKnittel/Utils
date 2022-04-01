@@ -25,6 +25,10 @@ int RTree::Insert(RTreeEl& el_ptr) {
 	return rtree_insert(&this->tree, &el_ptr.el);
 }
 
+int RTree::Insert(RTreeEl* el_ptr) {
+	return rtree_insert(&this->tree, &el_ptr->el);
+}
+
 int RTree::Insert(rtree_el_t* el_ptr) {
 	return rtree_insert(&this->tree, el_ptr);
 }
@@ -33,12 +37,20 @@ int RTree::Delete(RTreeEl& el_ptr) {
 	return rtree_delete(&this->tree, &el_ptr.el);
 }
 
+int RTree::Delete(RTreeEl* el_ptr) {
+	return rtree_delete(&this->tree, &el_ptr->el);
+}
+
 int RTree::Delete(rtree_el_t* el_ptr) {
 	return rtree_delete(&this->tree, el_ptr);
 }
 
 int RTree::Move(RTreeEl& el_ptr, const RTreeRect& new_rect) {
 	return rtree_move(&this->tree, &el_ptr.el, &new_rect.rect);
+}
+
+int RTree::Move(RTreeEl* el_ptr, const RTreeRect& new_rect) {
+	return rtree_move(&this->tree, &el_ptr->el, &new_rect.rect);
 }
 
 int RTree::Move(rtree_el_t* el_ptr, const rtree_rect_t* new_rect) {
@@ -53,9 +65,9 @@ rtree_el_t* RTree::FindExact(const rtree_rect_t* rect) const {
 	return rtree_find_exact(&this->tree, rect);
 }
 
-void RTree::IntersectsForEach(const rtree_rect_t* rect, rtree_intersects_cb cb,
+bool RTree::IntersectsForEach(const rtree_rect_t* rect, rtree_intersects_cb cb,
 		void* udata) {
-	rtree_intersects_foreach(&this->tree, rect, cb, udata);
+	return rtree_intersects_foreach(&this->tree, rect, cb, udata);
 }
 
 #ifdef DO_TESTING
