@@ -6,6 +6,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 /*
  * a set of integers which may range from 0 to (max-1)
  */
@@ -80,5 +85,9 @@ void int_set_remove(int_set_t, uint64_t val);
 		} \
 	} while(0)
 
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* _INT_SET_H */

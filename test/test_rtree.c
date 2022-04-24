@@ -66,6 +66,7 @@ START_TEST(test_init_half_min)
 	rtree_validate(&tree);
 	rtree_free(&tree);
 }
+END_TEST
 
 START_TEST(test_init_large_max)
 {
@@ -73,24 +74,28 @@ START_TEST(test_init_large_max)
 	rtree_validate(&tree);
 	rtree_free(&tree);
 }
+END_TEST
 
 START_TEST(test_init_over_half_min)
 {
 	rtree_t tree;
 	ck_assert_int_ne(rtree_init(&tree, 4, 7), 0);
 }
+END_TEST
 
 START_TEST(test_init_0_min)
 {
 	rtree_t tree;
 	ck_assert_int_ne(rtree_init(&tree, 0, 5), 0);
 }
+END_TEST
 
 START_TEST(test_init_1_min)
 {
 	rtree_t tree;
 	ck_assert_int_ne(rtree_init(&tree, 1, 5), 0);
 }
+END_TEST
 
 
 /**********************************************************
