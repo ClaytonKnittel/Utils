@@ -1,7 +1,7 @@
 #ifndef _M_MAT2_H
 #define _M_MAT2_H
 
-#include <math.h>
+#include <utils/math/vec2.h>
 
 typedef union mat2 {
     float __m[4];
@@ -9,11 +9,10 @@ typedef union mat2 {
         float m00, m01,
               m10, m11;
     };
-} mat2;
+} mat2_t;
 
 
-static void init_mat2(mat2 *m, float m00, float m01,
-                               float m10, float m11) {
+static void init_mat2(mat2_t* m, float m00, float m01, float m10, float m11) {
     m->m00 = m00;
     m->m01 = m01;
     m->m10 = m10;
@@ -21,7 +20,7 @@ static void init_mat2(mat2 *m, float m00, float m01,
 }
 
 
-static void mat2_mul(mat2 *res, mat2 *a, mat2 *b) {
+static void mat2_mul(mat2_t* res, mat2_t* a, mat2_t* b) {
     float am00 = a->m00;
     float am01 = a->m01;
     float am10 = a->m10;
@@ -37,7 +36,7 @@ static void mat2_mul(mat2 *res, mat2 *a, mat2 *b) {
     res->m11 = am10 * bm01 + am11 * bm11;
 }
 
-static void mat2_vecmul(vec2 *res, mat2 * restrict a, vec2 *b) {
+static void mat2_vecmul(vec2_t* res, mat2_t* restrict a, vec2_t* b) {
     float bx = b->x;
     float by = b->y;
 
@@ -45,7 +44,7 @@ static void mat2_vecmul(vec2 *res, mat2 * restrict a, vec2 *b) {
     res->y = a->m10 * bx + a->m11 * by;
 }
 
-static float mat2_det(mat2 *m) {
+static float mat2_det(mat2_t* m) {
     return m->m00 * m->m11 - m->m01 * m->m10;
 }
 

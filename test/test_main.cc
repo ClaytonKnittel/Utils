@@ -17,6 +17,7 @@ Suite* test_union_find();
 Suite* test_utils();
 Suite* test_vector();
 Suite* test_vec();
+Suite* test_mat();
 
 }
 
@@ -42,6 +43,7 @@ int main()
 	srunner_add_suite(sr, test_utils());
 	srunner_add_suite(sr, test_vector());
 	srunner_add_suite(sr, test_vec());
+	srunner_add_suite(sr, test_mat());
 	srunner_add_suite(sr, test_prime_factor_list_cc());
 	srunner_add_suite(sr, test_rbtree_cc());
 	srunner_add_suite(sr, test_rtree_cc());

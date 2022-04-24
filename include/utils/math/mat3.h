@@ -1,9 +1,7 @@
 #ifndef _M_MAT3_H
 #define _M_MAT3_H
 
-#include <math.h>
-
-#include <math/vec3.h>
+#include <utils/math/vec3.h>
 
 typedef union mat3 {
     float __m[9];
@@ -12,12 +10,12 @@ typedef union mat3 {
               m10, m11, m12,
               m20, m21, m22;
     };
-} mat3;
+} mat3_t;
 
 
-static void init_mat3(mat3 *m, float m00, float m01, float m02,
-                               float m10, float m11, float m12,
-                               float m20, float m21, float m22) {
+static void init_mat3(mat3_t *m, float m00, float m01, float m02,
+		float m10, float m11, float m12,
+		float m20, float m21, float m22) {
     m->m00 = m00;
     m->m01 = m01;
     m->m02 = m02;
@@ -30,7 +28,7 @@ static void init_mat3(mat3 *m, float m00, float m01, float m02,
 }
 
 
-static void mat3_mul(mat3 *res, mat3 *a, mat3 *b) {
+static void mat3_mul(mat3_t* res, mat3_t* a, mat3_t* b) {
     float am00 = a->m00;
     float am01 = a->m01;
     float am02 = a->m02;
@@ -64,7 +62,7 @@ static void mat3_mul(mat3 *res, mat3 *a, mat3 *b) {
     res->m22 = am20 * bm02 + am21 * bm12 + am22 * bm22;
 }
 
-static void mat3_vecmul(vec3 *res, mat3 * restrict a, vec3 *b) {
+static void mat3_vecmul(vec3_t* res, mat3_t* restrict a, vec3_t* b) {
     float bx = b->x;
     float by = b->y;
     float bz = b->z;
@@ -74,7 +72,7 @@ static void mat3_vecmul(vec3 *res, mat3 * restrict a, vec3 *b) {
     res->z = a->m20 * bx + a->m21 * by + a->m22 * bz;
 }
 
-static float mat3_det(mat3 *m) {
+static float mat3_det(mat3_t* m) {
     return m->m00 * (m->m11 * m->m22 - m->m12 * m->m21) +
            m->m01 * (m->m12 * m->m20 - m->m10 * m->m22) +
            m->m02 * (m->m10 * m->m21 - m->m11 * m->m20);
