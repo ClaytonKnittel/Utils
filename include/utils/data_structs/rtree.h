@@ -51,8 +51,10 @@ typedef struct rtree_node_base {
 typedef struct rtree_node {
 	rtree_node_base_t base;
 
+#pragma GCC diagnostic ignored "-Wpedantic"
 	// the list of children of this node
 	rtree_node_base_t* children[];
+#pragma GCC diagnostic pop
 } rtree_node_t;
 
 // forward declare for rtree_el
@@ -75,8 +77,10 @@ typedef struct rtree_el {
 typedef struct rtree_leaf {
 	rtree_node_base_t base;
 
+#pragma GCC diagnostic ignored "-Wpedantic"
 	// the list of elements of this node
 	rtree_el_t* elements[];
+#pragma GCC diagnostic pop
 } rtree_leaf_t;
 
 
