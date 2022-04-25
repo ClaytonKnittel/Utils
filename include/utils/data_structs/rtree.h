@@ -51,6 +51,7 @@ typedef struct rtree_node_base {
 typedef struct rtree_node {
 	rtree_node_base_t base;
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 	// the list of children of this node
 	rtree_node_base_t* children[];
@@ -77,6 +78,7 @@ typedef struct rtree_el {
 typedef struct rtree_leaf {
 	rtree_node_base_t base;
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 	// the list of elements of this node
 	rtree_el_t* elements[];
