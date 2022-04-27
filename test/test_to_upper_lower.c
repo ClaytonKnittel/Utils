@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,14 +26,16 @@ void gen_rand_str(char* rand_str, uint64_t len) {
 
 void __attribute__((noinline)) naive_to_upper(char* s, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		int8_t rotated = s[i];
+		//s[i] = toupper(s[i]);
+		s[i] = (s[i] >= 'a' && s[i] <= 'z') ? (s[i] + ('A' - 'a')) : s[i];
+		/*int8_t rotated = s[i];
 		rotated += 0x05;
 		rotated &= 0x7f;
 		rotated += 0x1a;
 		rotated &= ~s[i];
 		rotated >>= 2;
 		rotated &= 0xe0;
-		s[i] += rotated;
+		s[i] += rotated;*/
 	}
 }
 
