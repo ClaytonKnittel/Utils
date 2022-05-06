@@ -62,16 +62,6 @@ list(FILTER C_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
 list(FILTER CXX_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
 list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
 
-if(${BUILD_SHARED_LIBRARY})
-	add_library(utils SHARED
-		${C_SRC} ${CXX_SRC} ${ASM_SRC}
-	)
-else()
-	add_library(utils STATIC
-		${C_SRC} ${CXX_SRC} ${ASM_SRC}
-	)
-endif()
-
 if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64")
 	enable_language(ASM)
 	if(CMAKE_ASM_COMPILER_WORKS)
@@ -83,14 +73,6 @@ if(NOT can_use_assembler)
 	message(SEND_ERROR "No assembler found")
 endif()
 
-target_compile_options(utils PRIVATE
-	$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Wpedantic -Wall -Wextra
-	-Wno-unused-function -Wno-format -Wno-format-pedantic
-	-march=native -mtune=native>
-)
-target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
-target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi -Wno-c99-extensions>)
-
 if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
 	set(ASM_OPTIONS -Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg)
 elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
@@ -98,8 +80,6 @@ elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
 else()
 	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM_COMPILER_ID})")
 endif()
-
-target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:${ASM_OPTIONS}>)
 
 if("${ENABLE_AVX}" MATCHES "CHECK")
 	set(OLD_CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
@@ -135,6 +115,45 @@ else()
 	message(SEND_ERROR "ENABLE_AVX must be one of \"ON\", \"OFF\", or \"CHECK\"")
 endif()
 
+if (NOT ${AVX_SUPPORTED})
+	list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/*_avx.s")
+endif()
+
+if(${BUILD_SHARED_LIBRARY})
+	add_library(utils SHARED
+		${C_SRC} ${CXX_SRC} ${ASM_SRC}
+	)
+else()
+	add_library(utils STATIC
+		${C_SRC} ${CXX_SRC} ${ASM_SRC}
+	)
+endif()
+
+target_compile_options(utils PRIVATE
+	$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Wpedantic -Wall -Wextra
+	-Wno-unused-function -Wno-format -Wno-format-pedantic
+	-march=native -mtune=native>
+)
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi -Wno-c99-extensions>)
+
+target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:${ASM_OPTIONS}>)
+
+if (${ENABLE_TESTING})
+	target_compile_definitions(utils
+		PRIVATE DO_TESTING
+		PUBLIC DEBUG
+	)
+elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+	target_compile_definitions(utils
+		PUBLIC DEBUG
+	)
+endif()
+
+if (${AVX_SUPPORTED})
+	target_compile_definitions(utils PUBLIC AVX_SUPPORTED)
+endif()
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
 
@@ -143,16 +162,6 @@ if (COMPILER_SUPPORTS_CXX17)
 else()
 	message(SEND_ERROR "The compiler ${CMAKE_CXX_COMPILER} does not support "
 		"c++17, please use a different compiler")
-endif()
-
-if (${ENABLE_TESTING})
-	target_compile_definitions(utils PRIVATE DO_TESTING DEBUG)
-elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
-	target_compile_definitions(utils PRIVATE DEBUG)
-endif()
-
-if (${AVX_SUPPORTED})
-	target_compile_definitions(utils PUBLIC AVX_SUPPORTED)
 endif()
 
 target_include_directories(utils

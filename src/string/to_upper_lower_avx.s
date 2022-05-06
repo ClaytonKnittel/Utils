@@ -1,5 +1,5 @@
-.global _to_upper_osx
-.global _to_lower_osx
+.global _to_upper_avx
+.global _to_lower_avx
 
 .data
 # align by 32 bytes for vmovdqa read
@@ -36,7 +36,7 @@ upper_to_lower:
 	.quad 0x2020202020202020
 
 .text
-_to_upper_osx:
+_to_upper_avx:
 	test rsi, rsi
 	je _up_return
 
@@ -142,7 +142,7 @@ _up_return:
 	ret
 
 
-_to_lower_osx:
+_to_lower_avx:
 	test rsi, rsi
 	je _lo_return
 
