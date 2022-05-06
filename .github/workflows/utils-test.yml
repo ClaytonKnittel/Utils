@@ -62,7 +62,6 @@ jobs:
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBRARY=ON
         make
-        objdump -D libutils.a --demangle --syms
     - name: Run Unit Tests
       working-directory: utils/build
       if: matrix.os == 'macos-latest'
