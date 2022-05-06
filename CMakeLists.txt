@@ -151,6 +151,10 @@ elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
 	target_compile_definitions(utils PRIVATE DEBUG)
 endif()
 
+if $({AVX_SUPPORTED})
+	target_compile_definitions(utils PUBLIC AVX_SUPPORTED)
+endif()
+
 target_include_directories(utils
 	PRIVATE
 		$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:${PROJECT_SOURCE_DIR}/include>
