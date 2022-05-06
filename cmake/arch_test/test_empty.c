@@ -2,12 +2,15 @@
  * Used to test support for certain assembly instruction types.
  */
 
-extern void test_avx();
+extern int test_avx();
 
 int
 main()
 {
-	test_avx();
+	if (test_avx() != 0) {
+		return -1;
+	}
+
 	return 0;
 }
 
