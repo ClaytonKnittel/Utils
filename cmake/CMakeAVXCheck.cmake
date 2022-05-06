@@ -17,7 +17,7 @@ if("${ENABLE_AVX}" MATCHES "CHECK")
 		RUN_OUTPUT_VARIABLE ROUT)
 
 	message("${COUT}")
-	message("${ROUT}")
+	message("rout: ${ROUT}")
 
 	set(CMAKE_ASM_FLAGS "${OLD_CMAKE_ASM_FLAGS}")
 	unset(OLD_CMAKE_ASM_FLAGS)
