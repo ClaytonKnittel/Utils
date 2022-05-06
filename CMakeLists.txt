@@ -111,7 +111,7 @@ if("${ENABLE_AVX}" MATCHES "CHECK")
 		${PROJECT_SOURCE_DIR}/src/arch_test/test_empty.c)
 
 	if (AVX_SUPPORTED)
-		message(VERBOSE "AVX is supported on this architecture/compiler config")
+		message(STATUS "AVX is supported on this architecture/compiler config")
 	else()
 		message(WARNING "AVX is not supported on this architecture/compiler config")
 	endif()
