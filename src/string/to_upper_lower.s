@@ -3,7 +3,7 @@
 
 .data
 # align by 32 bytes for vmovdqa read
-.align 5
+.balign 32
 # to shift all lowercase letters to the highest signed-byte range
 upper_offset_array:
 	.quad 0x0505050505050505
