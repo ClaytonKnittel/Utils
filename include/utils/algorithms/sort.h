@@ -25,7 +25,7 @@ static constexpr const int CONST_SORT_MAX = 16;
  * if t1 <= t2, does nothing, otherwise swaps t1 and t2
  */
 template<typename T>
-void __sort_swap(T & t1, T & t2) {
+void __sort_swap(T& t1, T& t2) {
 	T m = std::max(t1, t2);
 	T n = std::min(t1, t2);
 	t1 = n;

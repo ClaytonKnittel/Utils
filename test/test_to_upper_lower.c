@@ -12,43 +12,22 @@
 
 #include "test_utils.h"
 
-#ifdef __APPLE__
-
 void gen_rand_str(char* rand_str, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		//rand_str[i] = rand() % 127 + 1;
 		rand_str[i] = rand() % 95 + 32;
-		//rand_str[i] = i % 95 + 32;
-		//rand_str[i] = rand() % 26 + 'a';
 	}
 	rand_str[len] = '\0';
 }
 
 void __attribute__((noinline)) naive_to_upper(char* s, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		//s[i] = toupper(s[i]);
 		s[i] = (s[i] >= 'a' && s[i] <= 'z') ? (s[i] + ('A' - 'a')) : s[i];
-		/*int8_t rotated = s[i];
-		rotated += 0x05;
-		rotated &= 0x7f;
-		rotated += 0x1a;
-		rotated &= ~s[i];
-		rotated >>= 2;
-		rotated &= 0xe0;
-		s[i] += rotated;*/
 	}
 }
 
 void __attribute__((noinline)) naive_to_lower(char* s, uint64_t len) {
 	for (uint64_t i = 0; i < len; i++) {
-		uint8_t rotated = s[i];
-		rotated += 0x25;
-		rotated &= 0x7f;
-		rotated += 0x1a;
-		rotated &= ~s[i];
-		rotated >>= 2;
-		rotated &= 0x20;
-		s[i] += rotated;
+		s[i] = (s[i] >= 'A' && s[i] <= 'Z') ? (s[i] + ('a' - 'A')) : s[i];
 	}
 }
 
@@ -292,15 +271,4 @@ test_to_upper_lower()
 
 	return s;
 }
-
-#else
-
-Suite*
-test_to_upper_lower()
-{
-	Suite* s = suite_create("To upper/lower");
-	return s;
-}
-
-#endif /* __APPLE__ */
 

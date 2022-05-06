@@ -221,18 +221,18 @@ START_TEST(test_const_sort_16)
 END_TEST
 
 
-START_TEST(test_64)
+/*START_TEST(test_64)
 {
 	run_csort_test(64);
 }
-END_TEST
+END_TEST*/
 
 
 Suite*
 test_sort_cc()
 {
 	TCase* tc_const;
-	TCase* tc_large;
+	//TCase* tc_large;
 
 	Suite* s = suite_create("Sort C++");
 
@@ -254,9 +254,9 @@ test_sort_cc()
 	tcase_add_test(tc_const, test_const_sort_16);
 	suite_add_tcase(s, tc_const);
 
-	tc_large = tcase_create("Large");
+	/*tc_large = tcase_create("Large");
 	tcase_add_test(tc_const, test_64);
-	suite_add_tcase(s, tc_large);
+	suite_add_tcase(s, tc_large);*/
 
 	return s;
 }
