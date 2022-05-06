@@ -65,6 +65,7 @@ jobs:
         objdump -D libutils.a --demangle --syms
     - name: Run Unit Tests
       working-directory: utils/build
+      if: matrix.os == 'macos-latest'
       run: |
         lldb test/utils_unit_testing -o run
         make run_tests
