@@ -66,4 +66,5 @@ jobs:
     - name: Run Unit Tests
       working-directory: utils/build
       run: |
+        lldb test/utils_unit_testing -o run
         make run_tests
