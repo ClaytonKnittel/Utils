@@ -62,6 +62,7 @@ jobs:
         mkdir build && cd build
         cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
         make
+        objdump -D libutils.a --demangle --syms
     - name: Run Unit Tests
       working-directory: utils/build
       run: |
