@@ -60,7 +60,7 @@ jobs:
       working-directory: utils
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBRARY=OFF
         make
         objdump -D libutils.a --demangle --syms
     - name: Run Unit Tests
