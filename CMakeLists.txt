@@ -58,9 +58,9 @@ file(GLOB_RECURSE ASM_SRC
 )
 
 # remove test_empty.c
-list(FILTER C_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
-list(FILTER CXX_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
-list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/*")
+list(FILTER C_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/.*")
+list(FILTER CXX_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/.*")
+list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/arch_test/.*")
 
 if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64")
 	enable_language(ASM)
@@ -90,19 +90,16 @@ if("${ENABLE_AVX}" MATCHES "CHECK")
 		${PROJECT_SOURCE_DIR}/src/arch_test/test_avx.s
 		${PROJECT_SOURCE_DIR}/src/arch_test/test_empty.c)
 
-	if (AVX_SUPPORTED)
-		message(STATUS "AVX is supported on this architecture/compiler config")
-	else()
-		message(WARNING "AVX is not supported on this architecture/compiler config")
-	endif()
 	set(CMAKE_ASM_FLAGS "${OLD_CMAKE_ASM_FLAGS}")
 	unset(OLD_CMAKE_ASM_FLAGS)
 
 	if(${AVX_SUPPORTED})
+		message(STATUS "AVX is supported on this architecture/compiler config")
 		set(ENABLE_AVX "ON" CACHE STRING "When enabled, builds certain methods using the
 			AVX instruction set. Can disable this manually, but AVX support is
 			automatically checked." FORCE)
 	else()
+		message(WARNING "AVX is not supported on this architecture/compiler config")
 		set(ENABLE_AVX "OFF" CACHE STRING "When enabled, builds certain methods using the
 			AVX instruction set. Can disable this manually, but AVX support is
 			automatically checked." FORCE)
@@ -115,8 +112,8 @@ else()
 	message(SEND_ERROR "ENABLE_AVX must be one of \"ON\", \"OFF\", or \"CHECK\"")
 endif()
 
-if (NOT ${AVX_SUPPORTED})
-	list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/*_avx.s")
+if (NOT AVX_SUPPORTED)
+	list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/.+_avx.s")
 endif()
 
 if(${BUILD_SHARED_LIBRARY})
