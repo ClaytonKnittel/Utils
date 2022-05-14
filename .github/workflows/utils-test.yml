@@ -60,7 +60,7 @@ jobs:
       working-directory: utils
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBRARY=ON
+        cmake .. -DCMAKE_BUILD_TYPE=RelWithDebugInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON
         make
     - name: Run Unit Tests
       working-directory: utils/build

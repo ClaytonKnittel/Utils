@@ -33,7 +33,7 @@ project(utils VERSION 0.1)
 # Options
 ############################################################
 
-set(BUILD_SHARED_LIBRARY ON CACHE BOOL "When enabled, builds libutils as a
+set(BUILD_SHARED_LIBS ON CACHE BOOL "When enabled, builds libutils as a
 	shared library, otherwise building as a static library")
 set(ENABLE_TESTING OFF CACHE BOOL "When enabled, build all unit tests. The
 	unit tests can then be run from within the build directory with
@@ -84,7 +84,7 @@ if (NOT AVX_SUPPORTED)
 	list(FILTER ASM_SRC EXCLUDE REGEX "^${PROJECT_SOURCE_DIR}/src/.+_avx.s")
 endif()
 
-if(${BUILD_SHARED_LIBRARY})
+if(${BUILD_SHARED_LIBS})
 	add_library(utils SHARED
 		${C_SRC} ${CXX_SRC} ${ASM_SRC}
 	)
@@ -160,7 +160,7 @@ endif()
 ############################################################
 
 # Library
-if(${BUILD_SHARED_LIBRARY})
+if(${BUILD_SHARED_LIBS})
 	install(TARGETS utils LIBRARY DESTINATION lib)
 else()
 	install(TARGETS utils ARCHIVE DESTINATION lib)
