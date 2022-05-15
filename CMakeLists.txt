@@ -130,9 +130,9 @@ else()
 endif()
 
 target_include_directories(utils
-	PRIVATE
+	PUBLIC
 		$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:${PROJECT_SOURCE_DIR}/include>
-	PUBLIC "/usr/local/include"
+		"/usr/local/include"
 )
 
 if (${ENABLE_TESTING})
