@@ -5,17 +5,25 @@ set(ENABLE_AVX "CHECK" CACHE STRING "When enabled, builds certain methods using 
 	AVX instruction set. Can disable this manually, but AVX support is
 	automatically checked.")
 
+if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
+	set(AVX_CHECK_ASM_OPTIONS -Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg)
+elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
+	set(AVX_CHECK_ASM_OPTIONS -masm=intel)
+else()
+	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM_COMPILER_ID})")
+endif()
+
 if("${ENABLE_AVX}" MATCHES "CHECK")
-	set(OLD_CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
-	set(CMAKE_ASM_FLAGS "${ASM_OPTIONS}")
+	set(AVX_CHECK_OLD_CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
+	set(CMAKE_ASM_FLAGS "${AVX_CHECK_ASM_OPTIONS}")
 
 	# check to see if this architecture supports AVX
 	try_run(AVX_RES AVX_COMPILES ${CMAKE_CURRENT_BINARY_DIR} SOURCES
 		${CMAKE_CURRENT_LIST_DIR}/arch_test/test_avx.s
 		${CMAKE_CURRENT_LIST_DIR}/arch_test/test_empty.c)
 
-	set(CMAKE_ASM_FLAGS "${OLD_CMAKE_ASM_FLAGS}")
-	unset(OLD_CMAKE_ASM_FLAGS)
+	set(CMAKE_ASM_FLAGS "${AVX_CHECK_OLD_CMAKE_ASM_FLAGS}")
+	unset(AVX_CHECK_OLD_CMAKE_ASM_FLAGS)
 
 	if(NOT ${AVX_COMPILES})
 		set(AVX_SUPPORTED OFF)
