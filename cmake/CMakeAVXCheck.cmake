@@ -12,12 +12,7 @@ if("${ENABLE_AVX}" MATCHES "CHECK")
 	# check to see if this architecture supports AVX
 	try_run(AVX_RES AVX_COMPILES ${CMAKE_CURRENT_BINARY_DIR} SOURCES
 		${CMAKE_CURRENT_LIST_DIR}/arch_test/test_avx.s
-		${CMAKE_CURRENT_LIST_DIR}/arch_test/test_empty.c
-		COMPILE_OUTPUT_VARIABLE COUT
-		RUN_OUTPUT_VARIABLE ROUT)
-
-	message("${COUT}")
-	message("rout: ${ROUT}")
+		${CMAKE_CURRENT_LIST_DIR}/arch_test/test_empty.c)
 
 	set(CMAKE_ASM_FLAGS "${OLD_CMAKE_ASM_FLAGS}")
 	unset(OLD_CMAKE_ASM_FLAGS)
