@@ -170,13 +170,15 @@ endif()
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
     DESTINATION include)
 
-# make uninstall
-add_custom_target("uninstall_utils" COMMENT "Uninstall installed files")
-add_custom_command(
-    TARGET "uninstall_utils"
-    POST_BUILD
-    COMMENT "Uninstall files with install_manifest.txt"
-    COMMAND xargs rm -vf < install_manifest.txt || echo Nothing in
-            install_manifest.txt to be uninstalled!
-)
+if (NOT TARGET uninstall)
+	# make uninstall
+	add_custom_target("uninstall" COMMENT "Uninstall installed files")
+	add_custom_command(
+		TARGET "uninstall"
+		POST_BUILD
+		COMMENT "Uninstall files with install_manifest.txt"
+		COMMAND xargs rm -vf < install_manifest.txt || echo Nothing in
+		install_manifest.txt to be uninstalled!
+	)
+endif()
 
