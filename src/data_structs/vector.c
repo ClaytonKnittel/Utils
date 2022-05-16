@@ -27,6 +27,13 @@ vector_free(vector_t* v)
 }
 
 
+uint64_t
+vector_size(const vector_t* v)
+{
+	return v->len;
+}
+
+
 static inline int
 _increase_capacity(vector_t* v)
 {
@@ -72,7 +79,13 @@ vector_reserve(vector_t* v)
 }
 
 void
-vector_pop(vector_t* v, void* dst_el)
+vector_pop(vector_t* v)
+{
+	v->len--;
+}
+
+void
+vector_pop_el(vector_t* v, void* dst_el)
 {
 	v->len--;
 	memcpy(dst_el, (((uint8_t*) v->data) + v->el_size * v->len), v->el_size);
