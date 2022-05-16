@@ -1,5 +1,6 @@
 
 #include <utils/data_structs/rbtree.h>
+#include <utils/data_structs/rbtree_defaults.h>
 
 #include "test_utils.h"
 
@@ -131,6 +132,22 @@ START_TEST(test_basic)
         rb_remove_int(&tree, vals[i]);
         rb_validate_int(&tree);
     }
+
+	idx = 0;
+	rb_for_each_mod(&tree, _node) {
+		rb_int_node_t* node = (rb_int_node_t*) _node;
+
+		uint64_t true_idx = idx + (idx + 1) / 2;
+		ck_assert(inodes[true_idx] == node);
+		ck_assert(vals[true_idx] == node->val);
+
+		rb_remove_int(&tree, vals[true_idx]);
+
+		idx++;
+	}
+	rb_for_each_mod_fin();
+
+	ck_assert_int_eq(tree.size, 0);
 
 	rb_free(&tree);
 }

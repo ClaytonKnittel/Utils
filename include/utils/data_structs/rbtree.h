@@ -325,6 +325,9 @@ rb_node_t* rb_find_succ(rb_node_t *node);
 rb_node_t* rb_find_pred(rb_node_t *node);
 
 
+/*
+ * Iterators over the elements of a red-black tree.
+ */
 #define rb_for_each(tree, node) \
 	for ((node) = rb_find_leftmost((tree)); (node) != LEAF; \
 			(node) = rb_find_succ(node))
@@ -332,6 +335,35 @@ rb_node_t* rb_find_pred(rb_node_t *node);
 #define rb_for_each_rev(tree, node) \
 	for ((node) = rb_find_rightmost((tree)); (node) != LEAF; \
 			(node) = rb_find_pred(node))
+
+/*
+ * Iterators over the elements of a red-black tree that is safe if the elements
+ * are concurrently modified (but not if other elements in the tree are
+ * removed).
+ */
+#define rb_for_each_mod(tree, node) \
+	do { \
+		(node) = rb_find_leftmost((tree)); \
+		for (rb_node_t* __rb_succ_ ## node = rb_find_succ(node); \
+				(node) != LEAF; \
+				(node) = __rb_succ_ ## node, \
+				__rb_succ_ ## node = (__rb_succ_ ## node == LEAF ? LEAF : \
+					rb_find_succ(__rb_succ_ ## node)))
+
+#define rb_for_each_mod_fin() \
+	} while(0)
+
+#define rb_for_each_mod_rev(tree, node) \
+	do { \
+		(node) = rb_find_rightmost((tree)); \
+		for (rb_node_t* __rb_pred_ ## node = rb_find_pred(node); \
+				(node) != LEAF; \
+				(node) = __rb_pred_ ## node, \
+				__rb_pred_ ## node = (__rb_pred_ ## node == LEAF ? LEAF : \
+					rb_find_pred(__rb_succ_ ## node)))
+
+#define rb_for_each_mod_rev_fin() \
+	} while(0)
 
 
 void rb_print(struct __int_rb_tree *tree);
