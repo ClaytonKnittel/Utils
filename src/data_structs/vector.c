@@ -56,6 +56,21 @@ vector_push(vector_t* v, void* el)
 	return 0;
 }
 
+void*
+vector_reserve(vector_t* v)
+{
+	if (v->len == v->capacity) {
+		int res = _increase_capacity(v);
+		if (res != 0) {
+			return NULL;
+		}
+	}
+
+	void* el = (void*) (((uint8_t*) v->data) + v->el_size * v->len);
+	v->len++;
+	return el;
+}
+
 void
 vector_pop(vector_t* v, void* dst_el)
 {
