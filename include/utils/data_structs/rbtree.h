@@ -344,7 +344,8 @@ rb_node_t* rb_find_pred(rb_node_t *node);
 #define rb_for_each_mod(tree, node) \
 	do { \
 		(node) = rb_find_leftmost((tree)); \
-		for (rb_node_t* __rb_succ_ ## node = rb_find_succ(node); \
+		for (rb_node_t* __rb_succ_ ## node = ((node) == LEAF ? LEAF : \
+					rb_find_succ(node)); \
 				(node) != LEAF; \
 				(node) = __rb_succ_ ## node, \
 				__rb_succ_ ## node = (__rb_succ_ ## node == LEAF ? LEAF : \
@@ -356,7 +357,8 @@ rb_node_t* rb_find_pred(rb_node_t *node);
 #define rb_for_each_mod_rev(tree, node) \
 	do { \
 		(node) = rb_find_rightmost((tree)); \
-		for (rb_node_t* __rb_pred_ ## node = rb_find_pred(node); \
+		for (rb_node_t* __rb_pred_ ## node = ((node) == LEAF ? LEAF : \
+					rb_find_pred(node)); \
 				(node) != LEAF; \
 				(node) = __rb_pred_ ## node, \
 				__rb_pred_ ## node = (__rb_pred_ ## node == LEAF ? LEAF : \

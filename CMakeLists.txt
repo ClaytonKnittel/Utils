@@ -115,6 +115,18 @@ elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
 	)
 endif()
 
+if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_SUPPORT_CHECK_OUTPUT LANGUAGES C;CXX)
+
+	if (NOT IPO_SUPPORTED)
+		message(WARNING "Interprocedural optimization not supported: ${IPO_SUPPORT_CHECK_OUTPUT}")
+	else()
+		# enable link-time optimization
+		set_property(TARGET utils PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+	endif()
+endif()
+
 if (${AVX_SUPPORTED})
 	target_compile_definitions(utils PUBLIC AVX_SUPPORTED)
 endif()

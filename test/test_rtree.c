@@ -349,7 +349,7 @@ _foreach_10000_cb(const rtree_el_t* el, void* udata, const rtree_t* tree)
 	ck_assert_ptr_ne(found_el, NULL);
 	ASSERT_RECT_EQ(&(*found_el)->bb, &el->bb);
 
-	uint64_t idx = (((ptr_int_t) found_el) - ((ptr_int_t) el_ptrs)) / sizeof(rtree_el_t*);
+	uint64_t idx = (((intptr_t) found_el) - ((intptr_t) el_ptrs)) / sizeof(rtree_el_t*);
 	ck_assert_int_eq(found_els[idx], 0);
 	found_els[idx] = 0xff;
 

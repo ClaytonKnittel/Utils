@@ -142,6 +142,7 @@ START_TEST(test_basic)
 		ck_assert(vals[true_idx] == node->val);
 
 		rb_remove_int(&tree, vals[true_idx]);
+		memset(inodes[true_idx], 0, sizeof(*inodes[true_idx]));
 
 		idx++;
 	}

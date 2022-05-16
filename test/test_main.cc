@@ -10,6 +10,7 @@ Suite* test_irbtree();
 Suite* test_min_heap();
 Suite* test_prime_factor_list();
 Suite* test_rbtree();
+Suite* test_rect_packing();
 Suite* test_rtree();
 Suite* test_sort();
 Suite* test_to_upper_lower();
@@ -36,6 +37,7 @@ int main()
 	srunner_add_suite(sr, test_min_heap());
 	srunner_add_suite(sr, test_prime_factor_list());
 	srunner_add_suite(sr, test_rbtree());
+	srunner_add_suite(sr, test_rect_packing());
 	srunner_add_suite(sr, test_rtree());
 	srunner_add_suite(sr, test_sort());
 	srunner_add_suite(sr, test_to_upper_lower());

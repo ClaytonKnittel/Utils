@@ -25,61 +25,68 @@ typedef struct packed_rect_el {
 	packed_rect_coord_t lx;
 	packed_rect_coord_t ly;
 
-	// True if this is an empty rectangle placeholder.
-	bool empty;
-	// True if the rectangle is rotated 90 degrees.
-	bool rotated;
 	// The index of the bin this rectangle is packed into.
 	uint32_t bin_idx;
+	// True if the rectangle is rotated 90 degrees.
+	bool rotated;
 
 	// The width and height of the rectangle are fixed when the rectangle is
 	// inserted.
 	packed_rect_coord_t w;
 	packed_rect_coord_t h;
 
-	// Pointer to the packed_rect_row this rect is in.
-	struct packed_rect_row* row;
-
 	union {
-		// Pointer to user-defined type pertaining to this packed element. Only
-		// defined when !empty.
-		void* udata;
+		struct {
+			// Pointer to user-defined type pertaining to this packed element.
+			// Only defined when !empty.
+			void* udata;
 
-		// Pointer to the next free packed rect element in this row, or NULL if
-		// it is the last free element. Only defined when empty.
-		struct packed_rect_el* next;
+			// Pointer to the packed_rect_row this rect is in. Not needed when
+			// empty.
+			struct packed_rect_row* parent_row;
+		};
+
+		struct {
+			// Pointer to the next and previous free packed rect element in this
+			// row. Only defined when empty.
+			struct packed_rect_el* next;
+			struct packed_rect_el* prev;
+		};
 	};
 } packed_rect_el_t;
 
-_Static_assert(offsetof(packed_rect_el_t, lx) == offsetof(rb_uint_node_t, val),
-		"Expect packed_rect_el_t to alias rb_uint_node with val == lx");
-
 typedef struct packed_rect_row {
-	// packed_rect_row's are stored in a red-black tree sorted by their height
-	rb_node_t rb_node_base;
+	// Red-black tree of packed_rect_row's sorted by their height.
+	rb_node_t rb_node_base_height;
 
-	// The height of this row (width always equals bin width).
-	packed_rect_coord_t h;
+	// Red-black tree of packed_rect_row's sorted by their lower y-coordinate.
+	rb_node_t rb_node_base_ly;
 
 	// The lower y-coordinate of this row (x is always 0).
 	packed_rect_coord_t ly;
+	// The height of this row (width always equals bin width).
+	packed_rect_coord_t h;
 
 	// A tree of the packed_rect_el's in this row, ordered from lowest to
 	// highest lx coordinate.
 	rb_tree_t elements;
 
-	// Pointer to the first empty packed rect el in the list of elements.
-	packed_rect_el_t* empty_list;
+	// Pointers to the first and last empty packed rect el in the list of
+	// elements.
+	// TODO test if sorting by width or placing in rb tree increases perf for
+	// best-fit.
+	packed_rect_el_t* freelist_start;
+	packed_rect_el_t* freelist_end;
 
 	// Pointer to the packed_rect_bin this row is in.
-	struct packed_rect_bin* bin;
+	struct packed_rect_bin* parent_bin;
 } packed_rect_row_t;
 
-_Static_assert(offsetof(packed_rect_row_t, h) == offsetof(rb_uint_node_t, val),
-		"Expect packed_rect_row_t to alias rb_uint_node with val == h");
-
 typedef struct packed_rect_bin {
-	rb_tree_t rows;
+	// Red-black tree of the rows of this bin sorted by height.
+	rb_tree_t rows_height;
+	// Red-black tree of the rows of this bin sorted by lower y-coordinate.
+	rb_tree_t rows_ly;
 } packed_rect_bin_t;
 
 
@@ -88,6 +95,7 @@ typedef struct rect_packing {
 	packed_rect_coord_t bin_w;
 	packed_rect_coord_t bin_h;
 
+	// The list of bins being used. This list should ideally not get very large.
 	vector_t bin_list;
 } rect_packing_t;
 
@@ -100,5 +108,7 @@ packed_rect_el_t* rect_packing_insert(rect_packing_t*, packed_rect_coord_t w,
 		packed_rect_coord_t h, void* udata);
 
 void rect_packing_remove(rect_packing_t*, packed_rect_el_t* el);
+
+void rect_packing_validate(const rect_packing_t*);
 
 #endif /* _RECT_PACKING_H */
