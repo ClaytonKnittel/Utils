@@ -16,30 +16,27 @@
 typedef uint64_t packed_rect_coord_t;
 
 typedef struct packed_rect_el {
-	// packed_rect_el's are stored in a red-black tree within their row sorted
-	// by their lx coordinate.
-	rb_node_t rb_node_base;
 
-	// The coordinates of the lower-left side of the rectangle in the bin it is
+	// The x-coordinate of the lower-left side of the rectangle in the bin it is
 	// placed.
 	packed_rect_coord_t lx;
-	packed_rect_coord_t ly;
 
-	// The index of the bin this rectangle is packed into.
-	uint32_t bin_idx;
-	// True if the rectangle is rotated 90 degrees.
-	bool rotated;
-
-	// The width and height of the rectangle are fixed when the rectangle is
-	// inserted.
+	// The width of the rectangle.
 	packed_rect_coord_t w;
-	packed_rect_coord_t h;
 
 	union {
+		// Struct containing information about allocated rect entries.
 		struct {
-			// Pointer to user-defined type pertaining to this packed element.
-			// Only defined when !empty.
-			void* udata;
+			// y-coordinate of the lower-left side of the rectangle.
+			packed_rect_coord_t ly;
+			// The height of the rectangle.
+			packed_rect_coord_t h;
+
+			// True if the rectangle is rotated 90 degrees.
+			bool rotated;
+
+			// The index of the bin this rectangle is packed into.
+			uint32_t bin_idx;
 
 			// Pointer to the packed_rect_row this rect is in. Not needed when
 			// empty.
@@ -47,6 +44,10 @@ typedef struct packed_rect_el {
 		};
 
 		struct {
+			// packed_rect_el's are stored in a red-black tree within their row sorted
+			// by their lx coordinate.
+			rb_node_t rb_node_base;
+
 			// Pointer to the next and previous free packed rect element in this
 			// row. Only defined when empty.
 			struct packed_rect_el* next;
@@ -83,8 +84,6 @@ typedef struct packed_rect_row {
 } packed_rect_row_t;
 
 typedef struct packed_rect_bin {
-	// Red-black tree of the rows of this bin sorted by height.
-	rb_tree_t rows_height;
 	// Red-black tree of the rows of this bin sorted by lower y-coordinate.
 	rb_tree_t rows_ly;
 } packed_rect_bin_t;
@@ -97,6 +96,9 @@ typedef struct rect_packing {
 
 	// The list of bins being used. This list should ideally not get very large.
 	vector_t bin_list;
+
+	// Red-black tree of the rows of all bins sorted by height.
+	rb_tree_t rows_height;
 } rect_packing_t;
 
 
@@ -105,7 +107,7 @@ int rect_packing_init(rect_packing_t*, packed_rect_coord_t bin_w,
 void rect_packing_free(rect_packing_t*);
 
 packed_rect_el_t* rect_packing_insert(rect_packing_t*, packed_rect_coord_t w,
-		packed_rect_coord_t h, void* udata);
+		packed_rect_coord_t h);
 
 void rect_packing_remove(rect_packing_t*, packed_rect_el_t* el);
 

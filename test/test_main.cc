@@ -32,7 +32,8 @@ int main()
 	int number_failed;
 	SRunner *sr;
 
-	sr = srunner_create(test_int_set());
+	sr = srunner_create(test_rect_packing());
+	/*sr = srunner_create(test_int_set());
 	srunner_add_suite(sr, test_irbtree());
 	srunner_add_suite(sr, test_min_heap());
 	srunner_add_suite(sr, test_prime_factor_list());
@@ -49,7 +50,7 @@ int main()
 	srunner_add_suite(sr, test_prime_factor_list_cc());
 	srunner_add_suite(sr, test_rbtree_cc());
 	srunner_add_suite(sr, test_rtree_cc());
-	srunner_add_suite(sr, test_sort_cc());
+	srunner_add_suite(sr, test_sort_cc());*/
 
 	srunner_set_fork_status(sr, CK_NOFORK);
 
