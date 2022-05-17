@@ -10,11 +10,14 @@
  *                  Forward Declarations                  *
  **********************************************************/
 
+static packed_rect_el_t* _node_base_to_el(const rb_node_t*);
+
+static packed_rect_row_t* _node_base_height_to_row(const rb_node_t*);
+static packed_rect_row_t* _node_base_ly_to_row(const rb_node_t*);
 static packed_rect_el_t* _row_freelist_terminal(const packed_rect_row_t* row);
 static void _row_freelist_insert(packed_rect_el_t* after, packed_rect_el_t* el);
 static void _row_freelist_remove(packed_rect_el_t* el);
 static void _row_remove(packed_rect_row_t* row, packed_rect_el_t* el);
-static void _row_add(packed_rect_row_t* row, packed_rect_el_t* el);
 
 
 /**********************************************************
@@ -24,8 +27,8 @@ static void _row_add(packed_rect_row_t* row, packed_rect_el_t* el);
 static int
 _rb_cmp_packed_rect_el(const rb_node_t* a_ptr, const rb_node_t* b_ptr)
 {
-	const packed_rect_el_t* a = (const packed_rect_el_t*) a_ptr;
-	const packed_rect_el_t* b = (const packed_rect_el_t*) b_ptr;
+	const packed_rect_el_t* a = _node_base_to_el(a_ptr);
+	const packed_rect_el_t* b = _node_base_to_el(b_ptr);
 	return a->lx < b->lx ? -1 : a->lx == b->lx ? 0 : 1;
 }
 
@@ -34,8 +37,8 @@ RB_DEFINE_TYPE(packed_rect_el, _rb_cmp_packed_rect_el)
 static int
 _rb_cmp_packed_rect_row_height(const rb_node_t* a_ptr, const rb_node_t* b_ptr)
 {
-	const packed_rect_row_t* a = (const packed_rect_row_t*) a_ptr;
-	const packed_rect_row_t* b = (const packed_rect_row_t*) b_ptr;
+	const packed_rect_row_t* a = _node_base_height_to_row(a_ptr);
+	const packed_rect_row_t* b = _node_base_height_to_row(b_ptr);
 	return a->h < b->h ? -1 : a->h == b->h ? 0 : 1;
 }
 
@@ -44,8 +47,8 @@ RB_DEFINE_TYPE(packed_rect_row_height, _rb_cmp_packed_rect_row_height)
 static int
 _rb_cmp_packed_rect_row_ly(const rb_node_t* a_ptr, const rb_node_t* b_ptr)
 {
-	const packed_rect_row_t* a = (const packed_rect_row_t*) a_ptr;
-	const packed_rect_row_t* b = (const packed_rect_row_t*) b_ptr;
+	const packed_rect_row_t* a = _node_base_ly_to_row(a_ptr);
+	const packed_rect_row_t* b = _node_base_ly_to_row(b_ptr);
 	return a->ly < b->ly ? -1 : a->ly == b->ly ? 0 : 1;
 }
 
@@ -237,8 +240,6 @@ _row_remove(packed_rect_row_t* row, packed_rect_el_t* el)
 	rb_remove_packed_rect_el(&row->elements, &el->rb_node_base);
 }
 
-static void _row_add(packed_rect_row_t* row, packed_rect_el_t* el);
-
 /*
  * Finds the rectangle of smallest width greater or equal to the given width in
  * this row.
@@ -269,7 +270,7 @@ _split_el(rect_packing_t* packing, packed_rect_row_t* row, packed_rect_el_t* el,
 		first_el->w == packing->bin_w;
 
 	// if the element is tall enough, flip this rectangle on its side (w >= h).
-	if (row->h >= w) {
+	if (!row_was_empty && row->h >= w) {
 		packed_rect_coord_t tmp = w;
 		w = h;
 		h = tmp;
@@ -366,9 +367,7 @@ _free_bin(rect_packing_t* packing, packed_rect_bin_t* bin)
 {
 	rb_node_t* node_ptr;
 	rb_for_each_mod(&bin->rows_ly, node_ptr) {
-		packed_rect_row_t* row =
-			(packed_rect_row_t*) (((uint8_t*) node_ptr) -
-					offsetof(packed_rect_row_t, rb_node_base_ly));
+		packed_rect_row_t* row = _node_base_ly_to_row(node_ptr);
 
 		rb_remove_packed_rect_row_ly(&bin->rows_ly, node_ptr);
 		rb_remove_packed_rect_row_height(&packing->rows_height, &row->rb_node_base_height);
@@ -470,5 +469,38 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 	}
 
 	return NULL;
+}
+
+void
+rect_packing_validate(const rect_packing_t* packing)
+{
+	uint64_t n_rows = 0;
+	uint64_t bin_rows = 0;
+	uint64_t prev_h = 0;
+	rb_node_t* node;
+	rb_for_each((rb_tree_t*) &packing->rows_height, node) {
+		packed_rect_row_t* row = _node_base_height_to_row(node);
+
+		dbg_assert(prev_h <= row->h);
+		prev_h = row->h;
+		n_rows++;
+	}
+
+	for (uint64_t bin_idx = 0; bin_idx < vector_size(&packing->bin_list); bin_idx++) {
+		packed_rect_bin_t* bin =
+			(packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, bin_idx);
+		uint64_t prev_ly = -1lu;
+
+		rb_for_each((rb_tree_t*) &bin->rows_ly, node) {
+			packed_rect_row_t* row = _node_base_ly_to_row(node);
+
+			dbg_assert((int64_t) prev_ly < (int64_t) row->ly);
+			prev_ly = row->ly;
+
+			bin_rows++;
+		}
+	}
+
+	dbg_assert(bin_rows == n_rows);
 }
 

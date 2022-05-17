@@ -48,15 +48,21 @@ _print(const rect_packing_t* packing, packed_rect_el_t** els, uint64_t n_els)
 
 START_TEST(test_insert_one)
 {
-	const uint64_t N_ELS = 4;
+	const uint64_t N_ELS = 9;
 	packed_rect_el_t* els[N_ELS];
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10), 0);
+	rect_packing_validate(&packing);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
-		printf("INSERTING %llu\n", i);
-		els[i] = rect_packing_insert(&packing, 3, 4);
+		if (i < 6) {
+			els[i] = rect_packing_insert(&packing, 3, 4);
+		}
+		else {
+			els[i] = rect_packing_insert(&packing, 2, 2);
+		}
 		ck_assert_ptr_ne(els[i], NULL);
+		rect_packing_validate(&packing);
 	}
 	_print(&packing, els, N_ELS);
 

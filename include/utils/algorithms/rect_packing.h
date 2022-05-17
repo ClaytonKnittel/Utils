@@ -111,6 +111,10 @@ packed_rect_el_t* rect_packing_insert(rect_packing_t*, packed_rect_coord_t w,
 
 void rect_packing_remove(rect_packing_t*, packed_rect_el_t* el);
 
+#if defined(DO_TESTING) || defined(DEBUG)
+
 void rect_packing_validate(const rect_packing_t*);
+
+#endif
 
 #endif /* _RECT_PACKING_H */
