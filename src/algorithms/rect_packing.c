@@ -449,12 +449,14 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 
 	while (candidate_row_base != LEAF /*&& row->h < 2 * h*/) {
 		packed_rect_el_t* el = _row_find_fit(row, w);
-		uint64_t el_loss = _calc_el_loss(row, el, w, h);
 
-		if (el != NULL && (best_fit == NULL || best_loss > el_loss)) {
-			best_row = row;
-			best_fit = el;
-			best_loss = el_loss;
+		if (el != NULL) {
+			uint64_t el_loss = _calc_el_loss(row, el, w, h);
+			if (best_fit == NULL || best_loss > el_loss) {
+				best_row = row;
+				best_fit = el;
+				best_loss = el_loss;
+			}
 		}
 
 		candidate_row_base = rb_find_succ(candidate_row_base);
