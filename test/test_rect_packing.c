@@ -89,14 +89,14 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 	uint64_t* wh = malloc(2 * n_els * sizeof(uint64_t));
 
 	for (uint64_t i = 0; i < n_els; i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, 0);
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
 
 		wh[2 * i + 0] = el->h;
 		wh[2 * i + 1] = el->w;
 
 		rect_packing_remove(packing, el);
-		vector_remove(els, 0);
 	}
+	vector_clear(els);
 
 	csort_wh((__uint128_t*) wh, n_els);
 
@@ -150,11 +150,11 @@ END_TEST
 START_TEST(test_insert_many)
 {
 #define GEN_WH() \
-	uint64_t w = 24 + 8 * gen_rand_r(10); \
-	uint64_t h = w + 8 * ((int64_t) gen_rand_r(5) - 2)
+	uint64_t w = 3 + 1 * gen_rand_r(10); \
+	uint64_t h = w + 1 * ((int64_t) gen_rand_r(5) - 2)
 
 #define VERBOSE false
-#define DO_RESHUFFLE false
+#define DO_RESHUFFLE true
 
 #define N_ELS 20000000
 	vector_t els;
@@ -186,10 +186,15 @@ START_TEST(test_insert_many)
 	uint64_t size = vector_size(&els);
 
 	// random removal order
-	while (vector_size(&els) > size / 2) {
+	for (uint64_t j = 0; j < size / 2; j++) {
 		uint64_t i = gen_rand_r64(vector_size(&els));
 
 		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		if (el == NULL) {
+			j--;
+			continue;
+		}
+
 		if (VERBOSE) {
 			printf("Removing %llu x %llu at (%llu, %llu) (%llu)\n",
 					el->w, el->h, el->lx, el->ly, i);
@@ -197,8 +202,20 @@ START_TEST(test_insert_many)
 
 		rect_packing_remove(&packing, el);
 
-		vector_remove(&els, i);
+		void* null = NULL;
+		vector_set(&els, i, &null);
 	}
+
+	uint64_t j = 0;
+	for (uint64_t i = 0; i < N_ELS; i++) {
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		if (el != NULL) {
+			vector_set(&els, j, &el);
+			j++;
+		}
+	}
+	els.len = j;
+
 	_print(&packing, &els, VERBOSE);
 
 	if (DO_RESHUFFLE) {
