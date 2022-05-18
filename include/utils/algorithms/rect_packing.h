@@ -57,8 +57,18 @@ typedef struct packed_rect_el {
 } packed_rect_el_t;
 
 typedef struct packed_rect_row {
-	// Red-black tree of packed_rect_row's sorted by their height.
-	rb_node_t rb_node_base_height;
+	union {
+		// Red-black tree of packed_rect_row's sorted by their height. Rows are
+		// only in this tree when non-empty.
+		rb_node_t rb_node_base_height;
+
+		struct {
+			// Pointer to the next and previous empty rows. Only defined when
+			// empty.
+			struct packed_rect_row* next;
+			struct packed_rect_row* prev;
+		};
+	};
 
 	// Red-black tree of packed_rect_row's sorted by their lower y-coordinate.
 	rb_node_t rb_node_base_ly;
@@ -74,8 +84,6 @@ typedef struct packed_rect_row {
 
 	// Pointers to the first and last empty packed rect el in the list of
 	// elements.
-	// TODO test if sorting by width or placing in rb tree increases perf for
-	// best-fit.
 	packed_rect_el_t* freelist_start;
 	packed_rect_el_t* freelist_end;
 
@@ -96,6 +104,11 @@ typedef struct rect_packing {
 
 	// The list of bins being used. This list should ideally not get very large.
 	vector_t bin_list;
+
+	// Doubly linked list of empty rows sorted by height (rows in this list
+	// aren't in the rows_height tree).
+	packed_rect_row_t* row_freelist_start;
+	packed_rect_row_t* row_freelist_end;
 
 	// Red-black tree of the rows of all bins sorted by height.
 	rb_tree_t rows_height;

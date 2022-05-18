@@ -75,6 +75,19 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 						el->lx, row->ly, el->w, row->h);
 			}
 		}
+
+		packed_rect_row_t* terminal = (packed_rect_row_t*) (((uint8_t*) &packing->row_freelist_start) + offsetof(packed_rect_row_t, next));
+		for (packed_rect_row_t* row = packing->row_freelist_start; row != terminal; row = row->next) {
+			printf("Empty Row: (0, %llu), h=%llu\n", row->ly, row->h);
+
+			rb_node_t* node2;
+			rb_for_each(&row->elements, node2) {
+				packed_rect_el_t* el = (packed_rect_el_t*) (((uint8_t*) node2) -
+						offsetof(packed_rect_el_t, rb_node_base));
+				printf("\tFree rect: (%llu, %llu), %llu x %llu\n",
+						el->lx, row->ly, el->w, row->h);
+			}
+		}
 	}
 
 	printf("Utilization: %g\n", (double) area / (double) (packing->bin_w * packing->bin_h));
@@ -108,7 +121,7 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 
 START_TEST(test_insert_one)
 {
-#define N_ELS 9
+#define N_ELS 11
 	vector_t els;
 	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
@@ -124,9 +137,9 @@ START_TEST(test_insert_one)
 			el = rect_packing_insert(&packing, 2, 2);
 		}
 		ck_assert_ptr_ne(el, NULL);
-		rect_packing_validate(&packing);
 
 		vector_push(&els, &el);
+		rect_packing_validate(&packing);
 	}
 
 	uint64_t remove_order[N_ELS] = {
