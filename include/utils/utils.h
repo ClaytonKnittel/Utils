@@ -1,23 +1,36 @@
 #ifndef _UTIL_UTIL_H
 #define _UTIL_UTIL_H
 
+#include <execinfo.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 
+#define MAX_STACK_FRAMES 20
 
 #if defined(DO_TESTING)
 #include <check.h>
 
 #define dbg_assert(expr) \
-	ck_assert(expr)
+	do { \
+		if (!(expr)) { \
+			void* buf[MAX_STACK_FRAMES]; \
+			int size = backtrace(buf, MAX_STACK_FRAMES); \
+			backtrace_symbols_fd(buf, size, STDERR_FILENO); \
+			ck_assert(expr); \
+		} \
+	} while(0)
 
 #elif defined(DEBUG)
 #define dbg_assert(expr) \
 	do { \
 		if (__builtin_expect(!(expr), 0)) { \
 			printerr(stderr, "Assertion %s failed", #expr); \
+			void* buf[MAX_STACK_FRAMES]; \
+			int size = backtrace(buf, MAX_STACK_FRAMES); \
+			backtrace_symbols_fd(buf, size, STDERR_FILENO); \
 			abort(); \
 		} \
 	} while (0)
