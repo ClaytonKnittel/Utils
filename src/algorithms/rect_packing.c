@@ -240,13 +240,23 @@ _row_remove(packed_rect_row_t* row, packed_rect_el_t* el)
 	rb_remove_packed_rect_el(&row->elements, &el->rb_node_base);
 }
 
+static bool
+_row_is_empty(const rect_packing_t* packing, const packed_rect_row_t* row)
+{
+	packed_rect_el_t* first_free = row->freelist_start;
+	if (first_free == _row_freelist_terminal(row)) {
+		return false;
+	}
+	return first_free->lx == 0 && first_free->w == packing->bin_w;
+}
+
 /*
  * Finds the rectangle of smallest width greater or equal to the given width in
  * this row.
  *
  * Returns NULL if no elements in the row have sufficient width.
  */
-static packed_rect_el_t* __attribute__ ((noinline))
+static packed_rect_el_t*
 _row_find_fit(const packed_rect_row_t* row, packed_rect_coord_t w)
 {
 	packed_rect_el_t* freelist_end = _row_freelist_terminal(row);
@@ -443,47 +453,60 @@ _merge_empty_row(rect_packing_t* packing, packed_rect_bin_t* bin,
 {
 	// Check if row's neighbors are empty, and if they are, merge them together
 	// into a single row.
-	rb_node_t* down_neighbor_node =
-		rb_upper_bound_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
-	rb_node_t* up_neighbor_node =
-		rb_lower_bound_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
+	rb_node_t* down_neighbor_node = rb_find_pred(&row->rb_node_base_ly);
+	rb_node_t* up_neighbor_node = rb_find_succ(&row->rb_node_base_ly);
+
+	packed_rect_row_t* down_neighbor = _node_base_ly_to_row(down_neighbor_node);
+	packed_rect_row_t* up_neighbor = _node_base_ly_to_row(up_neighbor_node);
 
 	packed_rect_coord_t ly = row->ly;
 	packed_rect_coord_t h = row->h;
 
-	if (down_neighbor_node != LEAF) {
-		packed_rect_row_t* down_neighbor = _node_base_ly_to_row(down_neighbor_node);
+	if (down_neighbor_node != LEAF && _row_is_empty(packing, down_neighbor)) {
 		rb_remove_packed_rect_row_height(&packing->rows_height,
 				&down_neighbor->rb_node_base_height);
+
 		rb_remove_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
+		rb_remove_packed_rect_row_height(&packing->rows_height,
+				&row->rb_node_base_height);
+		_free_row(row);
 
 		h += down_neighbor->h;
 		ly = down_neighbor->ly;
-		_free_row(row);
 		row = down_neighbor;
-	}
 
-	if (up_neighbor_node != LEAF) {
-		packed_rect_row_t* up_neighbor = _node_base_ly_to_row(up_neighbor_node);
+		if (up_neighbor_node != LEAF && _row_is_empty(packing, up_neighbor)) {
+			rb_remove_packed_rect_row_height(&packing->rows_height,
+					&up_neighbor->rb_node_base_height);
+			rb_remove_packed_rect_row_ly(&bin->rows_ly,
+					&up_neighbor->rb_node_base_ly);
+
+			h += up_neighbor->h;
+			_free_row(up_neighbor);
+		}
+	}
+	else if (up_neighbor_node != LEAF && _row_is_empty(packing, up_neighbor)) {
+		rb_remove_packed_rect_row_height(&packing->rows_height,
+				&row->rb_node_base_height);
+
 		rb_remove_packed_rect_row_height(&packing->rows_height,
 				&up_neighbor->rb_node_base_height);
-		rb_remove_packed_rect_row_ly(&bin->rows_ly, &up_neighbor->rb_node_base_ly);
+		rb_remove_packed_rect_row_ly(&bin->rows_ly,
+				&up_neighbor->rb_node_base_ly);
 
 		h += up_neighbor->h;
 		_free_row(up_neighbor);
 	}
-
-	if (row->h != h) {
-		// This row merged with at least one of its neighbors
-		rb_remove_packed_rect_row_height(&packing->rows_height,
-				&row->rb_node_base_height);
-
-		row->h = h;
-		row->ly = ly;
-
-		rb_insert_packed_rect_row_height(&packing->rows_height,
-				&row->rb_node_base_height);
+	else {
+		return row;
 	}
+
+	// This row merged with at least one of its neighbors
+	row->h = h;
+	row->ly = ly;
+
+	rb_insert_packed_rect_row_height(&packing->rows_height,
+			&row->rb_node_base_height);
 
 	return row;
 }

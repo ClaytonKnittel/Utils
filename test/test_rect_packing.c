@@ -12,15 +12,15 @@ START_TEST(test_init)
 END_TEST
 
 static void
-_print(const rect_packing_t* packing, packed_rect_el_t** els, uint64_t n_els)
+_print(const rect_packing_t* packing, vector_t* els)
 {
 	uint64_t w = packing->bin_w;
 	uint64_t h = packing->bin_h;
 
 	char* arr = (char*) calloc(w * h, sizeof(char));
 
-	for (uint64_t i = 0; i < n_els; i++) {
-		packed_rect_el_t* el = els[i];
+	for (uint64_t i = 0; i < vector_size(els); i++) {
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
 		printf("el: (%llu, %llu), (%llu x %llu) (%s)\n",
 				el->lx, el->ly, el->w, el->h, boolstr(el->rotated));
 
@@ -65,22 +65,38 @@ _print(const rect_packing_t* packing, packed_rect_el_t** els, uint64_t n_els)
 START_TEST(test_insert_one)
 {
 #define N_ELS 9
-	packed_rect_el_t* els[N_ELS];
+	vector_t els;
+	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10), 0);
 	rect_packing_validate(&packing);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
+		packed_rect_el_t* el;
 		if (i < 6) {
-			els[i] = rect_packing_insert(&packing, 3, 4);
+			el = rect_packing_insert(&packing, 3, 4);
 		}
 		else {
-			els[i] = rect_packing_insert(&packing, 2, 2);
+			el = rect_packing_insert(&packing, 2, 2);
 		}
-		ck_assert_ptr_ne(els[i], NULL);
+		ck_assert_ptr_ne(el, NULL);
 		rect_packing_validate(&packing);
+
+		vector_push(&els, &el);
+		_print(&packing, &els);
 	}
-	_print(&packing, els, N_ELS);
+
+	uint64_t remove_order[] = {
+		1, 0, 6,
+		5, 1, 0
+	};
+
+	for (uint64_t i = 0; i < sizeof(remove_order) / sizeof(uint64_t); i++) {
+		rect_packing_remove(&packing, *(packed_rect_el_t**) vector_get(&els, remove_order[i]));
+		vector_remove(&els, remove_order[i]);
+		rect_packing_validate(&packing);
+		_print(&packing, &els);
+	}
 
 	rect_packing_free(&packing);
 #undef N_ELS
