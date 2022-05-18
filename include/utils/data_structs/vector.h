@@ -55,9 +55,19 @@ void vector_pop_el(vector_t*, void* dst_el);
 void* vector_get(vector_t*, uint64_t i);
 
 /*
+ * Sets the vector value at index i to val without bounds checking.
+ */
+void vector_set(vector_t*, uint64_t i, void* val);
+
+/*
  * Removes the element from position i in the vector.
  */
 void vector_remove(vector_t*, uint64_t i);
+
+/*
+ * Empties the vector.
+ */
+void vector_clear(vector_t*);
 
 
 #endif /* _VECTOR_H */

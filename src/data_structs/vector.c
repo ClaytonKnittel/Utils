@@ -98,11 +98,23 @@ vector_get(vector_t* v, uint64_t i)
 }
 
 void
+vector_set(vector_t* v, uint64_t i, void* val)
+{
+	memcpy((((uint8_t*) v->data) + v->el_size * i), val, v->el_size);
+}
+
+void
 vector_remove(vector_t* v, uint64_t i)
 {
 	v->len--;
 	memmove(((uint8_t*) v->data) + i * v->el_size,
 			((uint8_t*) v->data) + (i + 1) * v->el_size,
 			(v->len - i) * v->el_size);
+}
+
+void
+vector_clear(vector_t* v)
+{
+	v->len = 0;
 }
 
