@@ -279,15 +279,6 @@ _split_el(rect_packing_t* packing, packed_rect_row_t* row, packed_rect_el_t* el,
 	bool row_was_empty = first_el->next == terminal && first_el->lx == 0 &&
 		first_el->w == packing->bin_w;
 
-	// if the element is tall enough, flip this rectangle on its side (w >= h).
-	if (!row_was_empty && row->h >= w) {
-		packed_rect_coord_t tmp = w;
-		w = h;
-		h = tmp;
-
-		was_rotated = !was_rotated;
-	}
-
 	if (el->w == w) {
 		_row_freelist_remove(el);
 		rb_remove_packed_rect_el(&row->elements, &el->rb_node_base);
@@ -556,7 +547,7 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 		packed_rect_coord_t h)
 {
 	bool rotated;
-	if ((rotated = (h > w))) {
+	if ((rotated = (h < w))) {
 		packed_rect_coord_t tmp = w;
 		w = h;
 		h = tmp;
