@@ -148,6 +148,10 @@ target_include_directories(utils
 )
 
 if (${ENABLE_TESTING})
+
+	if("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+		message(WARNING "Enabling testing in Release mode is discouraged. This leaves in some debugging functionality that may slow/bloat the library.")
+	endif()
 	find_library(check check REQUIRED)
 
 	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-gnu-zero-variadic-macro-arguments>)
