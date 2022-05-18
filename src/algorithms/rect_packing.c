@@ -122,6 +122,7 @@ static uint64_t
 _calc_el_loss(packed_rect_coord_t dst_w, packed_rect_coord_t dst_h,
 		packed_rect_coord_t w, packed_rect_coord_t h)
 {
+	(void) dst_w;
 	return w * dst_h - w * h;
 }
 
@@ -694,6 +695,8 @@ rect_packing_remove(rect_packing_t* packing, packed_rect_el_t* el)
 	}
 }
 
+#if defined(DO_TESTING) || defined(DEBUG)
+
 void
 rect_packing_validate(const rect_packing_t* packing)
 {
@@ -735,4 +738,6 @@ rect_packing_validate(const rect_packing_t* packing)
 
 	dbg_assert(bin_rows == n_rows);
 }
+
+#endif /* defined(DO_TESTING) || defined(DEBUG) */
 
