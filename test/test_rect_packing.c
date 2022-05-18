@@ -44,11 +44,27 @@ _print(const rect_packing_t* packing, packed_rect_el_t** els, uint64_t n_els)
 		}
 		printf("\n");
 	}
+
+	rb_node_t* node;
+	rb_for_each((rb_tree_t*) &packing->rows_height, node) {
+		packed_rect_row_t* row = (packed_rect_row_t*) (((uint8_t*) node) -
+				offsetof(packed_rect_row_t, rb_node_base_height));
+
+		printf("Row: (0, %llu), h=%llu\n", row->ly, row->h);
+
+		rb_node_t* node2;
+		rb_for_each(&row->elements, node2) {
+			packed_rect_el_t* el = (packed_rect_el_t*) (((uint8_t*) node2) -
+					offsetof(packed_rect_el_t, rb_node_base));
+			printf("\tFree rect: (%llu, %llu), %llu x %llu\n",
+					el->lx, row->ly, el->w, row->h);
+		}
+	}
 }
 
 START_TEST(test_insert_one)
 {
-	const uint64_t N_ELS = 9;
+#define N_ELS 9
 	packed_rect_el_t* els[N_ELS];
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10), 0);
@@ -67,6 +83,7 @@ START_TEST(test_insert_one)
 	_print(&packing, els, N_ELS);
 
 	rect_packing_free(&packing);
+#undef N_ELS
 }
 END_TEST
 

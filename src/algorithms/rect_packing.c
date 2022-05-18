@@ -330,6 +330,58 @@ adjust_row:
 	return new_el;
 }
 
+/*
+ * Reinserts an element into the freelist of a row, returning the resulting free
+ * rect this element merged into (may be the same as el if both of el's
+ * neighbors were allocated).
+ */
+static packed_rect_el_t*
+_reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
+{
+	// Check in the freelist for el's neighbors, and if they are immediately
+	// adjacent, merge them into a single free rect.
+	rb_node_t* left_neighbor_node =
+		rb_upper_bound_packed_rect_el(&row->elements, &el->rb_node_base);
+	rb_node_t* right_neighbor_node =
+		rb_lower_bound_packed_rect_el(&row->elements, &el->rb_node_base);
+
+	packed_rect_coord_t lx = el->lx;
+	packed_rect_coord_t w = el->w;
+
+	if (left_neighbor_node != LEAF) {
+		packed_rect_el_t* left_neighbor = _node_base_to_el(left_neighbor_node);
+		_row_freelist_remove(left_neighbor);
+
+		w += left_neighbor->w;
+		lx = left_neighbor->lx;
+		_free_el(el);
+		el = left_neighbor;
+	}
+	else {
+		rb_insert_packed_rect_el(&row->elements, &el->rb_node_base);
+	}
+
+	if (right_neighbor_node != LEAF) {
+		packed_rect_el_t* right_neighbor = _node_base_to_el(right_neighbor_node);
+		_row_freelist_remove(right_neighbor);
+		rb_remove_packed_rect_el(&row->elements, &right_neighbor->rb_node_base);
+
+		w += right_neighbor->w;
+		_free_el(right_neighbor);
+	}
+
+	el->w = w;
+	el->lx = lx;
+
+	// find a slot for this new element in the freelist
+	packed_rect_el_t* after = row->freelist_end;
+	packed_rect_el_t* terminal = _row_freelist_terminal(row);
+	for (; after != terminal && after->w > w; after = after->prev);
+	_row_freelist_insert(after, el);
+
+	return el;
+}
+
 
 /**********************************************************
  *                      Bin Helpers                       *
@@ -383,6 +435,57 @@ _calc_bin_idx(const rect_packing_t* packing, const packed_rect_bin_t* bin)
 	const packed_rect_bin_t* first_el =
 		(const packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, 0);
 	return (uint32_t) (bin - first_el);
+}
+
+static packed_rect_row_t*
+_merge_empty_row(rect_packing_t* packing, packed_rect_bin_t* bin,
+		packed_rect_row_t* row)
+{
+	// Check if row's neighbors are empty, and if they are, merge them together
+	// into a single row.
+	rb_node_t* down_neighbor_node =
+		rb_upper_bound_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
+	rb_node_t* up_neighbor_node =
+		rb_lower_bound_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
+
+	packed_rect_coord_t ly = row->ly;
+	packed_rect_coord_t h = row->h;
+
+	if (down_neighbor_node != LEAF) {
+		packed_rect_row_t* down_neighbor = _node_base_ly_to_row(down_neighbor_node);
+		rb_remove_packed_rect_row_height(&packing->rows_height,
+				&down_neighbor->rb_node_base_height);
+		rb_remove_packed_rect_row_ly(&bin->rows_ly, &row->rb_node_base_ly);
+
+		h += down_neighbor->h;
+		ly = down_neighbor->ly;
+		_free_row(row);
+		row = down_neighbor;
+	}
+
+	if (up_neighbor_node != LEAF) {
+		packed_rect_row_t* up_neighbor = _node_base_ly_to_row(up_neighbor_node);
+		rb_remove_packed_rect_row_height(&packing->rows_height,
+				&up_neighbor->rb_node_base_height);
+		rb_remove_packed_rect_row_ly(&bin->rows_ly, &up_neighbor->rb_node_base_ly);
+
+		h += up_neighbor->h;
+		_free_row(up_neighbor);
+	}
+
+	if (row->h != h) {
+		// This row merged with at least one of its neighbors
+		rb_remove_packed_rect_row_height(&packing->rows_height,
+				&row->rb_node_base_height);
+
+		row->h = h;
+		row->ly = ly;
+
+		rb_insert_packed_rect_row_height(&packing->rows_height,
+				&row->rb_node_base_height);
+	}
+
+	return row;
 }
 
 
@@ -471,6 +574,24 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 	}
 
 	return NULL;
+}
+
+void
+rect_packing_remove(rect_packing_t* packing, packed_rect_el_t* el)
+{
+	packed_rect_row_t* row = el->parent_row;
+	packed_rect_bin_t* bin = row->parent_bin;
+
+	el = _reinsert_el(row, el);
+
+	if (el->lx == 0 && el->w == packing->bin_w) {
+		// This row is empty
+		row = _merge_empty_row(packing, bin, row);
+
+		if (row->ly == 0 && row->h == packing->bin_h) {
+			// This bin is now empty
+		}
+	}
 }
 
 void
