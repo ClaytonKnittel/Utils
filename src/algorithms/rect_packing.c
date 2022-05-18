@@ -326,10 +326,10 @@ adjust_row:
 
 		packed_rect_bin_t* bin = row->parent_bin;
 		split_row->parent_bin = bin;
-		row->h = h;
 
 		// reinsert row into the rows height tree
 		rb_remove_packed_rect_row_height(&packing->rows_height, &row->rb_node_base_height);
+		row->h = h;
 		rb_insert_packed_rect_row_height(&packing->rows_height, &row->rb_node_base_height);
 
 		// insert the new row into both trees
