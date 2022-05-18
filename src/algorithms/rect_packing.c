@@ -404,8 +404,13 @@ static int
 _alloc_bin(rect_packing_t* packing)
 {
 	packed_rect_row_t* row;
-	packed_rect_bin_t* bin =
-		(packed_rect_bin_t*) vector_reserve(&packing->bin_list);
+	packed_rect_bin_t* bin;
+
+	if (vector_size(&packing->bin_list) == packing->max_n_bins) {
+		return -1;
+	}
+
+	bin = (packed_rect_bin_t*) vector_reserve(&packing->bin_list);
 	if (bin == NULL) {
 		return -1;
 	}
@@ -563,14 +568,15 @@ _row_freelist_remove(packed_rect_row_t* row)
 
 int
 rect_packing_init(rect_packing_t* packing, packed_rect_coord_t bin_w,
-		packed_rect_coord_t bin_h)
+		packed_rect_coord_t bin_h, uint32_t max_n_bins)
 {
-	if (vector_init(&packing->bin_list, sizeof(packed_rect_bin_t), 4) != 0) {
+	if (vector_init(&packing->bin_list, sizeof(packed_rect_bin_t), max_n_bins) != 0) {
 		return -1;
 	}
 
 	rb_init(&packing->rows_height);
 
+	packing->max_n_bins = max_n_bins;
 	packing->bin_w = bin_w;
 	packing->bin_h = bin_h;
 
@@ -651,6 +657,15 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 		}
 	}
 
+	if (best_fit == NULL) {
+		// Allocate a new bin
+		if (_alloc_bin(packing) == 0) {
+			// The new row is always placed at the end of the row freelist
+			best_row = packing->row_freelist_end;
+			best_fit = best_row->freelist_start;
+		}
+	}
+
 	if (best_fit != NULL) {
 		packed_rect_el_t* new_el = _split_el(packing, best_row, best_fit, w, h,
 				rotated);
@@ -674,7 +689,7 @@ rect_packing_remove(rect_packing_t* packing, packed_rect_el_t* el)
 		row = _merge_empty_row(packing, bin, row);
 
 		if (row->ly == 0 && row->h == packing->bin_h) {
-			// This bin is now empty
+			// This bin is now empty, for now do nothing
 		}
 	}
 }

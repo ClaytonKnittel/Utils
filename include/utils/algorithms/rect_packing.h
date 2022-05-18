@@ -102,6 +102,11 @@ typedef struct rect_packing {
 	packed_rect_coord_t bin_w;
 	packed_rect_coord_t bin_h;
 
+	// The maximum number of bins that will be allocated. If inserting a
+	// rectangle would require allocating another bin beyond this limit, the
+	// allocation will fail.
+	uint32_t max_n_bins;
+
 	// The list of bins being used. This list should ideally not get very large.
 	vector_t bin_list;
 
@@ -116,7 +121,7 @@ typedef struct rect_packing {
 
 
 int rect_packing_init(rect_packing_t*, packed_rect_coord_t bin_w,
-		packed_rect_coord_t bin_h);
+		packed_rect_coord_t bin_h, uint32_t max_n_bins);
 void rect_packing_free(rect_packing_t*);
 
 packed_rect_el_t* rect_packing_insert(rect_packing_t*, packed_rect_coord_t w,

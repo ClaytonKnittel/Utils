@@ -9,7 +9,7 @@
 START_TEST(test_init)
 {
 	rect_packing_t packing;
-	ck_assert_int_eq(rect_packing_init(&packing, 10, 10), 0);
+	ck_assert_int_eq(rect_packing_init(&packing, 10, 10, 1), 0);
 	rect_packing_free(&packing);
 }
 END_TEST
@@ -23,21 +23,21 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 	uint64_t area = 0;
 
 	if (verbose) {
-		arr = (char*) calloc(w * h, sizeof(char));
+		arr = (char*) calloc(vector_size(&packing->bin_list) * w * h, sizeof(char));
 	}
 
 	for (uint64_t i = 0; i < vector_size(els); i++) {
 		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
 
 		if (verbose) {
-			printf("el: (%llu, %llu), (%llu x %llu) (%s)\n",
-					el->lx, el->ly, el->w, el->h, boolstr(el->rotated));
+			printf("el: (%llu, %llu), (%llu x %llu) (%u) (%s)\n",
+					el->lx, el->ly, el->w, el->h, el->bin_idx, boolstr(el->rotated));
 		}
 
 		if (verbose) {
 			for (uint64_t r = el->ly; r < el->ly + el->h; r++) {
 				for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
-					uint64_t idx = r * w + c;
+					uint64_t idx = el->bin_idx * w * h + r * w + c;
 					arr[idx] = '0' + (i % 10);
 				}
 			}
@@ -48,13 +48,19 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 
 	if (verbose) {
 		for (uint64_t r = h - 1; r < h; r--) {
-			for (uint64_t c = 0; c < w; c++) {
-				uint64_t idx = r * w + c;
-				if (arr[idx] == 0) {
-					printf("-");
+			for (uint64_t bin_idx = 0; bin_idx < vector_size(&packing->bin_list); bin_idx++) {
+				for (uint64_t c = 0; c < w; c++) {
+					uint64_t idx = bin_idx * w * h + r * w + c;
+					if (arr[idx] == 0) {
+						printf("-");
+					}
+					else {
+						printf("%c", arr[idx]);
+					}
 				}
-				else {
-					printf("%c", arr[idx]);
+
+				if (bin_idx < vector_size(&packing->bin_list) - 1) {
+					printf("      ");
 				}
 			}
 			printf("\n");
@@ -90,7 +96,7 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 		}
 	}
 
-	printf("Utilization: %g\n", (double) area / (double) (packing->bin_w * packing->bin_h));
+	printf("Utilization: %g\n", (double) area / (double) (vector_size(&packing->bin_list) * packing->bin_w * packing->bin_h));
 }
 
 DEFINE_CSORT_DEFAULT_FNS_NAMED_16(__uint128_t, wh, __default_sort_cmp, __default_sort_cswap)
@@ -121,11 +127,11 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 
 START_TEST(test_insert_one)
 {
-#define N_ELS 11
+#define N_ELS 12
 	vector_t els;
 	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
-	ck_assert_int_eq(rect_packing_init(&packing, 10, 10), 0);
+	ck_assert_int_eq(rect_packing_init(&packing, 10, 10, 2), 0);
 	rect_packing_validate(&packing);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
@@ -139,18 +145,21 @@ START_TEST(test_insert_one)
 		ck_assert_ptr_ne(el, NULL);
 
 		vector_push(&els, &el);
+		//_print(&packing, &els, true);
 		rect_packing_validate(&packing);
 	}
 
 	uint64_t remove_order[N_ELS] = {
 		1, 0, 6,
 		5, 1, 0,
-		2, 0, 0
+		2, 0, 0,
+		0, 0, 0
 	};
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
 		rect_packing_remove(&packing, *(packed_rect_el_t**) vector_get(&els, remove_order[i]));
 		vector_remove(&els, remove_order[i]);
+		//_print(&packing, &els, true);
 		rect_packing_validate(&packing);
 	}
 
@@ -169,11 +178,11 @@ START_TEST(test_insert_many)
 #define VERBOSE false
 #define DO_RESHUFFLE true
 
-#define N_ELS 20000000
+#define N_ELS 2000000
 	vector_t els;
 	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
-	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192), 0);
+	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 2), 0);
 	rect_packing_validate(&packing);
 
 	seed_rand(0, 0);
