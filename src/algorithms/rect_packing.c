@@ -627,7 +627,7 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 	packed_rect_el_t* best_fit = NULL;
 	uint64_t best_loss = 0;
 
-	while (candidate_row_base != LEAF /*&& row->h < 2 * h*/) {
+	while (candidate_row_base != LEAF) {
 		packed_rect_el_t* el = _row_find_fit(row, w);
 
 		if (el != NULL) {
@@ -646,7 +646,7 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 
 	// heuristic to determine if we should look for an empty row to allocate
 	// from
-	if (best_fit == NULL || best_loss > w * h) {
+	if (best_fit == NULL || best_loss > w * h / 16) {
 		packed_rect_row_t* terminal = _row_freelist_terminal(packing);
 		packed_rect_row_t* empty_row = packing->row_freelist_start;
 		for (; empty_row != terminal; empty_row = empty_row->next) {

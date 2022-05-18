@@ -172,17 +172,20 @@ END_TEST
 START_TEST(test_insert_many)
 {
 #define GEN_WH() \
-	uint64_t w = 3 + 1 * gen_rand_r(10); \
-	uint64_t h = w + 1 * ((int64_t) gen_rand_r(5) - 2)
+	uint64_t w = 30 + 1 * gen_rand_r(100); \
+	uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
+//#define GEN_WH() \
+//	uint64_t w = 5 + gen_rand_r(100); \
+//	uint64_t h = 5 + gen_rand_r(100)
 
 #define VERBOSE false
 #define DO_RESHUFFLE true
 
-#define N_ELS 2000000
+#define N_ELS 40000000
 	vector_t els;
 	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
-	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 2), 0);
+	ck_assert_int_eq(rect_packing_init(&packing, 81920, 81920, 2), 0);
 	rect_packing_validate(&packing);
 
 	seed_rand(0, 0);
