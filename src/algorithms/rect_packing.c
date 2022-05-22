@@ -631,17 +631,57 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 		packed_rect_el_t* el = _row_find_fit(row, w);
 
 		if (el != NULL) {
-			uint64_t el_loss = _calc_el_loss(el->w, row->h, w, h);
-			if (best_fit == NULL || best_loss > el_loss) {
-				best_row = row;
-				best_fit = el;
-				best_loss = el_loss;
-				break;
-			}
+			//uint64_t el_loss = _calc_el_loss(el->w, row->h, w, h);
+			uint64_t el_loss = _calc_el_loss(w, row->h, w, h);
+			best_row = row;
+			best_fit = el;
+			best_loss = el_loss;
+			break;
 		}
 
 		candidate_row_base = rb_find_succ(candidate_row_base);
 		row = _node_base_height_to_row(candidate_row_base);
+	}
+
+	// heuristic to determine if we should try placing the rect facing down.
+	if (best_fit == NULL || best_loss > w * h / 16) {
+
+		pseudo_row =
+			(packed_rect_row_t*) (((uint8_t*) &w) -
+					offsetof(packed_rect_row_t, h));
+		candidate_row_base =
+			rb_lower_bound_packed_rect_row_height(&packing->rows_height,
+					&pseudo_row->rb_node_base_height);
+		row = _node_base_height_to_row(candidate_row_base);
+
+		while (candidate_row_base != LEAF) {
+			// If the minimum possible loss of a rect in this row (i.e. a spot
+			// that perfectly fits this rectangle width-wise) is greater or
+			// equal to the current best_loss, no need to keep searching.
+			if (best_fit != NULL && best_loss <= _calc_el_loss(h, row->h, h, w)) {
+				break;
+			}
+
+			packed_rect_el_t* el = _row_find_fit(row, h);
+
+			if (el != NULL) {
+				//uint64_t el_loss = _calc_el_loss(el->h, row->h, h, w);
+				uint64_t el_loss = _calc_el_loss(h, row->h, h, w);
+				best_row = row;
+				best_fit = el;
+				best_loss = el_loss;
+
+				// swap w and h
+				packed_rect_coord_t tmp = w;
+				w = h;
+				h = tmp;
+				rotated = !rotated;
+				break;
+			}
+
+			candidate_row_base = rb_find_succ(candidate_row_base);
+			row = _node_base_height_to_row(candidate_row_base);
+		}
 	}
 
 	// heuristic to determine if we should look for an empty row to allocate
