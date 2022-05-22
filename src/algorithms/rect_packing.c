@@ -112,8 +112,8 @@ _alloc_el(packed_rect_coord_t lx, packed_rect_coord_t ly,
 	return el;
 }
 
-static void
-_free_el(packed_rect_el_t* el)
+void
+packed_rect_el_free(packed_rect_el_t* el)
 {
 	free(el);
 }
@@ -230,7 +230,7 @@ _free_row(packed_rect_row_t* row)
 	rb_for_each_mod(&row->elements, node_ptr) {
 		packed_rect_el_t* el = _node_base_to_el(node_ptr);
 		rb_remove_packed_rect_el(&row->elements, node_ptr);
-		_free_el(el);
+		packed_rect_el_free(el);
 	}
 	rb_for_each_mod_fin();
 
@@ -368,7 +368,7 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 
 		w += left_neighbor->w;
 		lx = left_neighbor->lx;
-		_free_el(el);
+		packed_rect_el_free(el);
 		el = left_neighbor;
 	}
 	else {
@@ -381,7 +381,7 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 		rb_remove_packed_rect_el(&row->elements, &right_neighbor->rb_node_base);
 
 		w += right_neighbor->w;
-		_free_el(right_neighbor);
+		packed_rect_el_free(right_neighbor);
 	}
 
 	el->w = w;

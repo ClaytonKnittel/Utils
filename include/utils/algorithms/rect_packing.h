@@ -124,6 +124,12 @@ int rect_packing_init(rect_packing_t*, packed_rect_coord_t bin_w,
 		packed_rect_coord_t bin_h, uint32_t max_n_bins);
 void rect_packing_free(rect_packing_t*);
 
+// Can free rect el's without reinserting them into the rect_packing structure,
+// but this will mean their allocated space will never be accessible. This must
+// be done on elements which are not reinserted before freeing the rect_packing
+// struct to avoid memory leaks.
+void packed_rect_el_free(packed_rect_el_t*);
+
 packed_rect_el_t* rect_packing_insert(rect_packing_t*, packed_rect_coord_t w,
 		packed_rect_coord_t h);
 

@@ -123,6 +123,8 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 		packed_rect_el_t* el = rect_packing_insert(packing, wh[2 * i + 0], wh[2 * i + 1]);
 		vector_push(els, &el);
 	}
+
+	free(wh);
 }
 
 START_TEST(test_insert_one)
@@ -232,7 +234,7 @@ START_TEST(test_insert_many)
 	}
 
 	uint64_t j = 0;
-	for (uint64_t i = 0; i < N_ELS; i++) {
+	for (uint64_t i = 0; i < vector_size(&els); i++) {
 		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
 		if (el != NULL) {
 			vector_set(&els, j, &el);
@@ -272,6 +274,11 @@ START_TEST(test_insert_many)
 	_print(&packing, &els, VERBOSE);
 	printf("No room for el (inserted %llu)!\n", vector_size(&els));
 
+	uint64_t els_size = vector_size(&els);
+	for (uint64_t i = 0; i < els_size; i++) {
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		packed_rect_el_free(el);
+	}
 	vector_free(&els);
 	rect_packing_free(&packing);
 }
@@ -340,7 +347,7 @@ START_TEST(test_insert_remove_many)
 	}
 
 	uint64_t j = 0;
-	for (uint64_t i = 0; i < N_ELS; i++) {
+	for (uint64_t i = 0; i < vector_size(&els); i++) {
 		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
 		if (el != NULL) {
 			vector_set(&els, j, &el);
@@ -380,6 +387,11 @@ START_TEST(test_insert_remove_many)
 	_print(&packing, &els, VERBOSE);
 	printf("No room for el (inserted %llu)!\n", vector_size(&els));
 
+	uint64_t els_size = vector_size(&els);
+	for (uint64_t i = 0; i < els_size; i++) {
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		packed_rect_el_free(el);
+	}
 	vector_free(&els);
 	rect_packing_free(&packing);
 }
