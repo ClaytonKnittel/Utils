@@ -1,4 +1,6 @@
 
+#include <stdint.h>
+
 #include <utils/algorithms/rect_packing.h>
 
 #include <utils/algorithms/sort.h>
@@ -20,9 +22,13 @@ typedef struct el_info {
 	uint64_t h;
 } el_info_t;
 
+static void _print(const rect_packing_t* packing, vector_t* els, bool verbose);
+
 static void
 _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 {
+#define EL_LABEL    0x01
+#define EMPTY_LABEL 0x02
 	rect_packing_validate(packing);
 
 	uint64_t w = packing->bin_w;
@@ -31,12 +37,90 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 
 	for (uint64_t i = 0; i < vector_size(els); i++) {
 		el_info_t* info = (el_info_t*) vector_get(els, i);
-		if (info->el == NULL) {
+		packed_rect_el_t* el = info->el;
+		if (el == NULL) {
 			continue;
 		}
+
+		if (!el->rotated) {
+			//ck_assert_uint_eq(el->w, info->w);
+			//ck_assert_uint_eq(el->h, info->h);
+		}
+		else {
+			//ck_assert_uint_eq(el->w, info->h);
+			//ck_assert_uint_eq(el->h, info->w);
+		}
+
+		for (uint64_t r = el->ly; r < el->ly + el->h; r++) {
+			for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
+				uint64_t idx = el->bin_idx * w * h + r * w + c;
+				//ck_assert_uint_eq(bin_list[idx], 0);
+				bin_list[idx] = EL_LABEL;
+			}
+		}
+
 	}
 
 	// fill in all the empty space
+	const packed_rect_bin_t* first_bin =
+		(const packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, 0);
+	rb_node_t* node;
+	rb_for_each((rb_tree_t*) &packing->rows_height, node) {
+		packed_rect_row_t* row = (packed_rect_row_t*) (((uint8_t*) node) -
+				offsetof(packed_rect_row_t, rb_node_base_height));
+		uint64_t bin_idx = row->parent_bin - first_bin;
+
+		rb_node_t* node2;
+		rb_for_each(&row->elements, node2) {
+			packed_rect_el_t* el = (packed_rect_el_t*) (((uint8_t*) node2) -
+					offsetof(packed_rect_el_t, rb_node_base));
+
+			for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
+				for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
+					uint64_t idx = bin_idx * w * h + r * w + c;
+					//ck_assert_uint_eq(bin_list[idx], 0);
+					bin_list[idx] = EMPTY_LABEL;
+				}
+			}
+		}
+	}
+
+	packed_rect_row_t* terminal =
+		(packed_rect_row_t*) (((uint8_t*) &packing->row_freelist_start) +
+				offsetof(packed_rect_row_t, next));
+	for (packed_rect_row_t* row = packing->row_freelist_start; row != terminal;
+			row = row->next) {
+		uint64_t bin_idx = row->parent_bin - first_bin;
+
+		rb_node_t* node2;
+		rb_for_each(&row->elements, node2) {
+			packed_rect_el_t* el = (packed_rect_el_t*) (((uint8_t*) node2) -
+					offsetof(packed_rect_el_t, rb_node_base));
+
+			for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
+				for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
+					uint64_t idx = bin_idx * w * h + r * w + c;
+					if (bin_list[idx] != 0) {
+						_print(packing, els, false);
+					}
+					//ck_assert_uint_eq(bin_list[idx], 0);
+					bin_list[idx] = EMPTY_LABEL;
+				}
+			}
+		}
+	}
+
+	for (uint64_t bin_idx = 0; bin_idx < vector_size(&packing->bin_list); bin_idx++) {
+		for (uint64_t r = 0; r < h; r++) {
+			for (uint64_t c = 0; c < w; c++) {
+				uint64_t idx = bin_idx * w * h + r * w + c;
+				/*ck_assert_msg(bin_list[idx] != 0, "bin %lu: (%lu, %lu) not "
+						"catured by allocated or free element",
+						(unsigned long) bin_idx, (unsigned long) r,
+						(unsigned long) c);*/
+			}
+		}
+	}
 
 	free(bin_list);
 }
@@ -169,6 +253,7 @@ START_TEST(test_insert_one)
 	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10, 2), 0);
+	_print(&packing, &els, true);
 	_rect_packing_validate(&packing, &els);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
