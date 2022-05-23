@@ -365,7 +365,7 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 	packed_rect_coord_t w = el->w;
 
 	if (left_neighbor_node != LEAF &&
-			left_neighbor->lx + left_neighbor->w == el->lx) {
+			left_neighbor->lx + left_neighbor->w == lx) {
 		_el_freelist_remove(left_neighbor);
 
 		w += left_neighbor->w;
@@ -377,7 +377,7 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 		rb_insert_packed_rect_el(&row->elements, &el->rb_node_base);
 	}
 
-	if (right_neighbor_node != LEAF && right_neighbor->lx == el->lx + el->w) {
+	if (right_neighbor_node != LEAF && right_neighbor->lx == lx + w) {
 		_el_freelist_remove(right_neighbor);
 		rb_remove_packed_rect_el(&row->elements, &right_neighbor->rb_node_base);
 
@@ -645,7 +645,7 @@ rect_packing_insert(rect_packing_t* packing, packed_rect_coord_t w,
 	}
 
 	// heuristic to determine if we should try placing the rect facing down.
-	if (best_fit == NULL || best_loss > w * h / 16) {
+	if (w != h && (best_fit == NULL || best_loss > w * h / 16)) {
 
 		pseudo_row =
 			(packed_rect_row_t*) (((uint8_t*) &w) -
@@ -748,6 +748,7 @@ rect_packing_validate(const rect_packing_t* packing)
 	rb_for_each((rb_tree_t*) &packing->rows_height, node) {
 		packed_rect_row_t* row = _node_base_height_to_row(node);
 
+		dbg_assert(!_row_is_empty(packing, row));
 		dbg_assert(prev_h <= row->h);
 		prev_h = row->h;
 		n_rows++;
@@ -757,6 +758,7 @@ rect_packing_validate(const rect_packing_t* packing)
 	packed_rect_row_t* terminal = _row_freelist_terminal(packing);
 	for (packed_rect_row_t* row = packing->row_freelist_start; row != terminal;
 			row = row->next) {
+		dbg_assert(_row_is_empty(packing, row));
 		dbg_assert(prev_h <= row->h);
 		prev_h = row->h;
 		n_rows++;
@@ -765,14 +767,52 @@ rect_packing_validate(const rect_packing_t* packing)
 	for (uint64_t bin_idx = 0; bin_idx < vector_size(&packing->bin_list); bin_idx++) {
 		packed_rect_bin_t* bin =
 			(packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, bin_idx);
-		uint64_t prev_ly = -1lu;
+		uint64_t prev_endpos = -1lu;
+		bool prev_row_is_empty = false;
 
 		rb_for_each((rb_tree_t*) &bin->rows_ly, node) {
 			packed_rect_row_t* row = _node_base_ly_to_row(node);
 
-			dbg_assert((int64_t) prev_ly < (int64_t) row->ly);
-			prev_ly = row->ly;
+			dbg_assert((int64_t) prev_endpos <= (int64_t) row->ly);
 
+			if (prev_endpos == row->ly) {
+				// There can't be two adjacent free rows, else they should have
+				// been merged into one.
+				dbg_assert(!_row_is_empty(packing, row) || !prev_row_is_empty);
+			}
+
+			rb_node_t* el_node;
+			uint64_t n_tree_elements = 0;
+			uint64_t prev_el_endpos = -1lu;
+			rb_for_each((rb_tree_t*) &row->elements, el_node) {
+				packed_rect_el_t* el = _node_base_to_el(el_node);
+
+				dbg_assert((int64_t) el->w > 0);
+				dbg_assert((int64_t) prev_el_endpos < (int64_t) el->lx);
+				prev_el_endpos = el->lx + el->w;
+				n_tree_elements++;
+			}
+
+			dbg_assert((int64_t) prev_el_endpos <= (int64_t) packing->bin_w);
+
+			uint64_t n_list_elements = 0;
+			uint64_t prev_el_w = 0;
+			packed_rect_el_t* el_terminal = _el_freelist_terminal(row);
+			for (packed_rect_el_t* el = row->freelist_start; el != el_terminal;
+					el = el->next) {
+				dbg_assert(el->lx >= 0);
+				dbg_assert(el->w > 0);
+				dbg_assert(el->lx + el->w <= packing->bin_w);
+
+				dbg_assert(prev_el_w <= el->w);
+				prev_el_w = el->w;
+				n_list_elements++;
+			}
+
+			dbg_assert(n_tree_elements == n_list_elements);
+
+			prev_endpos = row->ly + row->h;
+			prev_row_is_empty = _row_is_empty(packing, row);
 			bin_rows++;
 		}
 	}

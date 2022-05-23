@@ -14,6 +14,33 @@ START_TEST(test_init)
 }
 END_TEST
 
+typedef struct el_info {
+	packed_rect_el_t* el;
+	uint64_t w;
+	uint64_t h;
+} el_info_t;
+
+static void
+_rect_packing_validate(const rect_packing_t* packing, vector_t* els)
+{
+	rect_packing_validate(packing);
+
+	uint64_t w = packing->bin_w;
+	uint64_t h = packing->bin_h;
+	uint64_t* bin_list = (uint64_t*) calloc(w * h * vector_size(&packing->bin_list), sizeof(uint8_t));
+
+	for (uint64_t i = 0; i < vector_size(els); i++) {
+		el_info_t* info = (el_info_t*) vector_get(els, i);
+		if (info->el == NULL) {
+			continue;
+		}
+	}
+
+	// fill in all the empty space
+
+	free(bin_list);
+}
+
 static void
 _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 {
@@ -27,7 +54,8 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 	}
 
 	for (uint64_t i = 0; i < vector_size(els); i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
+		el_info_t* info = (el_info_t*) vector_get(els, i);
+		packed_rect_el_t* el = info->el;
 		if (el == NULL) {
 			continue;
 		}
@@ -111,7 +139,8 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 	uint64_t* wh = malloc(2 * n_els * sizeof(uint64_t));
 
 	for (uint64_t i = 0; i < n_els; i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
+		el_info_t* info = (el_info_t*) vector_get(els, i);
+		packed_rect_el_t* el = info->el;
 
 		wh[2 * i + 0] = el->h;
 		wh[2 * i + 1] = el->w;
@@ -123,8 +152,11 @@ _reshuffle_els(rect_packing_t* packing, vector_t* els)
 	csort_wh((__uint128_t*) wh, n_els);
 
 	for (uint64_t i = n_els - 1; i < n_els; i--) {
-		packed_rect_el_t* el = rect_packing_insert(packing, wh[2 * i + 0], wh[2 * i + 1]);
-		vector_push(els, &el);
+		el_info_t info;
+		info.w = wh[2 * i + 0];
+		info.h = wh[2 * i + 1];
+		info.el = rect_packing_insert(packing, info.w, info.h);
+		vector_push(els, &info);
 	}
 
 	free(wh);
@@ -134,24 +166,28 @@ START_TEST(test_insert_one)
 {
 #define N_ELS 12
 	vector_t els;
-	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
+	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10, 2), 0);
-	rect_packing_validate(&packing);
+	_rect_packing_validate(&packing, &els);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
-		packed_rect_el_t* el;
+		el_info_t info;
 		if (i < 6) {
-			el = rect_packing_insert(&packing, 3, 4);
+			info.el = rect_packing_insert(&packing, 3, 4);
+			info.w = 3;
+			info.h = 4;
 		}
 		else {
-			el = rect_packing_insert(&packing, 2, 2);
+			info.el = rect_packing_insert(&packing, 2, 2);
+			info.w = 2;
+			info.h = 2;
 		}
-		ck_assert_ptr_ne(el, NULL);
+		ck_assert_ptr_ne(info.el, NULL);
 
-		vector_push(&els, &el);
-		//_print(&packing, &els, true);
-		rect_packing_validate(&packing);
+		vector_push(&els, &info);
+		_print(&packing, &els, true);
+		_rect_packing_validate(&packing, &els);
 	}
 
 	uint64_t remove_order[N_ELS] = {
@@ -162,10 +198,11 @@ START_TEST(test_insert_one)
 	};
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
-		rect_packing_remove(&packing, *(packed_rect_el_t**) vector_get(&els, remove_order[i]));
+		el_info_t* info = (el_info_t*) vector_get(&els, remove_order[i]);
+		rect_packing_remove(&packing, info->el);
 		vector_remove(&els, remove_order[i]);
-		//_print(&packing, &els, true);
-		rect_packing_validate(&packing);
+		_print(&packing, &els, true);
+		_rect_packing_validate(&packing, &els);
 	}
 
 	vector_free(&els);
@@ -188,10 +225,10 @@ START_TEST(test_insert_many)
 
 #define N_ELS 40000000
 	vector_t els;
-	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
+	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 8), 0);
-	rect_packing_validate(&packing);
+	_rect_packing_validate(&packing, &els);
 
 	seed_rand(0, 0);
 
@@ -201,13 +238,16 @@ START_TEST(test_insert_many)
 		if (VERBOSE) {
 			printf("insert %llu x %llu:\n", w, h);
 		}
-		packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+		el_info_t info;
+		info.el = rect_packing_insert(&packing, w, h);
+		info.w = w;
+		info.h = h;
 
-		if (el == NULL) {
+		if (info.el == NULL) {
 			break;
 		}
 
-		vector_push(&els, &el);
+		vector_push(&els, &info);
 
 	}
 	_print(&packing, &els, VERBOSE);
@@ -219,7 +259,8 @@ START_TEST(test_insert_many)
 	for (uint64_t j = 0; j < size / 2; j++) {
 		uint64_t i = gen_rand_r64(vector_size(&els));
 
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		el_info_t* info = (el_info_t*) vector_get(&els, i);
+		packed_rect_el_t* el = info->el;
 		if (el == NULL) {
 			j--;
 			continue;
@@ -232,15 +273,19 @@ START_TEST(test_insert_many)
 
 		rect_packing_remove(&packing, el);
 
-		void* null = NULL;
-		vector_set(&els, i, &null);
+		el_info_t zero = {
+			.el = NULL,
+			.w = 0,
+			.h = 0
+		};
+		vector_set(&els, i, &zero);
 	}
 
 	uint64_t j = 0;
 	for (uint64_t i = 0; i < vector_size(&els); i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		if (el != NULL) {
-			vector_set(&els, j, &el);
+		el_info_t* info = (el_info_t*) vector_get(&els, i);
+		if (info->el != NULL) {
+			vector_set(&els, j, info);
 			j++;
 		}
 	}
@@ -265,13 +310,16 @@ START_TEST(test_insert_many)
 		if (VERBOSE) {
 			printf("insert %llu x %llu:\n", w, h);
 		}
-		packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+		el_info_t info;
+		info.el = rect_packing_insert(&packing, w, h);
+		info.w = w;
+		info.h = h;
 
-		if (el == NULL) {
+		if (info.el == NULL) {
 			break;
 		}
 
-		vector_push(&els, &el);
+		vector_push(&els, &info);
 
 	}
 	_print(&packing, &els, VERBOSE);
@@ -279,8 +327,8 @@ START_TEST(test_insert_many)
 
 	uint64_t els_size = vector_size(&els);
 	for (uint64_t i = 0; i < els_size; i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		packed_rect_el_free(el);
+		el_info_t* info = (el_info_t*) vector_get(&els, i);
+		packed_rect_el_free(info->el);
 	}
 	vector_free(&els);
 	rect_packing_free(&packing);
@@ -306,10 +354,10 @@ START_TEST(test_insert_remove_many)
 
 #define N_ELS 40000000
 	vector_t els;
-	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
+	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 64, 64, 2), 0);
-	rect_packing_validate(&packing);
+	_rect_packing_validate(&packing, &els);
 
 	seed_rand(7, 0);
 
@@ -320,7 +368,8 @@ START_TEST(test_insert_remove_many)
 
 			do {
 				remove_idx = gen_rand_r64(2 * i / 3);
-				el = *(packed_rect_el_t**) vector_get(&els, remove_idx);
+				el_info_t* info = (el_info_t*) vector_get(&els, remove_idx);
+				el = info->el;
 			} while (el == NULL);
 
 			if (VERBOSE) {
@@ -330,8 +379,12 @@ START_TEST(test_insert_remove_many)
 			}
 
 			rect_packing_remove(&packing, el);
-			packed_rect_el_t* null = NULL;
-			vector_set(&els, remove_idx, &null);
+			el_info_t zero = {
+				.el = NULL,
+				.w = 0,
+				.h = 0
+			};
+			vector_set(&els, remove_idx, &zero);
 		}
 		else { 
 			GEN_WH();
@@ -339,16 +392,16 @@ START_TEST(test_insert_remove_many)
 			if (VERBOSE) {
 				printf("insert %llu x %llu:\n", w, h);
 			}
-			packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+			el_info_t info;
+			info.el = rect_packing_insert(&packing, w, h);
+			info.w = w;
+			info.h = h;
 
-			if (el == NULL) {
+			if (info.el == NULL) {
 				break;
 			}
 
-			vector_push(&els, &el);
-		}
-		if (VERBOSE) {
-			_print(&packing, &els, VERBOSE);
+			vector_push(&els, &info);
 		}
 
 	}
@@ -357,9 +410,9 @@ START_TEST(test_insert_remove_many)
 
 	uint64_t j = 0;
 	for (uint64_t i = 0; i < vector_size(&els); i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		if (el != NULL) {
-			vector_set(&els, j, &el);
+		el_info_t* info = (el_info_t*) vector_get(&els, i);
+		if (info->el != NULL) {
+			vector_set(&els, j, info);
 			j++;
 		}
 	}
@@ -380,13 +433,16 @@ START_TEST(test_insert_remove_many)
 		if (VERBOSE) {
 			printf("insert %llu x %llu:\n", w, h);
 		}
-		packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+		el_info_t info;
+		info.el = rect_packing_insert(&packing, w, h);
+		info.w = w;
+		info.h = h;
 
-		if (el == NULL) {
+		if (info.el == NULL) {
 			break;
 		}
 
-		vector_push(&els, &el);
+		vector_push(&els, &info);
 
 	}
 	_print(&packing, &els, VERBOSE);
@@ -394,8 +450,8 @@ START_TEST(test_insert_remove_many)
 
 	uint64_t els_size = vector_size(&els);
 	for (uint64_t i = 0; i < els_size; i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		packed_rect_el_free(el);
+		el_info_t* info = (el_info_t*) vector_get(&els, i);
+		packed_rect_el_free(info->el);
 	}
 	vector_free(&els);
 	rect_packing_free(&packing);

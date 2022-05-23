@@ -32,7 +32,8 @@ typedef struct packed_rect_el {
 			// The height of the rectangle.
 			packed_rect_coord_t h;
 
-			// True if the rectangle is rotated 90 degrees.
+			// True if the rectangle was rotated 90 degrees (i.e. the width and
+			// height supplied to insert were swapped).
 			bool rotated;
 
 			// The index of the bin this rectangle is packed into.
@@ -83,7 +84,7 @@ typedef struct packed_rect_row {
 	rb_tree_t elements;
 
 	// Pointers to the first and last empty packed rect el in the list of
-	// elements.
+	// elements, sorted in non-decreasing width.
 	packed_rect_el_t* freelist_start;
 	packed_rect_el_t* freelist_end;
 
