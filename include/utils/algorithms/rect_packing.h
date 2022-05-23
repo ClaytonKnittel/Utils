@@ -11,6 +11,8 @@
  * The algorithm tries to pack all rectangles given into as few bins of fixed
  * size as possible. Rectangles are allowed to be rotated, but must stay
  * axis-aligned.
+ *
+ * Based on https://cgi.csc.liv.ac.uk/~epa/surveyhtml.html HFF algorithm.
  */
 
 typedef uint64_t packed_rect_coord_t;
