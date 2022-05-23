@@ -8,6 +8,8 @@
 
 #include "test_utils.h"
 
+#define SILENT true
+
 START_TEST(test_init)
 {
 	rect_packing_t packing;
@@ -134,6 +136,10 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 	uint64_t h = packing->bin_h;
 	char* arr;
 	uint64_t area = 0;
+
+	if (SILENT) {
+		return;
+	}
 
 	if (verbose) {
 		arr = (char*) calloc(vector_size(&packing->bin_list) * w * h, sizeof(char));
@@ -334,7 +340,9 @@ START_TEST(test_insert_many)
 
 	}
 	_print(&packing, &els, VERBOSE);
-	printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	if (!SILENT) {
+		printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	}
 
 	uint64_t size = vector_size(&els);
 
@@ -381,7 +389,9 @@ START_TEST(test_insert_many)
 	if (DO_RESHUFFLE) {
 		_reshuffle_els(&packing, &els);
 
-		printf("RESHUFFLED:\n");
+		if (!SILENT) {
+			printf("RESHUFFLED:\n");
+		}
 		if (VERBOSE) {
 			_print(&packing, &els, VERBOSE);
 		}
@@ -406,7 +416,9 @@ START_TEST(test_insert_many)
 
 	}
 	_print(&packing, &els, VERBOSE);
-	printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	if (!SILENT) {
+		printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	}
 
 	uint64_t els_size = vector_size(&els);
 	for (uint64_t i = 0; i < els_size; i++) {
@@ -490,7 +502,9 @@ START_TEST(test_insert_remove_many)
 		_rect_packing_validate(&packing, &els);
 	}
 	_print(&packing, &els, VERBOSE);
-	printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	if (!SILENT) {
+		printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	}
 
 	uint64_t j = 0;
 	for (uint64_t i = 0; i < vector_size(&els); i++) {
@@ -505,7 +519,9 @@ START_TEST(test_insert_remove_many)
 	if (DO_RESHUFFLE) {
 		_reshuffle_els(&packing, &els);
 
-		printf("RESHUFFLED:\n");
+		if (!SILENT) {
+			printf("RESHUFFLED:\n");
+		}
 		if (VERBOSE) {
 			_print(&packing, &els, VERBOSE);
 		}
@@ -532,7 +548,9 @@ START_TEST(test_insert_remove_many)
 
 	}
 	_print(&packing, &els, VERBOSE);
-	printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	if (!SILENT) {
+		printf("No room for el (inserted %llu)!\n", vector_size(&els));
+	}
 
 	uint64_t els_size = vector_size(&els);
 	for (uint64_t i = 0; i < els_size; i++) {
