@@ -33,7 +33,7 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 
 	uint64_t w = packing->bin_w;
 	uint64_t h = packing->bin_h;
-	uint64_t* bin_list = (uint64_t*) calloc(w * h * vector_size(&packing->bin_list), sizeof(uint8_t));
+	uint8_t* bin_list = (uint8_t*) calloc(w * h * vector_size(&packing->bin_list), sizeof(uint8_t));
 
 	for (uint64_t i = 0; i < vector_size(els); i++) {
 		el_info_t* info = (el_info_t*) vector_get(els, i);
@@ -43,18 +43,20 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 		}
 
 		if (!el->rotated) {
-			//ck_assert_uint_eq(el->w, info->w);
-			//ck_assert_uint_eq(el->h, info->h);
+			ck_assert_uint_eq(el->w, info->w);
+			ck_assert_uint_eq(el->h, info->h);
 		}
 		else {
-			//ck_assert_uint_eq(el->w, info->h);
-			//ck_assert_uint_eq(el->h, info->w);
+			ck_assert_uint_eq(el->w, info->h);
+			ck_assert_uint_eq(el->h, info->w);
 		}
 
-		for (uint64_t r = el->ly; r < el->ly + el->h; r++) {
+		ck_assert_uint_le(el->h, el->parent_row->h);
+
+		for (uint64_t r = el->ly; r < el->ly + el->parent_row->h; r++) {
 			for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
 				uint64_t idx = el->bin_idx * w * h + r * w + c;
-				//ck_assert_uint_eq(bin_list[idx], 0);
+				ck_assert_uint_eq(bin_list[idx], 0);
 				bin_list[idx] = EL_LABEL;
 			}
 		}
@@ -78,7 +80,7 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 			for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
 				for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
 					uint64_t idx = bin_idx * w * h + r * w + c;
-					//ck_assert_uint_eq(bin_list[idx], 0);
+					ck_assert_uint_eq(bin_list[idx], 0);
 					bin_list[idx] = EMPTY_LABEL;
 				}
 			}
@@ -100,10 +102,7 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 			for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
 				for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
 					uint64_t idx = bin_idx * w * h + r * w + c;
-					if (bin_list[idx] != 0) {
-						_print(packing, els, false);
-					}
-					//ck_assert_uint_eq(bin_list[idx], 0);
+					ck_assert_uint_eq(bin_list[idx], 0);
 					bin_list[idx] = EMPTY_LABEL;
 				}
 			}
@@ -114,10 +113,13 @@ _rect_packing_validate(const rect_packing_t* packing, vector_t* els)
 		for (uint64_t r = 0; r < h; r++) {
 			for (uint64_t c = 0; c < w; c++) {
 				uint64_t idx = bin_idx * w * h + r * w + c;
-				/*ck_assert_msg(bin_list[idx] != 0, "bin %lu: (%lu, %lu) not "
-						"catured by allocated or free element",
+				if (bin_list[idx] == 0) {
+					_print(packing, els, true);
+				}
+				ck_assert_msg(bin_list[idx] != 0, "bin %lu: (%lu, %lu) not "
+						"captured by allocated or free element",
 						(unsigned long) bin_idx, (unsigned long) r,
-						(unsigned long) c);*/
+						(unsigned long) c);
 			}
 		}
 	}
@@ -253,7 +255,6 @@ START_TEST(test_insert_one)
 	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 10, 10, 2), 0);
-	_print(&packing, &els, true);
 	_rect_packing_validate(&packing, &els);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
@@ -271,7 +272,6 @@ START_TEST(test_insert_one)
 		ck_assert_ptr_ne(info.el, NULL);
 
 		vector_push(&els, &info);
-		_print(&packing, &els, true);
 		_rect_packing_validate(&packing, &els);
 	}
 
@@ -286,7 +286,6 @@ START_TEST(test_insert_one)
 		el_info_t* info = (el_info_t*) vector_get(&els, remove_order[i]);
 		rect_packing_remove(&packing, info->el);
 		vector_remove(&els, remove_order[i]);
-		_print(&packing, &els, true);
 		_rect_packing_validate(&packing, &els);
 	}
 
@@ -313,7 +312,6 @@ START_TEST(test_insert_many)
 	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
 	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 8), 0);
-	_rect_packing_validate(&packing, &els);
 
 	seed_rand(0, 0);
 
@@ -437,7 +435,7 @@ START_TEST(test_insert_remove_many)
 #define VERBOSE false
 #define DO_RESHUFFLE true
 
-#define N_ELS 40000000
+#define N_ELS 4000
 	vector_t els;
 	vector_init(&els, sizeof(el_info_t), N_ELS);
 	rect_packing_t packing;
@@ -489,6 +487,7 @@ START_TEST(test_insert_remove_many)
 			vector_push(&els, &info);
 		}
 
+		_rect_packing_validate(&packing, &els);
 	}
 	_print(&packing, &els, VERBOSE);
 	printf("No room for el (inserted %llu)!\n", vector_size(&els));
@@ -510,6 +509,7 @@ START_TEST(test_insert_remove_many)
 		if (VERBOSE) {
 			_print(&packing, &els, VERBOSE);
 		}
+		_rect_packing_validate(&packing, &els);
 	}
 
 	for (uint64_t i = vector_size(&els); i < N_ELS; i++) {
@@ -528,6 +528,7 @@ START_TEST(test_insert_remove_many)
 		}
 
 		vector_push(&els, &info);
+		_rect_packing_validate(&packing, &els);
 
 	}
 	_print(&packing, &els, VERBOSE);
