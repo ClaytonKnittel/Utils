@@ -301,7 +301,7 @@ START_TEST(test_insert_remove_many)
 	uint64_t w = 1 + gen_rand_r(10); \
 	uint64_t h = 1 + gen_rand_r(10)
 
-#define VERBOSE true
+#define VERBOSE false
 #define DO_RESHUFFLE true
 
 #define N_ELS 40000000
@@ -347,11 +347,23 @@ START_TEST(test_insert_remove_many)
 
 			vector_push(&els, &el);
 		}
-		_print(&packing, &els, VERBOSE);
+		if (VERBOSE) {
+			_print(&packing, &els, VERBOSE);
+		}
 
 	}
 	_print(&packing, &els, VERBOSE);
 	printf("No room for el (inserted %llu)!\n", vector_size(&els));
+
+	uint64_t j = 0;
+	for (uint64_t i = 0; i < vector_size(&els); i++) {
+		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
+		if (el != NULL) {
+			vector_set(&els, j, &el);
+			j++;
+		}
+	}
+	els.len = j;
 
 	if (DO_RESHUFFLE) {
 		_reshuffle_els(&packing, &els);

@@ -358,12 +358,14 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 		rb_upper_bound_packed_rect_el(&row->elements, &el->rb_node_base);
 	rb_node_t* right_neighbor_node =
 		rb_lower_bound_packed_rect_el(&row->elements, &el->rb_node_base);
+	packed_rect_el_t* left_neighbor = _node_base_to_el(left_neighbor_node);
+	packed_rect_el_t* right_neighbor = _node_base_to_el(right_neighbor_node);
 
 	packed_rect_coord_t lx = el->lx;
 	packed_rect_coord_t w = el->w;
 
-	if (left_neighbor_node != LEAF) {
-		packed_rect_el_t* left_neighbor = _node_base_to_el(left_neighbor_node);
+	if (left_neighbor_node != LEAF &&
+			left_neighbor->lx + left_neighbor->w == el->lx) {
 		_el_freelist_remove(left_neighbor);
 
 		w += left_neighbor->w;
@@ -375,8 +377,7 @@ _reinsert_el(packed_rect_row_t* row, packed_rect_el_t* el)
 		rb_insert_packed_rect_el(&row->elements, &el->rb_node_base);
 	}
 
-	if (right_neighbor_node != LEAF) {
-		packed_rect_el_t* right_neighbor = _node_base_to_el(right_neighbor_node);
+	if (right_neighbor_node != LEAF && right_neighbor->lx == el->lx + el->w) {
 		_el_freelist_remove(right_neighbor);
 		rb_remove_packed_rect_el(&row->elements, &right_neighbor->rb_node_base);
 
