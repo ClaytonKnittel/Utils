@@ -28,6 +28,9 @@ _print(const rect_packing_t* packing, vector_t* els, bool verbose)
 
 	for (uint64_t i = 0; i < vector_size(els); i++) {
 		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(els, i);
+		if (el == NULL) {
+			continue;
+		}
 
 		if (verbose) {
 			printf("el: (%llu, %llu), (%llu x %llu) (%u) (%s)\n",
@@ -281,84 +284,74 @@ START_TEST(test_insert_many)
 	}
 	vector_free(&els);
 	rect_packing_free(&packing);
+
+#undef N_ELS
+#undef DO_RESHUFFLE
+#undef VERBOSE
+#undef GEN_WH
 }
 END_TEST
 
 START_TEST(test_insert_remove_many)
 {
-#define GEN_WH() \
-	uint64_t w = 30 + 1 * gen_rand_r(100); \
-	uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
 //#define GEN_WH() \
-//	uint64_t w = 5 + gen_rand_r(100); \
-//	uint64_t h = 5 + gen_rand_r(100)
+//	uint64_t w = 30 + 1 * gen_rand_r(100); \
+//	uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
+#define GEN_WH() \
+	uint64_t w = 1 + gen_rand_r(10); \
+	uint64_t h = 1 + gen_rand_r(10)
 
-#define VERBOSE false
+#define VERBOSE true
 #define DO_RESHUFFLE true
 
 #define N_ELS 40000000
 	vector_t els;
 	vector_init(&els, sizeof(packed_rect_el_t*), N_ELS);
 	rect_packing_t packing;
-	ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 8), 0);
+	ck_assert_int_eq(rect_packing_init(&packing, 64, 64, 2), 0);
 	rect_packing_validate(&packing);
 
 	seed_rand(7, 0);
 
 	for (uint64_t i = 0; i < N_ELS; i++) {
-		GEN_WH();
+		if (i % 3 == 2) {
+			uint64_t remove_idx;
+			packed_rect_el_t* el;
 
-		if (VERBOSE) {
-			printf("insert %llu x %llu:\n", w, h);
+			do {
+				remove_idx = gen_rand_r64(2 * i / 3);
+				el = *(packed_rect_el_t**) vector_get(&els, remove_idx);
+			} while (el == NULL);
+
+			if (VERBOSE) {
+				printf("remove %llu (%llu x %llu at %llu, %llu)\n",
+						remove_idx,
+						el->w, el->h, el->lx, el->ly);
+			}
+
+			rect_packing_remove(&packing, el);
+			packed_rect_el_t* null = NULL;
+			vector_set(&els, remove_idx, &null);
 		}
-		packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+		else { 
+			GEN_WH();
 
-		if (el == NULL) {
-			break;
+			if (VERBOSE) {
+				printf("insert %llu x %llu:\n", w, h);
+			}
+			packed_rect_el_t* el = rect_packing_insert(&packing, w, h);
+
+			if (el == NULL) {
+				break;
+			}
+
+			vector_push(&els, &el);
 		}
-
-		vector_push(&els, &el);
+		_print(&packing, &els, VERBOSE);
 
 	}
 	_print(&packing, &els, VERBOSE);
 	printf("No room for el (inserted %llu)!\n", vector_size(&els));
-
-	uint64_t size = vector_size(&els);
-
-	// random removal order
-	for (uint64_t j = 0; j < size / 2; j++) {
-		uint64_t i = gen_rand_r64(vector_size(&els));
-
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		if (el == NULL) {
-			j--;
-			continue;
-		}
-
-		if (VERBOSE) {
-			printf("Removing %llu x %llu at (%llu, %llu) (%llu)\n",
-					el->w, el->h, el->lx, el->ly, i);
-		}
-
-		rect_packing_remove(&packing, el);
-
-		void* null = NULL;
-		vector_set(&els, i, &null);
-	}
-
-	uint64_t j = 0;
-	for (uint64_t i = 0; i < vector_size(&els); i++) {
-		packed_rect_el_t* el = *(packed_rect_el_t**) vector_get(&els, i);
-		if (el != NULL) {
-			vector_set(&els, j, &el);
-			j++;
-		}
-	}
-	els.len = j;
-
-	if (VERBOSE) {
-		_print(&packing, &els, VERBOSE);
-	}
 
 	if (DO_RESHUFFLE) {
 		_reshuffle_els(&packing, &els);
