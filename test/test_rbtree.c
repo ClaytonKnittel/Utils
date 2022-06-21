@@ -140,17 +140,19 @@ START_TEST(test_basic)
 		uint64_t true_idx = idx + (idx + 1) / 2;
 		ck_assert(inodes[true_idx] == node);
 		ck_assert(vals[true_idx] == node->val);
+		rb_node_t* suc = rb_find_succ(_node);
+		ck_assert_ptr_eq(suc, __rb_succ__node);
 
 		rb_remove_int(&tree, vals[true_idx]);
-		memset(inodes[true_idx], 0xff, sizeof(*inodes[true_idx]));
 
 		idx++;
 	}
 	rb_for_each_mod_fin();
 
 	ck_assert_int_eq(tree.size, 0);
+	ck_assert_ptr_eq(rb_get_root(&tree), LEAF);
 
-	rb_free(&tree);
+	rb_free_int(&tree);
 }
 END_TEST
 

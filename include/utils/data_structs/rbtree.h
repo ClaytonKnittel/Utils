@@ -128,19 +128,11 @@ static void rb_init(struct __int_rb_tree* tree) {
 	tree->size = 0;
 }
 
-
-void rb_free_node(rb_node_t* node);
-
 /*
- * called to free the rbtree. Should only be called on trees with scalar
- * types, since only then is the memory managed by the tree
+ * Recursively frees a node and its children (should only be called on scalar
+ * nodes).
  */
-static void rb_free(struct __int_rb_tree* tree) {
-	rb_node_t* root = rb_get_root(tree);
-	if (root != LEAF) {
-		rb_free_node(root);
-	}
-}
+void rb_free_node(rb_node_t* node);
 
 
 /*
@@ -382,6 +374,18 @@ static void rb_ ## name ## _set_val(rb_node_t* n, s_type v) { \
 }
 
 /*
+ * Called to free the rbtree. Only defined foC scalar types, since only then
+ * is the memory managed by the tree.
+ */
+#define RB_DEFINE_SCALAR_FREE(name, s_type) \
+static void rb_free_ ## name(struct __int_rb_tree *tree) { \
+	rb_node_t* root = rb_get_root(tree); \
+	if (root != LEAF) { \
+		rb_free_node(root); \
+	} \
+}
+
+/*
  * macro for defining the find function for rb nodes, which essentially
  * determines the way in which the red-black tree sorts its elements.
  *
@@ -519,6 +523,7 @@ static void _bst_check_ ## name(rb_node_t *node) { \
 #define RB_DEFINE_SCALAR_TYPE(name, s_type) \
 	RB_DEFINE_GET_VAL(name, s_type) \
 	RB_DEFINE_SET_VAL(name, s_type) \
+	RB_DEFINE_SCALAR_FREE(name, s_type) \
 	RB_DEFINE_SCALAR_FIND_LOC(name, s_type) \
 	RB_DEFINE_SCALAR_UPPER_BOUND(name, s_type) \
 	RB_DEFINE_SCALAR_LOWER_BOUND(name, s_type) \
