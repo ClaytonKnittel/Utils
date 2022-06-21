@@ -800,7 +800,7 @@ rect_packing_validate(const rect_packing_t* packing)
 			packed_rect_el_t* el_terminal = _el_freelist_terminal(row);
 			for (packed_rect_el_t* el = row->freelist_start; el != el_terminal;
 					el = el->next) {
-				dbg_assert(el->lx >= 0);
+				dbg_assert(((int64_t) el->lx) >= 0);
 				dbg_assert(el->w > 0);
 				dbg_assert(el->lx + el->w <= packing->bin_w);
 

@@ -210,8 +210,8 @@ START_TEST(test_basic)
 
 	uint64_t max = 65536;
 
-	double n_times[max];
-	double m_times[max];
+	//double n_times[max];
+	//double m_times[max];
 
 	int sz = max;
 	//for (int sz = 16; sz < max; sz += 16) {
@@ -222,8 +222,8 @@ START_TEST(test_basic)
 		printf("average mine:  %.9f\n", my_s);
 		printf("speedup:       %f\n", naive_s / my_s);*/
 
-		n_times[sz / 16] = naive_s;
-		m_times[sz / 16] = my_s;
+		//n_times[sz / 16] = naive_s;
+		//m_times[sz / 16] = my_s;
 		/*printf("{%d, %f}", sz, (naive_s / my_s));
 		if (sz < max - 1) {
 			printf(",");

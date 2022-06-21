@@ -52,6 +52,7 @@ START_TEST(test_init_half_min)
 	Utils::RTree tree(2, 4);
 	tree.Validate();
 }
+END_TEST
 
 
 /**********************************************************

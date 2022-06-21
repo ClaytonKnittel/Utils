@@ -1565,23 +1565,18 @@ _rtree_validate_leaf(const rtree_t* tree, const rtree_leaf_t* leaf,
 	}
 	dbg_assert(n_children <= tree->m_max);
 
-	rtree_rect_t bb;
+	if (n_children > 0) {
+		rtree_rect_t bb = leaf->elements[0]->bb;
 
-	for (uint32_t i = 0; i < n_children; i++) {
-		const rtree_el_t* el = leaf->elements[i];
-		dbg_assert(rtree_rect_contains(&leaf->base.bb, &el->bb));
-		dbg_assert(el->parent == leaf);
-		dbg_assert(el->parent_idx == i);
+		for (uint32_t i = 0; i < n_children; i++) {
+			const rtree_el_t* el = leaf->elements[i];
+			dbg_assert(rtree_rect_contains(&leaf->base.bb, &el->bb));
+			dbg_assert(el->parent == leaf);
+			dbg_assert(el->parent_idx == i);
 
-		if (i == 0) {
-			bb = el->bb;
-		}
-		else {
 			rtree_rect_extend(&bb, &el->bb);
 		}
-	}
 
-	if (n_children > 0) {
 		dbg_assert(bb.lx == leaf->base.bb.lx);
 		dbg_assert(bb.ly == leaf->base.bb.ly);
 		dbg_assert(bb.ux == leaf->base.bb.ux);

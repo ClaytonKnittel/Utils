@@ -433,6 +433,7 @@ START_TEST(test_find_single)
 
 	rtree_free(&tree);
 }
+END_TEST
 
 START_TEST(test_find_single_fail)
 {
@@ -460,6 +461,7 @@ START_TEST(test_find_single_fail)
 
 	rtree_free(&tree);
 }
+END_TEST
 
 START_TEST(test_find_100_grid)
 {
@@ -582,6 +584,7 @@ START_TEST(test_delete_1)
 
 	rtree_free(&tree);
 }
+END_TEST
 
 static void
 _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min, uint32_t m_max,
@@ -670,26 +673,31 @@ START_TEST(test_delete_100_random)
 {
 	_run_randomized_delete_test(100, 5, 10, 87, true);
 }
+END_TEST
 
 START_TEST(test_delete_1000_random)
 {
 	_run_randomized_delete_test(1000, 4, 12, 101, true);
 }
+END_TEST
 
 START_TEST(test_delete_10000_random)
 {
 	_run_randomized_delete_test(1000, 4, 12, 113, false);
 }
+END_TEST
 
 START_TEST(test_delete_100000_random)
 {
 	_run_randomized_delete_test(10000, 4, 12, 117, false);
 }
+END_TEST
 
 START_TEST(test_delete_1000000_random)
 {
 	_run_randomized_delete_test(100000, 5, 15, 123, false);
 }
+END_TEST
 
 
 /**********************************************************
@@ -741,6 +749,7 @@ START_TEST(test_intersects_single)
 
 	rtree_free(&tree);
 }
+END_TEST
 
 static void
 _run_grid_intersects_single_test(uint64_t sqrt_n_rects, uint32_t m_min,

@@ -306,9 +306,6 @@ START_TEST(test_insert_many)
 #define GEN_WH() \
 	uint64_t w = 30 + 1 * gen_rand_r(100); \
 	uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
-//#define GEN_WH() \
-//	uint64_t w = 5 + gen_rand_r(100); \
-//	uint64_t h = 5 + gen_rand_r(100)
 
 #define VERBOSE false
 #define DO_RESHUFFLE true
@@ -437,9 +434,6 @@ END_TEST
 
 START_TEST(test_insert_remove_many)
 {
-//#define GEN_WH() \
-//	uint64_t w = 30 + 1 * gen_rand_r(100); \
-//	uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
 #define GEN_WH() \
 	uint64_t w = 1 + gen_rand_r(10); \
 	uint64_t h = 1 + gen_rand_r(10)
