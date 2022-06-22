@@ -10,8 +10,8 @@ extern "C" {
 
 #ifdef AVX_SUPPORTED
 
-extern void to_upper_avx(char* str, uint64_t len);
-extern void to_lower_avx(char* str, uint64_t len);
+extern void to_upper_avx(char* str, uint64_t len) asm ("_to_upper_avx");
+extern void to_lower_avx(char* str, uint64_t len) asm ("_to_lower_avx");
 
 #define to_upper to_upper_avx
 #define to_lower to_lower_avx
