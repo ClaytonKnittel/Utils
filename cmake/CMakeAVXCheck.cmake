@@ -6,9 +6,9 @@ set(ENABLE_AVX "CHECK" CACHE STRING "When enabled, builds certain methods using 
 	automatically checked.")
 
 if("${CMAKE_ASM_COMPILER_ID}" MATCHES "GNU")
-	set(AVX_CHECK_ASM_OPTIONS -Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg)
+	set(AVX_CHECK_ASM_OPTIONS "-Wa,--64 -Wa,-msyntax=intel -Wa,-mnaked-reg")
 elseif("${CMAKE_ASM_COMPILER_ID}" MATCHES "Clang")
-	set(AVX_CHECK_ASM_OPTIONS -masm=intel)
+	set(AVX_CHECK_ASM_OPTIONS "-masm=intel")
 else()
 	message(SEND_ERROR "Unsupported assembler (${CMAKE_ASM_COMPILER_ID})")
 endif()

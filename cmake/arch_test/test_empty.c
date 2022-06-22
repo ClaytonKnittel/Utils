@@ -2,7 +2,7 @@
  * Used to test support for certain assembly instruction types.
  */
 
-extern int test_avx();
+extern int test_avx() asm ("_test_avx");
 
 int
 main()
