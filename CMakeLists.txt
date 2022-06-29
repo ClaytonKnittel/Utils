@@ -154,8 +154,15 @@ if (${ENABLE_TESTING})
 	endif()
 	target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-gnu-zero-variadic-macro-arguments>)
 
+	find_library(check check REQUIRED)
+
 	target_link_directories(utils
 		PUBLIC "/usr/local/lib"
+	)
+
+	target_link_libraries(utils
+		PRIVATE
+			check
 	)
 
     enable_testing()
