@@ -12,6 +12,13 @@ jobs:
       with:
         path: utils
         submodules: recursive
+    - name: Run clang-format 2
+      uses: DoozyX/clang-format-lint-action@v0.14
+      with:
+        source: '.'
+        exclude: './lib'
+        extensions: 'h,cc'
+        clangFormatVersion: 14
     - name: Run clang-format
       working-directory: utils
       run: |
