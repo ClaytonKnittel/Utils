@@ -1,0 +1,19 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out Utils
+      uses: actions/checkout@v2
+      with:
+        path: utils
+        submodules: recursive
+    - name: Run clang-format
+      working-directory: utils
+      run: |
+        sh validate-format.sh $(find . -name "*.c" -type f -print)
+        sh validate-format.sh $(find . -name "*.cc" -type f -print)

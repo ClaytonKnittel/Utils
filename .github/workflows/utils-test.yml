@@ -48,9 +48,6 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y libsubunit-dev lsb-release
-        echo $LD_LIBRARY_PATH
-        echo "2"
-        ls /usr/local/lib
     - name: Check out Utils
       uses: actions/checkout@v2
       with:
