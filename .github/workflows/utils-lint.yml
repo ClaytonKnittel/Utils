@@ -15,7 +15,7 @@ jobs:
     - name: Run clang-format
       working-directory: utils
       run: |
-        sudo apt update clang-format
+        sudo apt upgrade clang-format
         which clang-format
         clang-format --version
         sh validate-format.sh $(find . -name "*.c" -type f -print)
