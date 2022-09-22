@@ -15,9 +15,8 @@ jobs:
     - name: Run clang-format
       working-directory: utils
       run: |
-        sudo apt-get install clang-format-14
-        which clang-format-14
-        clang-format-14 --version
-        alias clang-format="clang-format-14"
+        sudo apt-get install clang-format
+        which clang-format
+        clang-format --version
         sh validate-format.sh $(find . -name "*.c" -type f -print)
         sh validate-format.sh $(find . -name "*.cc" -type f -print)
