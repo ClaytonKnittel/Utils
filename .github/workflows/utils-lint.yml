@@ -15,7 +15,7 @@ jobs:
     - name: Run clang-format
       working-directory: utils
       run: |
-        sudo apt install clang-format-14
+        sudo apt-get install clang-format-14
         which clang-format-14
         clang-format-14 --version
         alias clang-format="clang-format-14"
