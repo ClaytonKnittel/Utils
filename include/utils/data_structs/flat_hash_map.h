@@ -351,7 +351,8 @@ class sherwood_v3_table : private EntryAlloc, private Hasher, private Equal {
       clear();
       _max_load_factor = other._max_load_factor;
       rehash_for_other_container(other);
-      for (T &elem : other) emplace(std::move(elem));
+      for (T &elem : other)
+        emplace(std::move(elem));
       other.clear();
     }
     static_cast<Hasher &>(*this) = std::move(other);
