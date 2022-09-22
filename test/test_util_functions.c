@@ -3,49 +3,41 @@
 
 #include "test_utils.h"
 
-START_TEST(test_align_up_pow2)
-{
-	ck_assert_int_eq(ALIGN_UP(0x100, 0x10), 0x100);
+START_TEST(test_align_up_pow2) {
+  ck_assert_int_eq(ALIGN_UP(0x100, 0x10), 0x100);
 }
 END_TEST
 
-START_TEST(test_align_up_pow2_minus_1)
-{
-	ck_assert_int_eq(ALIGN_UP(0x0ff, 0x10), 0x100);
+START_TEST(test_align_up_pow2_minus_1) {
+  ck_assert_int_eq(ALIGN_UP(0x0ff, 0x10), 0x100);
 }
 END_TEST
 
-START_TEST(test_align_up_pow2_plus_1)
-{
-	ck_assert_int_eq(ALIGN_UP(0x0f1, 0x10), 0x100);
+START_TEST(test_align_up_pow2_plus_1) {
+  ck_assert_int_eq(ALIGN_UP(0x0f1, 0x10), 0x100);
 }
 END_TEST
 
-START_TEST(test_align_down_pow2)
-{
-	ck_assert_int_eq(ALIGN_DOWN(0x100, 0x10), 0x100);
+START_TEST(test_align_down_pow2) {
+  ck_assert_int_eq(ALIGN_DOWN(0x100, 0x10), 0x100);
 }
 END_TEST
 
-START_TEST(test_align_down_pow2_minus_1)
-{
-	ck_assert_int_eq(ALIGN_DOWN(0x10f, 0x10), 0x100);
+START_TEST(test_align_down_pow2_minus_1) {
+  ck_assert_int_eq(ALIGN_DOWN(0x10f, 0x10), 0x100);
 }
 END_TEST
 
-START_TEST(test_align_down_pow2_plus_1)
-{
-	ck_assert_int_eq(ALIGN_DOWN(0x101, 0x10), 0x100);
+START_TEST(test_align_down_pow2_plus_1) {
+  ck_assert_int_eq(ALIGN_DOWN(0x101, 0x10), 0x100);
 }
 END_TEST
-
 
 #define DEFINE_UNARY_TEST(fn, in, out) \
-START_TEST(test_ ## fn ## _ ## in) \
-{ \
-	ck_assert_int_eq(fn(in), out); \
-} \
-END_TEST
+  START_TEST(test_##fn##_##in) {       \
+    ck_assert_int_eq(fn(in), out);     \
+  }                                    \
+  END_TEST
 
 DEFINE_UNARY_TEST(ffs32_unsafe, 0x1, 1)
 DEFINE_UNARY_TEST(ffs32_unsafe, 0x2, 2)
@@ -201,210 +193,204 @@ DEFINE_UNARY_TEST(ceil_log10l, 9999999999999999999u, 19)
 DEFINE_UNARY_TEST(ceil_log10l, 10000000000000000000u, 20)
 DEFINE_UNARY_TEST(ceil_log10l, 18446744073709551615u, 20)
 
-START_TEST(test_boolstr_false)
-{
-	ck_assert_str_eq(boolstr(false), "false");
+START_TEST(test_boolstr_false) {
+  ck_assert_str_eq(boolstr(false), "false");
 }
 END_TEST
 
-START_TEST(test_boolstr_true)
-{
-	ck_assert_str_eq(boolstr(true), "true");
+START_TEST(test_boolstr_true) {
+  ck_assert_str_eq(boolstr(true), "true");
 }
 END_TEST
 
-START_TEST(test_boolstr_large)
-{
-	ck_assert_str_eq(boolstr(1234), "true");
+START_TEST(test_boolstr_large) {
+  ck_assert_str_eq(boolstr(1234), "true");
 }
 END_TEST
 
-Suite*
-test_utils()
-{
-	TCase* tc_align;
-	TCase* tc_ffs;
-	TCase* tc_next_pow2;
-	TCase* tc_ceil_log10;
-	TCase* tc_boolstr;
+Suite* test_utils() {
+  TCase* tc_align;
+  TCase* tc_ffs;
+  TCase* tc_next_pow2;
+  TCase* tc_ceil_log10;
+  TCase* tc_boolstr;
 
-	Suite* s = suite_create("utils.h");
+  Suite* s = suite_create("utils.h");
 
-	tc_align = tcase_create("Align");
-	tcase_add_test(tc_align, test_align_up_pow2);
-	tcase_add_test(tc_align, test_align_up_pow2_minus_1);
-	tcase_add_test(tc_align, test_align_up_pow2_plus_1);
-	tcase_add_test(tc_align, test_align_down_pow2);
-	tcase_add_test(tc_align, test_align_down_pow2_minus_1);
-	tcase_add_test(tc_align, test_align_down_pow2_plus_1);
-	suite_add_tcase(s, tc_align);
+  tc_align = tcase_create("Align");
+  tcase_add_test(tc_align, test_align_up_pow2);
+  tcase_add_test(tc_align, test_align_up_pow2_minus_1);
+  tcase_add_test(tc_align, test_align_up_pow2_plus_1);
+  tcase_add_test(tc_align, test_align_down_pow2);
+  tcase_add_test(tc_align, test_align_down_pow2_minus_1);
+  tcase_add_test(tc_align, test_align_down_pow2_plus_1);
+  suite_add_tcase(s, tc_align);
 
-	tc_ffs = tcase_create("Find set bit");
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x1);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x2);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x4);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x8);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x80);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x81);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x82);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x84);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x1000);
-	tcase_add_test(tc_ffs, test_ffs32_unsafe_0x80000000);
+  tc_ffs = tcase_create("Find set bit");
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x1);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x2);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x4);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x8);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x80);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x81);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x82);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x84);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x1000);
+  tcase_add_test(tc_ffs, test_ffs32_unsafe_0x80000000);
 
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x1);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x2);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x4);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x8);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x80);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x1000);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x80000000);
-	tcase_add_test(tc_ffs, test_ffs64_unsafe_0x8000000000000000);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x1);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x2);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x4);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x8);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x80);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x1000);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x80000000);
+  tcase_add_test(tc_ffs, test_ffs64_unsafe_0x8000000000000000);
 
-	tcase_add_test(tc_ffs, test_ffs32_0x0);
-	tcase_add_test(tc_ffs, test_ffs32_0x80001000);
-	tcase_add_test(tc_ffs, test_ffs32_0x80000000);
+  tcase_add_test(tc_ffs, test_ffs32_0x0);
+  tcase_add_test(tc_ffs, test_ffs32_0x80001000);
+  tcase_add_test(tc_ffs, test_ffs32_0x80000000);
 
-	tcase_add_test(tc_ffs, test_ffs64_0x0);
-	tcase_add_test(tc_ffs, test_ffs64_0x80001000);
-	tcase_add_test(tc_ffs, test_ffs64_0x80000000);
-	tcase_add_test(tc_ffs, test_ffs64_0x8000000000000000);
+  tcase_add_test(tc_ffs, test_ffs64_0x0);
+  tcase_add_test(tc_ffs, test_ffs64_0x80001000);
+  tcase_add_test(tc_ffs, test_ffs64_0x80000000);
+  tcase_add_test(tc_ffs, test_ffs64_0x8000000000000000);
 
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x1);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x2);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x4);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x8);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x80);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x81);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x82);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x84);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x80000000);
-	tcase_add_test(tc_ffs, test_fls32_unsafe_0x80000001);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x1);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x2);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x4);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x8);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x80);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x81);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x82);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x84);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x80000000);
+  tcase_add_test(tc_ffs, test_fls32_unsafe_0x80000001);
 
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x1);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x2);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x4);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x8);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x80);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x81);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x80000000);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x80000001);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x8000000000000000);
-	tcase_add_test(tc_ffs, test_fls64_unsafe_0x8000000000000001);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x1);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x2);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x4);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x8);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x80);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x81);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x80000000);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x80000001);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x8000000000000000);
+  tcase_add_test(tc_ffs, test_fls64_unsafe_0x8000000000000001);
 
-	tcase_add_test(tc_ffs, test_fls32_0x0);
-	tcase_add_test(tc_ffs, test_fls32_0x1001);
-	tcase_add_test(tc_ffs, test_fls32_0x80000001);
+  tcase_add_test(tc_ffs, test_fls32_0x0);
+  tcase_add_test(tc_ffs, test_fls32_0x1001);
+  tcase_add_test(tc_ffs, test_fls32_0x80000001);
 
-	tcase_add_test(tc_ffs, test_fls64_0x0);
-	tcase_add_test(tc_ffs, test_fls64_0x1001);
-	tcase_add_test(tc_ffs, test_fls64_0x80000001);
-	tcase_add_test(tc_ffs, test_fls64_0x8000000000000001);
-	suite_add_tcase(s, tc_ffs);
+  tcase_add_test(tc_ffs, test_fls64_0x0);
+  tcase_add_test(tc_ffs, test_fls64_0x1001);
+  tcase_add_test(tc_ffs, test_fls64_0x80000001);
+  tcase_add_test(tc_ffs, test_fls64_0x8000000000000001);
+  suite_add_tcase(s, tc_ffs);
 
-	tc_next_pow2 = tcase_create("Next power of 2");
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x1);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x2);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x3);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x70);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x100);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x1ff);
-	tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x7fffffff);
+  tc_next_pow2 = tcase_create("Next power of 2");
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x1);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x2);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x3);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x70);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x100);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x1ff);
+  tcase_add_test(tc_next_pow2, test_next_pow2_unsafe_0x7fffffff);
 
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x1);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x2);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x3);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x70);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x100);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x1ff);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x7fffffff);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x7fffffffffffffff);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x1);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x2);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x3);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x70);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x100);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x1ff);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x7fffffff);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_unsafe_0x7fffffffffffffff);
 
-	tcase_add_test(tc_next_pow2, test_next_pow2_0x0);
-	tcase_add_test(tc_next_pow2, test_next_pow2_0x1);
-	tcase_add_test(tc_next_pow2, test_next_pow2_0x2);
-	tcase_add_test(tc_next_pow2, test_next_pow2_0x3);
-	tcase_add_test(tc_next_pow2, test_next_pow2_0x7fffffff);
+  tcase_add_test(tc_next_pow2, test_next_pow2_0x0);
+  tcase_add_test(tc_next_pow2, test_next_pow2_0x1);
+  tcase_add_test(tc_next_pow2, test_next_pow2_0x2);
+  tcase_add_test(tc_next_pow2, test_next_pow2_0x3);
+  tcase_add_test(tc_next_pow2, test_next_pow2_0x7fffffff);
 
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x0);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x1);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x2);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x3);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x7fffffff);
-	tcase_add_test(tc_next_pow2, test_next_pow2l_0x7fffffffffffffff);
-	suite_add_tcase(s, tc_next_pow2);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x0);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x1);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x2);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x3);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x7fffffff);
+  tcase_add_test(tc_next_pow2, test_next_pow2l_0x7fffffffffffffff);
+  suite_add_tcase(s, tc_next_pow2);
 
-	tc_ceil_log10 = tcase_create("ceil(log10(x))");
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_0);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_1);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_9);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_10);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_99);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_100);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_1000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_9999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_10000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_99999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_100000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_1000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_9999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_10000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_99999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_100000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_1000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10_4294967295);
+  tc_ceil_log10 = tcase_create("ceil(log10(x))");
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_0);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_1);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_9);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_10);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_99);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_100);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_1000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_9999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_10000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_99999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_100000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_1000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_9999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_10000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_99999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_100000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_1000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10_4294967295);
 
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_0);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999999999);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000000000);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999999999u);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000000000u);
-	tcase_add_test(tc_ceil_log10, test_ceil_log10l_18446744073709551615u);
-	suite_add_tcase(s, tc_ceil_log10);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_0);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_99999999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_100000000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_999999999999999999);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_1000000000000000000);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_9999999999999999999u);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_10000000000000000000u);
+  tcase_add_test(tc_ceil_log10, test_ceil_log10l_18446744073709551615u);
+  suite_add_tcase(s, tc_ceil_log10);
 
-	tc_boolstr = tcase_create("boolstr");
-	tcase_add_test(tc_boolstr, test_boolstr_false);
-	tcase_add_test(tc_boolstr, test_boolstr_true);
-	tcase_add_test(tc_boolstr, test_boolstr_large);
-	suite_add_tcase(s, tc_boolstr);
+  tc_boolstr = tcase_create("boolstr");
+  tcase_add_test(tc_boolstr, test_boolstr_false);
+  tcase_add_test(tc_boolstr, test_boolstr_true);
+  tcase_add_test(tc_boolstr, test_boolstr_large);
+  suite_add_tcase(s, tc_boolstr);
 
-	return s;
+  return s;
 }
-

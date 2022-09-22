@@ -5,13 +5,11 @@
 
 #else /* __cplusplus */
 
-const char* bools[2] = {
-	"true",
-	"false"
-};
+const char* bools[2] = {"true", "false"};
 
 // log10 values for powers of 2
 const uint8_t log10_pow2_guess[65] = {
+    // clang-format off
     // 1 to 512
     0,  0,  0,  0,  1,  1,  1,  2,  2,  2,
     // 1024 to 524288
@@ -25,17 +23,19 @@ const uint8_t log10_pow2_guess[65] = {
     // 1125899906842624 to 576460752303423488
     15, 15, 15, 15, 16, 16, 16, 17, 17, 17,
     // 1152921504606846976 to 18446744073709551616
-    18, 18, 18, 18, 19
+    18, 18, 18, 18, 19,
+    // clang-format on
 };
 
 const uint64_t log10_ten_to[20] = {
+    // clang-format off
     1lu, 10lu, 100lu, 1000lu, 10000lu, 100000lu, 1000000lu,
     10000000lu, 100000000lu, 1000000000lu, 10000000000lu,
     100000000000lu, 1000000000000lu, 10000000000000lu,
     100000000000000lu, 1000000000000000lu,
     10000000000000000lu, 100000000000000000lu,
-    1000000000000000000lu, 10000000000000000000lu
+    1000000000000000000lu, 10000000000000000000lu,
+    // clang-format on
 };
 
 #endif
-
