@@ -1,14 +1,11 @@
 #ifndef _UNION_FIND_H
 #define _UNION_FIND_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 #include <stdint.h>
-
 
 /***
  *
@@ -42,24 +39,21 @@ extern "C" {
  *
  */
 
-
 // contains metadata about each element of union find
 typedef struct union_node union_node;
 
 // union find elements are nonnegative id's
 typedef uint64_t uf_node_t;
 
-
 typedef struct union_find {
-    uint64_t size;
+  uint64_t size;
 
-    // tracks total number of unique sets
-    uint64_t num_sets;
+  // tracks total number of unique sets
+  uint64_t num_sets;
 
-    // array of elements
-    union_node * arr;
+  // array of elements
+  union_node* arr;
 } union_find;
-
 
 /*
  * initializes union find struct with given size (and elements 0 - (size-1)),
@@ -67,25 +61,21 @@ typedef struct union_find {
  *
  * returns 0 on success and nonzero on failure
  */
-int uf_init(union_find * uf, uint64_t size);
+int uf_init(union_find* uf, uint64_t size);
 
-
-void uf_destroy(union_find * uf);
+void uf_destroy(union_find* uf);
 
 /*
  * deep copies src into dst
  */
-int uf_copy(union_find * dst, const union_find * src);
-
+int uf_copy(union_find* dst, const union_find* src);
 
 // gives root of tree that node is in
-uf_node_t uf_find(union_find * uf, uf_node_t node);
-
+uf_node_t uf_find(union_find* uf, uf_node_t node);
 
 // unions the two sets that a and b are in (noop if are already in the same
 // set), returning the new set index of the two nodes
-uf_node_t uf_union(union_find * uf, uf_node_t a, uf_node_t b);
-
+uf_node_t uf_union(union_find* uf, uf_node_t a, uf_node_t b);
 
 /*
  * remove node a from whichever set it is in and place it in its own set,
@@ -93,13 +83,11 @@ uf_node_t uf_union(union_find * uf, uf_node_t a, uf_node_t b);
  * in the set a is in before the data structure is gauranteed to be
  * well-formed again
  */
-void uf_disjoin_unsafe(union_find * uf, uf_node_t a);
+void uf_disjoin_unsafe(union_find* uf, uf_node_t a);
 
-
-static uint64_t uf_num_sets(union_find * uf) {
-    return uf->num_sets;
+static uint64_t uf_num_sets(union_find* uf) {
+  return uf->num_sets;
 }
-
 
 #ifdef __cplusplus
 }

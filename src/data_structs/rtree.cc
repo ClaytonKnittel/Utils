@@ -16,7 +16,9 @@ RTree::RTree(uint32_t m_min, uint32_t m_max) {
   rtree_init(&tree, m_min, m_max);
 }
 
-RTree::~RTree() { rtree_free(&tree); }
+RTree::~RTree() {
+  rtree_free(&tree);
+}
 
 int RTree::Insert(RTreeEl& el_ptr) {
   return rtree_insert(&this->tree, &el_ptr.el);
@@ -69,8 +71,12 @@ bool RTree::IntersectsForEach(const rtree_rect_t* rect, rtree_intersects_cb cb,
 
 #ifdef DO_TESTING
 
-void RTree::Print() const { rtree_print(&this->tree); }
+void RTree::Print() const {
+  rtree_print(&this->tree);
+}
 
-void RTree::Validate() const { rtree_validate(&this->tree); }
+void RTree::Validate() const {
+  rtree_validate(&this->tree);
+}
 
 #endif /* DO_TESTING */

@@ -12,24 +12,26 @@ extern "C" {
  */
 
 static int ptr_cmp(rb_node_t* a, rb_node_t* b) {
-	return ((uint64_t) a) < ((uint64_t) b) ? -1 : ((uint64_t) a) == ((uint64_t) b) ? 0 : 1;
+  return ((uint64_t)a) < ((uint64_t)b)    ? -1
+         : ((uint64_t)a) == ((uint64_t)b) ? 0
+                                          : 1;
 }
 
 RB_DEFINE_TYPE(ptr, ptr_cmp)
 
-
 /*
- * int rb trees: sorted by an int value stored immediately after the node in memory
+ * int rb trees: sorted by an int value stored immediately after the node in
+ * memory
  */
 
 typedef struct rb_int_node {
-	rb_node_t base;
-	int64_t val;
+  rb_node_t base;
+  int64_t val;
 } rb_int_node_t;
 
 typedef struct rb_uint_node {
-	rb_node_t base;
-	uint64_t val;
+  rb_node_t base;
+  uint64_t val;
 } rb_uint_node_t;
 
 RB_DEFINE_SCALAR_TYPE(int, int64_t)

@@ -3,7 +3,7 @@
 
 // you can print in color!!
 
-#define P_RESET   "\033[0m"
+#define P_RESET "\033[0m"
 
 #define P_BLACK   "\033[0;30m"
 #define P_RED     "\033[0;31m"
@@ -25,10 +25,8 @@
 #define P_LCYAN    "\033[0;96m"
 #define P_LWHITE   "\033[0;97m"
 
-#define BOLD    "\033[1m"
-#define NORMAL  "\033[21m"
-
-
+#define BOLD   "\033[1m"
+#define NORMAL "\033[21m"
 
 #include <utils/utils.h>
 
@@ -36,6 +34,5 @@
 #define P_256_COLOR(id) "\u001b[38;5;" STR(id) "m"
 #define P_256_VAR_COLOR "\u001b[38;5;%um"
 #define P_256_DEFAULT   "\u001b[0m"
-
 
 #endif /* _PRINT_COLORS_H */

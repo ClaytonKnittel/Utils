@@ -2,18 +2,16 @@
 #define _VECTOR_H
 
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdint.h>
-
+#include <stdlib.h>
 
 typedef struct vector {
-	void* data;
-	uint64_t el_size;
+  void* data;
+  uint64_t el_size;
 
-	uint64_t capacity;
-	uint64_t len;
+  uint64_t capacity;
+  uint64_t len;
 } vector_t;
-
 
 int vector_init(vector_t*, uint64_t el_size, uint64_t capacity);
 
@@ -68,6 +66,5 @@ void vector_remove(vector_t*, uint64_t i);
  * Empties the vector.
  */
 void vector_clear(vector_t*);
-
 
 #endif /* _VECTOR_H */

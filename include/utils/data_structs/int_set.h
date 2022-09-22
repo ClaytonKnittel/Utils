@@ -10,7 +10,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /*
  * a set of integers which may range from 0 to (max-1)
  */
@@ -21,8 +20,7 @@ typedef uint64_t* int_set_t;
 #define INT_SET_ENTRY_BITS (8 * sizeof(uint64_t))
 
 #define INT_SET_GET_SIZE(max) \
-	(((max) + INT_SET_ENTRY_BITS - 1) / INT_SET_ENTRY_BITS)
-
+  (((max) + INT_SET_ENTRY_BITS - 1) / INT_SET_ENTRY_BITS)
 
 int int_set_init(int_set_t*, uint64_t max);
 
@@ -31,12 +29,12 @@ int int_set_init(int_set_t*, uint64_t max);
  *
  * warning: do not call int_set_free on int_sets initialized this way
  */
-#define int_set_inita(int_set, max) \
-	do { \
-		uint64_t size = INT_SET_GET_SIZE(max) * sizeof(uint64_t); \
-		(int_set) = alloca(size); \
-		memset(int_set, 0, size); \
-	} while(0)
+#define int_set_inita(int_set, max)                           \
+  do {                                                        \
+    uint64_t size = INT_SET_GET_SIZE(max) * sizeof(uint64_t); \
+    (int_set) = alloca(size);                                 \
+    memset(int_set, 0, size);                                 \
+  } while (0)
 
 void int_set_free(int_set_t);
 
@@ -66,25 +64,26 @@ void int_set_insert(int_set_t, uint64_t val);
  */
 void int_set_remove(int_set_t, uint64_t val);
 
+#define INT_SET_FOREACH(iset, max, i)            \
+  do {                                           \
+    uint64_t __iset_off = 0;                     \
+    uint64_t __iset_max = INT_SET_GET_SIZE(max); \
+    while (__iset_off < __iset_max) {            \
+      uint64_t bitv = (iset)[__iset_off];        \
+      uint64_t __iset_idx = 0;                   \
+      while (bitv != 0) {                        \
+        __iset_idx = __builtin_ctzl(bitv);       \
+        bitv ^= 1lu << __iset_idx;               \
+        uint64_t i = __iset_idx + (__iset_off * INT_SET_ENTRY_BITS);
 
-#define INT_SET_FOREACH(iset, max, i) \
-	do { \
-		uint64_t __iset_off = 0; \
-		uint64_t __iset_max = INT_SET_GET_SIZE(max); \
-		while (__iset_off < __iset_max) { \
-			uint64_t bitv = (iset)[__iset_off]; \
-			uint64_t __iset_idx = 0; \
-			while (bitv != 0) { \
-				__iset_idx = __builtin_ctzl(bitv); \
-				bitv ^= 1lu << __iset_idx; \
-				uint64_t i = __iset_idx + (__iset_off * INT_SET_ENTRY_BITS);
-
+// clang-format off
 #define INT_SET_FOREACH_END \
-			} \
-			__iset_off++; \
-		} \
-	} while(0)
-
+      }                     \
+    __iset_off++;           \
+    }                       \
+  }                         \
+  while (0)
+// clang-format on
 
 #ifdef __cplusplus
 }

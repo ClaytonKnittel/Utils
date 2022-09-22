@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 #include <time.h>
 
 // returns the difference of two timespecs in seconds
@@ -16,7 +15,6 @@ void timespec_add(struct timespec* dst, struct timespec* t);
 
 // subtracts t from dst
 void timespec_sub(struct timespec* dst, struct timespec* t);
-
 
 #ifdef __cplusplus
 }

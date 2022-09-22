@@ -3,9 +3,6 @@
 
 #include <cstddef>
 #include <cstdio>
-
 #include <functional>
-
-
 
 #endif /* _CONST_CTRL_H */

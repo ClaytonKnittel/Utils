@@ -4,9 +4,10 @@
  **********************************************************/
 
 #include <fcntl.h>
-#include <utils/data_structs/rtree.h>
 
 #include <iostream>
+
+#include <utils/data_structs/rtree.h>
 
 #include "test_utils.h"
 
