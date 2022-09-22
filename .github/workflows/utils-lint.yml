@@ -17,5 +17,5 @@ jobs:
       with:
         source: '.'
         exclude: './lib'
-        extensions: 'h,cc'
+        extensions: 'h,c,cc'
         clangFormatVersion: 14
