@@ -54,7 +54,7 @@ int main() {
   srunner_add_suite(sr, test_rtree_cc());
   srunner_add_suite(sr, test_sort_cc());
 
-  srunner_set_fork_status(sr, CK_NOFORK);
+  srunner_set_fork_status(sr, CK_FORK);
 
   srunner_run_all(sr, CK_NORMAL);
   number_failed = srunner_ntests_failed(sr);
