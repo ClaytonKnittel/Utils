@@ -3,6 +3,10 @@
 
 #include <sys/stat.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /*
  * The directory delimiter in filesystem paths.
  */
@@ -25,5 +29,9 @@ int mkdirp(const char* path, mode_t mode);
  * Returns 0 on success, -1 on failure and sets errno.
  */
 int rmdirp(const char* path);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* _UTIL_OS_DIRCNTL_H */
