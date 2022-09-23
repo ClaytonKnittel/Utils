@@ -12,7 +12,7 @@ struct node {
 };
 
 static int node_less(const struct irb_node *a, const struct irb_node *b) {
-  return ((struct node *)a)->val < ((struct node *)b)->val;
+  return ((struct node *) a)->val < ((struct node *) b)->val;
 }
 
 IRB_DEFINE_TYPE(node, node_less);
@@ -25,7 +25,7 @@ int main() {
 
 #define N_NODES 1000000
 
-  struct node *nodes = (struct node *)malloc(N_NODES * sizeof(struct node));
+  struct node *nodes = (struct node *) malloc(N_NODES * sizeof(struct node));
 
   seed_rand(time(NULL), 0);
 
@@ -46,7 +46,7 @@ int main() {
   clock_gettime(CLOCK_MONOTONIC, &start);
   for (int i = 0; i < N_NODES; i++) {
     irb_idx_t idx = irb_get_idx_unsafe(&nodes[i].base);
-    (void)idx;
+    (void) idx;
   }
   clock_gettime(CLOCK_MONOTONIC, &end);
   fprintf(stderr, "%lf s\n", timespec_diff(&end, &start));
@@ -55,7 +55,7 @@ int main() {
   clock_gettime(CLOCK_MONOTONIC, &start);
   for (int i = 0; i < N_NODES - 1; i++) {
     irb_node *n = irb_find_succ(&nodes[i].base);
-    (void)n;
+    (void) n;
   }
   clock_gettime(CLOCK_MONOTONIC, &end);
   fprintf(stderr, "%lf s\n", timespec_diff(&end, &start));
@@ -64,7 +64,7 @@ int main() {
   clock_gettime(CLOCK_MONOTONIC, &start);
   for (int i = 1; i < N_NODES; i++) {
     irb_node *n = irb_find_pred(&nodes[i].base);
-    (void)n;
+    (void) n;
   }
   clock_gettime(CLOCK_MONOTONIC, &end);
   fprintf(stderr, "%lf s\n", timespec_diff(&end, &start));
@@ -74,8 +74,8 @@ int main() {
   for (int i = 0; i < N_NODES; i++) {
     irb_node *u = irb_upper_bound_node(&tree, &nodes[i].base);
     irb_node *l = irb_lower_bound_node(&tree, &nodes[i].base);
-    (void)u;
-    (void)l;
+    (void) u;
+    (void) l;
   }
   clock_gettime(CLOCK_MONOTONIC, &end);
   fprintf(stderr, "%lf s\n", timespec_diff(&end, &start));

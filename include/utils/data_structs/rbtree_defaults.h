@@ -12,9 +12,9 @@ extern "C" {
  */
 
 static int ptr_cmp(rb_node_t* a, rb_node_t* b) {
-  return ((uint64_t)a) < ((uint64_t)b)    ? -1
-         : ((uint64_t)a) == ((uint64_t)b) ? 0
-                                          : 1;
+  return ((uint64_t) a) < ((uint64_t) b)    ? -1
+         : ((uint64_t) a) == ((uint64_t) b) ? 0
+                                            : 1;
 }
 
 RB_DEFINE_TYPE(ptr, ptr_cmp)

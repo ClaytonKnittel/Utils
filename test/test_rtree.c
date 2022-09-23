@@ -120,7 +120,7 @@ START_TEST(test_insert_10000_random) {
   seed_rand(15, 0);
   INIT_RTREE(10, 30);
 
-  rtree_el_t* els = (rtree_el_t*)malloc(10000 * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < 10000; i++) {
     uint64_t x = gen_rand_r(65536);
@@ -145,13 +145,13 @@ END_TEST
 
 static bool _foreach_1_cb(const rtree_el_t* el, void* udata,
                           const rtree_t* tree) {
-  (void)udata;
-  (void)tree;
+  (void) udata;
+  (void) tree;
 
   rtree_rect_t expected_bb = { .lx = 0, .ly = 0, .ux = 5, .uy = 5 };
 
   ASSERT_RECT_EQ(&expected_bb, &el->bb);
-  (*((int*)udata))++;
+  (*((int*) udata))++;
 
   return true;
 }
@@ -172,8 +172,8 @@ END_TEST
 
 static bool _foreach_100_cb(const rtree_el_t* el, void* udata,
                             const rtree_t* tree) {
-  (void)udata;
-  (void)tree;
+  (void) udata;
+  (void) tree;
 
   int i = el->bb.lx / 10 + 10 * (el->bb.ly / 10);
   ck_assert_int_ge(i, 0);
@@ -186,7 +186,7 @@ static bool _foreach_100_cb(const rtree_el_t* el, void* udata,
 
   ASSERT_RECT_EQ(&expected_bb, &el->bb);
 
-  uint8_t* found_els = (uint8_t*)udata;
+  uint8_t* found_els = (uint8_t*) udata;
   ck_assert_int_eq(found_els[i], 0);
   found_els[i] = 0xff;
 
@@ -232,8 +232,8 @@ struct foreach_10000_data {
        ((a)->bb.lx == (b)->bb.lx && (a)->bb.ux < (b)->bb.ux))))))
 
 static int foreach_10000_els_cmp(const void* _a, const void* _b) {
-  const rtree_el_t* a = (const rtree_el_t*)_a;
-  const rtree_el_t* b = *(const rtree_el_t**)_b;
+  const rtree_el_t* a = (const rtree_el_t*) _a;
+  const rtree_el_t* b = *(const rtree_el_t**) _b;
 
   /*printf("<(%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 ")> cmp ",
                   a->bb.lx, a->bb.ly,
@@ -277,21 +277,21 @@ DEFINE_CSORT_DEFAULT_FNS_NAMED_16(rtree_el_t*, foreach_10000_els,
 
 static bool _foreach_10000_cb(const rtree_el_t* el, void* udata,
                               const rtree_t* tree) {
-  (void)udata;
-  (void)tree;
+  (void) udata;
+  (void) tree;
 
-  struct foreach_10000_data* data = (struct foreach_10000_data*)udata;
+  struct foreach_10000_data* data = (struct foreach_10000_data*) udata;
   rtree_el_t** el_ptrs = data->el_ptrs;
   uint8_t* found_els = data->found_els;
 
-  const rtree_el_t** found_el = (const rtree_el_t**)bsearch(
+  const rtree_el_t** found_el = (const rtree_el_t**) bsearch(
       el, el_ptrs, 10000, sizeof(rtree_el_t*), foreach_10000_els_cmp);
 
   ck_assert_ptr_ne(found_el, NULL);
   ASSERT_RECT_EQ(&(*found_el)->bb, &el->bb);
 
   uint64_t idx =
-      (((intptr_t)found_el) - ((intptr_t)el_ptrs)) / sizeof(rtree_el_t*);
+      (((intptr_t) found_el) - ((intptr_t) el_ptrs)) / sizeof(rtree_el_t*);
   ck_assert_int_eq(found_els[idx], 0);
   found_els[idx] = 0xff;
 
@@ -302,7 +302,7 @@ START_TEST(test_foreach_10000_random) {
   seed_rand(157, 0);
   INIT_RTREE(10, 30);
 
-  rtree_el_t* els = (rtree_el_t*)malloc(10000 * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < 10000; i++) {
     uint64_t x = gen_rand_r(65536);
@@ -317,7 +317,7 @@ START_TEST(test_foreach_10000_random) {
   }
   rtree_validate(&tree);
 
-  rtree_el_t** el_ptrs = (rtree_el_t**)malloc(10000 * sizeof(rtree_el_t*));
+  rtree_el_t** el_ptrs = (rtree_el_t**) malloc(10000 * sizeof(rtree_el_t*));
   for (uint64_t i = 0; i < 10000; i++) {
     el_ptrs[i] = &els[i];
   }
@@ -326,7 +326,7 @@ START_TEST(test_foreach_10000_random) {
     ck_assert(foreach_10000_els_cmp(el_ptrs[i], &el_ptrs[i + 1]) < 0);
   }
 
-  uint8_t* found_els = (uint8_t*)calloc(10000, sizeof(uint8_t));
+  uint8_t* found_els = (uint8_t*) calloc(10000, sizeof(uint8_t));
   struct foreach_10000_data data = { .el_ptrs = el_ptrs,
                                      .found_els = found_els };
   rtree_foreach(&tree, _foreach_10000_cb, &data);
@@ -407,7 +407,7 @@ static void _run_randomized_find_test(uint64_t n_rects, uint32_t m_min,
   seed_rand(seed, 0);
   INIT_RTREE(m_min, m_max);
 
-  rtree_el_t* els = (rtree_el_t*)malloc(n_rects * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
     uint64_t x = gen_rand_r(65536);
@@ -473,8 +473,8 @@ static void _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min,
   seed_rand(seed, 0);
   INIT_RTREE(m_min, m_max);
 
-  rtree_el_t* els = (rtree_el_t*)malloc(n_rects * sizeof(rtree_el_t));
-  uint32_t* delete_order = (uint32_t*)malloc(n_rects * sizeof(uint32_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
+  uint32_t* delete_order = (uint32_t*) malloc(n_rects * sizeof(uint32_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
     uint64_t x = gen_rand_r(65536);
@@ -575,8 +575,8 @@ static volatile int intersects_single_cnt = 0;
 static bool _intersects_single_cb(const rtree_el_t* el, void* expected_rtree_el,
                                   const rtree_rect_t* rect,
                                   const rtree_t* tree) {
-  (void)tree;
-  rtree_el_t* expected_el = (rtree_el_t*)expected_rtree_el;
+  (void) tree;
+  rtree_el_t* expected_el = (rtree_el_t*) expected_rtree_el;
 
   ASSERT_RECT_EQ(rect, &expected_el->bb);
   ASSERT_RECT_EQ(rect, &el->bb);
@@ -609,7 +609,7 @@ static void _run_grid_intersects_single_test(uint64_t sqrt_n_rects,
 
   uint64_t n_rects = sqrt_n_rects * sqrt_n_rects;
 
-  rtree_el_t* els = (rtree_el_t*)malloc(n_rects * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
     els[i].bb = (rtree_rect_t){
@@ -723,8 +723,8 @@ static void all_neighbors_marked(grid_neighbors_t* gn) {
 static bool _intersects_all_neighbors_cb(const rtree_el_t* el, void* gn_ptr,
                                          const rtree_rect_t* rect,
                                          const rtree_t* tree) {
-  (void)tree;
-  grid_neighbors_t* gn = (grid_neighbors_t*)gn_ptr;
+  (void) tree;
+  grid_neighbors_t* gn = (grid_neighbors_t*) gn_ptr;
 
   uint32_t i = gn->i;
   uint64_t sqrt_n_rects = gn->sqrt_n_rects;
@@ -759,7 +759,7 @@ static void _run_grid_intersects_all_neighbors_test(uint64_t sqrt_n_rects,
 
   uint64_t n_rects = sqrt_n_rects * sqrt_n_rects;
 
-  rtree_el_t* els = (rtree_el_t*)malloc(n_rects * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
     els[i].bb =
@@ -827,7 +827,7 @@ static void _run_randomized_wiggle_test(uint64_t n_rects, uint32_t m_min,
   seed_rand(seed, 0);
   INIT_RTREE(m_min, m_max);
 
-  rtree_el_t* els = (rtree_el_t*)malloc(n_rects * sizeof(rtree_el_t));
+  rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
     uint64_t x = gen_rand_r(65536);

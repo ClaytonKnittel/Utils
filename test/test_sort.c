@@ -54,14 +54,14 @@ static void naive_sort(uint32_t* els, uint32_t N) {
 }
 
 static int run_csort_test(int N) {
-  uint32_t* vals = (uint32_t*)malloc(N * sizeof(uint32_t));
+  uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 
   for (uint64_t i = 0; i < 128; i++) {
-    for (uint32_t j = 0; j < (uint32_t)N; j++) {
+    for (uint32_t j = 0; j < (uint32_t) N; j++) {
       vals[j] = j;
     }
 
-    for (uint32_t j = 1; j < (uint32_t)N; j++) {
+    for (uint32_t j = 1; j < (uint32_t) N; j++) {
       uint32_t rand_idx = gen_rand_r(j + 1);
 
       uint32_t tmp = vals[j];
@@ -70,7 +70,7 @@ static int run_csort_test(int N) {
     }
 
     csort_uint32_t(vals, N);
-    for (uint32_t j = 0; j < (uint32_t)N; j++) {
+    for (uint32_t j = 0; j < (uint32_t) N; j++) {
       ck_assert_int_eq(vals[j], j);
     }
   }
@@ -124,7 +124,7 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t*,size_
 #endif
 
 static void run_const_sort_test(int N) {
-  uint32_t* vals = (uint32_t*)malloc(N * sizeof(uint32_t));
+  uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 
   uint64_t n_fact = factorial(N);
 
@@ -143,7 +143,7 @@ static void run_const_sort_test(int N) {
 
       const_sort_uint32_t(vals, N);
       for (int j = 0; j < N; j++) {
-        ck_assert(vals[j] == (uint32_t)(j + 1));
+        ck_assert(vals[j] == (uint32_t) (j + 1));
       }
     }
   } else if (N <= 16) {
@@ -161,7 +161,7 @@ static void run_const_sort_test(int N) {
 
       const_sort_uint32_t(vals, N);
       for (int j = 0; j < N; j++) {
-        ck_assert(vals[j] == (uint32_t)(j + 1));
+        ck_assert(vals[j] == (uint32_t) (j + 1));
       }
     }
   }

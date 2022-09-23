@@ -13,23 +13,24 @@
 #define color_proxy parent
 
 static int is_red(rb_node_t *n) {
-  return (n != LEAF) && (((unsigned long)n->color_proxy) & COLOR_MASK) == RED;
+  return (n != LEAF) && (((unsigned long) n->color_proxy) & COLOR_MASK) == RED;
 }
 static int is_black(rb_node_t *n) {
-  return (n == LEAF) || (((unsigned long)n->color_proxy) & COLOR_MASK) == BLACK;
+  return (n == LEAF) ||
+         (((unsigned long) n->color_proxy) & COLOR_MASK) == BLACK;
 }
 
 static void set_red(rb_node_t *n) {
-  n->color_proxy = (rb_node_t *)(((unsigned long)n->color_proxy) | RED);
+  n->color_proxy = (rb_node_t *) (((unsigned long) n->color_proxy) | RED);
 }
 static void set_black(rb_node_t *n) {
-  n->color_proxy = (rb_node_t *)(((unsigned long)n->color_proxy) & ~RED);
+  n->color_proxy = (rb_node_t *) (((unsigned long) n->color_proxy) & ~RED);
 }
 
 static void copy_color(rb_node_t *dst, rb_node_t *src) {
   dst->color_proxy =
-      (rb_node_t *)((((unsigned long)dst->color_proxy) & ~COLOR_MASK) |
-                    (((unsigned long)src->color_proxy) & COLOR_MASK));
+      (rb_node_t *) ((((unsigned long) dst->color_proxy) & ~COLOR_MASK) |
+                     (((unsigned long) src->color_proxy) & COLOR_MASK));
 }
 
 /*
@@ -37,27 +38,27 @@ static void copy_color(rb_node_t *dst, rb_node_t *src) {
  */
 
 static int is_root(rb_node_t *n) {
-  return (((unsigned long)n->left) & ROOT) == ROOT;
+  return (((unsigned long) n->left) & ROOT) == ROOT;
 }
 
 static void mark_as_root(rb_node_t *n) {
-  n->left = (rb_node_t *)(((unsigned long)n->left) | ROOT);
+  n->left = (rb_node_t *) (((unsigned long) n->left) | ROOT);
 }
 
 static void set_root(struct __int_rb_tree *t, rb_node_t *node) {
   mark_as_root(node);
   t->root = node;
-  node->parent = (rb_node_t *)t;
+  node->parent = (rb_node_t *) t;
 }
 
 static rb_node_t *get_parent(rb_node_t *n) {
-  return (rb_node_t *)(((unsigned long)n->parent) & ~PTR_MASK);
+  return (rb_node_t *) (((unsigned long) n->parent) & ~PTR_MASK);
 }
 
 // sets left child to node known not to be a leaf
 static void set_left_noleaf(rb_node_t *n, rb_node_t *l) {
-  n->left =
-      (rb_node_t *)((((unsigned long)n->left) & PTR_MASK) | (unsigned long)l);
+  n->left = (rb_node_t *) ((((unsigned long) n->left) & PTR_MASK) |
+                           (unsigned long) l);
   set_parent(l, n);
 }
 
@@ -73,9 +74,9 @@ static void set_right_noleaf(rb_node_t *n, rb_node_t *r) {
  * old_root was the root, otherwise it will do nothing
  */
 static void transfer_root_mark(rb_node_t *new_root, rb_node_t *old_root) {
-  size_t root_mark = ((size_t)old_root->left) & ROOT;
-  old_root->left = (rb_node_t *)(((unsigned long)old_root->left) ^ root_mark);
-  new_root->left = (rb_node_t *)(((unsigned long)new_root->left) | root_mark);
+  size_t root_mark = ((size_t) old_root->left) & ROOT;
+  old_root->left = (rb_node_t *) (((unsigned long) old_root->left) ^ root_mark);
+  new_root->left = (rb_node_t *) (((unsigned long) new_root->left) | root_mark);
 }
 
 // sets n to be the new child of the parent of par (gp)
@@ -626,7 +627,7 @@ void _rb_validate_helper(struct __int_rb_tree *tree) {
 
   if (root != LEAF) {
     RB_ASSERT(is_root(root), tree);
-    RB_ASSERT(get_parent(root) == (rb_node_t *)tree, tree);
+    RB_ASSERT(get_parent(root) == (rb_node_t *) tree, tree);
     RB_ASSERT(no_other_roots(get_left(root)) && no_other_roots(get_right(root)),
               tree);
   }

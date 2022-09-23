@@ -75,24 +75,24 @@ struct __int_rb_tree {
 // mask covering all used bitfields in a pointer
 #define PTR_MASK (RED | BLACK | ROOT)
 
-#define LEAF ((rb_node_t *)BLACK)
+#define LEAF ((rb_node_t *) BLACK)
 
 static rb_node_t *rb_get_root(struct __int_rb_tree *t) {
   return t->root;
 }
 
 static void rb_set_parent(rb_node_t *n, rb_node_t *p) {
-  n->parent = (rb_node_t *)((((unsigned long)n->parent) & PTR_MASK) |
-                            ((unsigned long)p));
+  n->parent = (rb_node_t *) ((((unsigned long) n->parent) & PTR_MASK) |
+                             ((unsigned long) p));
 }
 
 static rb_node_t *rb_get_left(rb_node_t *n) {
-  return (rb_node_t *)(((unsigned long)n->left) & ~PTR_MASK);
+  return (rb_node_t *) (((unsigned long) n->left) & ~PTR_MASK);
 }
 
 static void rb_set_left(rb_node_t *n, rb_node_t *l) {
-  n->left =
-      (rb_node_t *)((((unsigned long)n->left) & PTR_MASK) | (unsigned long)l);
+  n->left = (rb_node_t *) ((((unsigned long) n->left) & PTR_MASK) |
+                           (unsigned long) l);
   if (l != LEAF) {
     rb_set_parent(l, n);
   }
@@ -344,14 +344,14 @@ rb_node_t *rb_find_pred(rb_node_t *node);
 
 void rb_print(struct __int_rb_tree *tree);
 
-#define RB_DEFINE_GET_VAL(name, s_type)                               \
-  static s_type rb_##name##_val(rb_node_t *n) {                       \
-    return *(s_type *)(((uint64_t)n) + offsetof(rb_int_node_t, val)); \
+#define RB_DEFINE_GET_VAL(name, s_type)                                 \
+  static s_type rb_##name##_val(rb_node_t *n) {                         \
+    return *(s_type *) (((uint64_t) n) + offsetof(rb_int_node_t, val)); \
   }
 
-#define RB_DEFINE_SET_VAL(name, s_type)                            \
-  static void rb_##name##_set_val(rb_node_t *n, s_type v) {        \
-    *(s_type *)(((uint64_t)n) + offsetof(rb_int_node_t, val)) = v; \
+#define RB_DEFINE_SET_VAL(name, s_type)                              \
+  static void rb_##name##_set_val(rb_node_t *n, s_type v) {          \
+    *(s_type *) (((uint64_t) n) + offsetof(rb_int_node_t, val)) = v; \
   }
 
 /*
@@ -453,7 +453,7 @@ void rb_print(struct __int_rb_tree *tree);
 #define RB_DEFINE_SCALAR_INSERT(name, s_type)                                  \
   static rb_node_t *rb_insert_##name(struct __int_rb_tree *tree, s_type val) { \
     rb_node_t *node =                                                          \
-        (rb_node_t *)malloc(sizeof(rb_int_node_t) + sizeof(s_type));           \
+        (rb_node_t *) malloc(sizeof(rb_int_node_t) + sizeof(s_type));          \
     rb_##name##_set_val(node, val);                                            \
     rb_node_t *p;                                                              \
     memset(node, 0, sizeof(rb_node_t));                                        \

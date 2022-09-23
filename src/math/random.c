@@ -20,14 +20,14 @@ __thread struct rand_state __state = {
 };
 
 uint32_t __rand_hash(uint32_t seed) {
-  uint64_t v = (uint64_t)seed;
+  uint64_t v = (uint64_t) seed;
   v = (~v) + (v << 18);
   v ^= v >> 31;
   v *= 21;
   v &= v >> 11;
   v += v << 6;
   v ^= v >> 22;
-  return (uint32_t)v;
+  return (uint32_t) v;
 }
 
 static uint32_t _gen_rand(struct rand_state* state);
@@ -63,7 +63,7 @@ static uint32_t _gen_rand(struct rand_state* state) {
 static uint64_t _gen_rand64(struct rand_state* state) {
   uint32_t r1 = _gen_rand(state);
   uint32_t r2 = _gen_rand(state);
-  return (((uint64_t)r1) << 32) | ((uint64_t)r2);
+  return (((uint64_t) r1) << 32) | ((uint64_t) r2);
 }
 
 /*

@@ -45,7 +45,7 @@ int vector_push(vector_t* v, void* el) {
     }
   }
 
-  memcpy((((uint8_t*)v->data) + v->el_size * v->len), el, v->el_size);
+  memcpy((((uint8_t*) v->data) + v->el_size * v->len), el, v->el_size);
   v->len++;
   return 0;
 }
@@ -58,7 +58,7 @@ void* vector_reserve(vector_t* v) {
     }
   }
 
-  void* el = (void*)(((uint8_t*)v->data) + v->el_size * v->len);
+  void* el = (void*) (((uint8_t*) v->data) + v->el_size * v->len);
   v->len++;
   return el;
 }
@@ -69,21 +69,21 @@ void vector_pop(vector_t* v) {
 
 void vector_pop_el(vector_t* v, void* dst_el) {
   v->len--;
-  memcpy(dst_el, (((uint8_t*)v->data) + v->el_size * v->len), v->el_size);
+  memcpy(dst_el, (((uint8_t*) v->data) + v->el_size * v->len), v->el_size);
 }
 
 void* vector_get(vector_t* v, uint64_t i) {
-  return ((uint8_t*)v->data) + i * v->el_size;
+  return ((uint8_t*) v->data) + i * v->el_size;
 }
 
 void vector_set(vector_t* v, uint64_t i, void* val) {
-  memcpy((((uint8_t*)v->data) + v->el_size * i), val, v->el_size);
+  memcpy((((uint8_t*) v->data) + v->el_size * i), val, v->el_size);
 }
 
 void vector_remove(vector_t* v, uint64_t i) {
   v->len--;
-  memmove(((uint8_t*)v->data) + i * v->el_size,
-          ((uint8_t*)v->data) + (i + 1) * v->el_size,
+  memmove(((uint8_t*) v->data) + i * v->el_size,
+          ((uint8_t*) v->data) + (i + 1) * v->el_size,
           (v->len - i) * v->el_size);
 }
 

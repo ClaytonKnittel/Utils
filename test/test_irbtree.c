@@ -10,7 +10,7 @@ START_TEST(test_basic) {
   irb_init(&tree);
 
 #define N_NODES 1000
-  irb_node *nodes = (irb_node *)malloc(N_NODES * sizeof(irb_node));
+  irb_node *nodes = (irb_node *) malloc(N_NODES * sizeof(irb_node));
 
   for (int i = 1; i < N_NODES; i += 2) {
     irb_insert_ptr(&tree, &nodes[i]);
@@ -22,13 +22,13 @@ START_TEST(test_basic) {
     irb_validate_ptr(&tree);
   }
 
-  ck_assert(irb_get_idx_ptr(&tree, (irb_node *)(((uint64_t)&nodes[0]) - 1)) ==
+  ck_assert(irb_get_idx_ptr(&tree, (irb_node *) (((uint64_t) &nodes[0]) - 1)) ==
             0);
   for (int i = 0; i < N_NODES; i++) {
     ck_assert(irb_get_idx_unsafe(&nodes[i]) == i);
     ck_assert(irb_get_idx_ptr(&tree, &nodes[i]) == i);
-    ck_assert(irb_get_idx_ptr(&tree, (irb_node *)(((uint64_t)&nodes[i]) + 1)) ==
-              i + 1);
+    ck_assert(irb_get_idx_ptr(
+                  &tree, (irb_node *) (((uint64_t) &nodes[i]) + 1)) == i + 1);
   }
 
   for (int i = 0; i < N_NODES - 1; i++) {
@@ -39,22 +39,22 @@ START_TEST(test_basic) {
     ck_assert(irb_find_pred(&nodes[i]) == &nodes[i - 1]);
   }
 
-  for (uint64_t addr = (uint64_t)&nodes[0]; addr < (uint64_t)&nodes[N_NODES];
+  for (uint64_t addr = (uint64_t) &nodes[0]; addr < (uint64_t) &nodes[N_NODES];
        addr += 8) {
     uint64_t upper_bound =
-        ((uint64_t)&nodes[0]) +
-        ((addr - ((uint64_t)&nodes[0])) / sizeof(irb_node)) * sizeof(irb_node);
+        ((uint64_t) &nodes[0]) +
+        ((addr - ((uint64_t) &nodes[0])) / sizeof(irb_node)) * sizeof(irb_node);
     uint64_t lower_bound =
-        addr > ((uint64_t)&nodes[N_NODES - 1])
+        addr > ((uint64_t) &nodes[N_NODES - 1])
             ? 0
-            : ((uint64_t)&nodes[0]) +
-                  ((addr - ((uint64_t)&nodes[0]) + sizeof(irb_node) - 1) /
+            : ((uint64_t) &nodes[0]) +
+                  ((addr - ((uint64_t) &nodes[0]) + sizeof(irb_node) - 1) /
                    sizeof(irb_node)) *
                       sizeof(irb_node);
-    ck_assert(irb_upper_bound_ptr(&tree, (irb_node *)addr) ==
-              (irb_node *)upper_bound);
-    ck_assert(irb_lower_bound_ptr(&tree, (irb_node *)addr) ==
-              (irb_node *)lower_bound);
+    ck_assert(irb_upper_bound_ptr(&tree, (irb_node *) addr) ==
+              (irb_node *) upper_bound);
+    ck_assert(irb_lower_bound_ptr(&tree, (irb_node *) addr) ==
+              (irb_node *) lower_bound);
   }
 
   // delete some nodes

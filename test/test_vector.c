@@ -17,7 +17,7 @@ START_TEST(test_basic) {
   }
 
   for (uint64_t i = 0; i < uppb - lowb; i++) {
-    ck_assert(*(uint64_t*)vector_get(&v, i) == i + lowb);
+    ck_assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
   }
 
   for (uint64_t j = 0; j < (uppb - lowb) * 10 / 11; j += 10) {
@@ -25,7 +25,7 @@ START_TEST(test_basic) {
   }
 
   for (uint64_t i = 0; i < (uppb - lowb) * 10 / 11; i++) {
-    ck_assert(*(uint64_t*)vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
+    ck_assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
   }
 
   vector_free(&v);
@@ -40,12 +40,12 @@ START_TEST(test_basic_reserve) {
   uint64_t uppb = 3086;
 
   for (uint64_t j = lowb; j < uppb; j++) {
-    uint64_t* el_ptr = (uint64_t*)vector_reserve(&v);
+    uint64_t* el_ptr = (uint64_t*) vector_reserve(&v);
     *el_ptr = j;
   }
 
   for (uint64_t i = 0; i < uppb - lowb; i++) {
-    ck_assert(*(uint64_t*)vector_get(&v, i) == i + lowb);
+    ck_assert(*(uint64_t*) vector_get(&v, i) == i + lowb);
   }
 
   for (uint64_t j = 0; j < (uppb - lowb) * 10 / 11; j += 10) {
@@ -53,7 +53,7 @@ START_TEST(test_basic_reserve) {
   }
 
   for (uint64_t i = 0; i < (uppb - lowb) * 10 / 11; i++) {
-    ck_assert(*(uint64_t*)vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
+    ck_assert(*(uint64_t*) vector_get(&v, i) == (i * 11 / 10) + lowb + 1);
   }
 
   vector_free(&v);

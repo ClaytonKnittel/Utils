@@ -37,9 +37,9 @@ void __attribute__((noinline)) naive_to_lower(char* s, uint64_t len) {
  */
 void calc_avg_times_upper(uint64_t len, uint32_t n_trials, double* naive_s,
                           double* my_s, bool verify, uint64_t rand_offset_amt) {
-  char* _str = (char*)malloc(len + 1 + rand_offset_amt);
-  char* _str1 = (char*)malloc(len + 1 + rand_offset_amt);
-  char* _str2 = (char*)malloc(len + 1 + rand_offset_amt);
+  char* _str = (char*) malloc(len + 1 + rand_offset_amt);
+  char* _str1 = (char*) malloc(len + 1 + rand_offset_amt);
+  char* _str2 = (char*) malloc(len + 1 + rand_offset_amt);
 
   struct timespec start1, end1;
   struct timespec start2, end2;
@@ -118,8 +118,8 @@ void calc_avg_times_upper(uint64_t len, uint32_t n_trials, double* naive_s,
     }
   }
 
-  *naive_s = ((double)total_ns_1) / (1000000000. * (double)n_trials);
-  *my_s = ((double)total_ns_2) / (1000000000. * (double)n_trials);
+  *naive_s = ((double) total_ns_1) / (1000000000. * (double) n_trials);
+  *my_s = ((double) total_ns_2) / (1000000000. * (double) n_trials);
 
   free(_str1);
   free(_str2);
@@ -131,9 +131,9 @@ void calc_avg_times_upper(uint64_t len, uint32_t n_trials, double* naive_s,
  */
 void calc_avg_times_lower(uint64_t len, uint32_t n_trials, double* naive_s,
                           double* my_s, bool verify, uint64_t rand_offset_amt) {
-  char* _str = (char*)malloc(len + 1 + rand_offset_amt);
-  char* _str1 = (char*)malloc(len + 1 + rand_offset_amt);
-  char* _str2 = (char*)malloc(len + 1 + rand_offset_amt);
+  char* _str = (char*) malloc(len + 1 + rand_offset_amt);
+  char* _str1 = (char*) malloc(len + 1 + rand_offset_amt);
+  char* _str2 = (char*) malloc(len + 1 + rand_offset_amt);
 
   struct timespec start1, end1;
   struct timespec start2, end2;
@@ -212,8 +212,8 @@ void calc_avg_times_lower(uint64_t len, uint32_t n_trials, double* naive_s,
     }
   }
 
-  *naive_s = ((double)total_ns_1) / (1000000000. * (double)n_trials);
-  *my_s = ((double)total_ns_2) / (1000000000. * (double)n_trials);
+  *naive_s = ((double) total_ns_1) / (1000000000. * (double) n_trials);
+  *my_s = ((double) total_ns_2) / (1000000000. * (double) n_trials);
 
   free(_str1);
   free(_str2);

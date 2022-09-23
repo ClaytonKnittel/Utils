@@ -32,11 +32,11 @@ static void _rect_packing_validate(const rect_packing_t* packing,
 
   uint64_t w = packing->bin_w;
   uint64_t h = packing->bin_h;
-  uint8_t* bin_list = (uint8_t*)calloc(w * h * vector_size(&packing->bin_list),
-                                       sizeof(uint8_t));
+  uint8_t* bin_list = (uint8_t*) calloc(w * h * vector_size(&packing->bin_list),
+                                        sizeof(uint8_t));
 
   for (uint64_t i = 0; i < vector_size(els); i++) {
-    el_info_t* info = (el_info_t*)vector_get(els, i);
+    el_info_t* info = (el_info_t*) vector_get(els, i);
     packed_rect_el_t* el = info->el;
     if (el == NULL) {
       continue;
@@ -63,19 +63,19 @@ static void _rect_packing_validate(const rect_packing_t* packing,
 
   // fill in all the empty space
   const packed_rect_bin_t* first_bin =
-      (const packed_rect_bin_t*)vector_get((vector_t*)&packing->bin_list, 0);
+      (const packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, 0);
   rb_node_t* node;
-  rb_for_each((rb_tree_t*)&packing->rows_height, node) {
+  rb_for_each((rb_tree_t*) &packing->rows_height, node) {
     packed_rect_row_t* row =
-        (packed_rect_row_t*)(((uint8_t*)node) -
-                             offsetof(packed_rect_row_t, rb_node_base_height));
+        (packed_rect_row_t*) (((uint8_t*) node) -
+                              offsetof(packed_rect_row_t, rb_node_base_height));
     uint64_t bin_idx = row->parent_bin - first_bin;
 
     rb_node_t* node2;
     rb_for_each(&row->elements, node2) {
       packed_rect_el_t* el =
-          (packed_rect_el_t*)(((uint8_t*)node2) -
-                              offsetof(packed_rect_el_t, rb_node_base));
+          (packed_rect_el_t*) (((uint8_t*) node2) -
+                               offsetof(packed_rect_el_t, rb_node_base));
 
       for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
         for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
@@ -88,8 +88,8 @@ static void _rect_packing_validate(const rect_packing_t* packing,
   }
 
   packed_rect_row_t* terminal =
-      (packed_rect_row_t*)(((uint8_t*)&packing->row_freelist_start) +
-                           offsetof(packed_rect_row_t, next));
+      (packed_rect_row_t*) (((uint8_t*) &packing->row_freelist_start) +
+                            offsetof(packed_rect_row_t, next));
   for (packed_rect_row_t* row = packing->row_freelist_start; row != terminal;
        row = row->next) {
     uint64_t bin_idx = row->parent_bin - first_bin;
@@ -97,8 +97,8 @@ static void _rect_packing_validate(const rect_packing_t* packing,
     rb_node_t* node2;
     rb_for_each(&row->elements, node2) {
       packed_rect_el_t* el =
-          (packed_rect_el_t*)(((uint8_t*)node2) -
-                              offsetof(packed_rect_el_t, rb_node_base));
+          (packed_rect_el_t*) (((uint8_t*) node2) -
+                               offsetof(packed_rect_el_t, rb_node_base));
 
       for (uint64_t r = row->ly; r < row->ly + row->h; r++) {
         for (uint64_t c = el->lx; c < el->lx + el->w; c++) {
@@ -121,8 +121,8 @@ static void _rect_packing_validate(const rect_packing_t* packing,
         ck_assert_msg(bin_list[idx] != 0,
                       "bin %lu: (%lu, %lu) not "
                       "captured by allocated or free element",
-                      (unsigned long)bin_idx, (unsigned long)r,
-                      (unsigned long)c);
+                      (unsigned long) bin_idx, (unsigned long) r,
+                      (unsigned long) c);
       }
     }
   }
@@ -141,11 +141,11 @@ static void _print(const rect_packing_t* packing, vector_t* els, bool verbose) {
   }
 
   if (verbose) {
-    arr = (char*)calloc(vector_size(&packing->bin_list) * w * h, sizeof(char));
+    arr = (char*) calloc(vector_size(&packing->bin_list) * w * h, sizeof(char));
   }
 
   for (uint64_t i = 0; i < vector_size(els); i++) {
-    el_info_t* info = (el_info_t*)vector_get(els, i);
+    el_info_t* info = (el_info_t*) vector_get(els, i);
     packed_rect_el_t* el = info->el;
     if (el == NULL) {
       continue;
@@ -189,27 +189,27 @@ static void _print(const rect_packing_t* packing, vector_t* els, bool verbose) {
     }
 
     rb_node_t* node;
-    rb_for_each((rb_tree_t*)&packing->rows_height, node) {
+    rb_for_each((rb_tree_t*) &packing->rows_height, node) {
       packed_rect_row_t* row =
-          (packed_rect_row_t*)(((uint8_t*)node) -
-                               offsetof(packed_rect_row_t,
-                                        rb_node_base_height));
+          (packed_rect_row_t*) (((uint8_t*) node) -
+                                offsetof(packed_rect_row_t,
+                                         rb_node_base_height));
 
       printf("Row: (0, %llu), h=%llu\n", row->ly, row->h);
 
       rb_node_t* node2;
       rb_for_each(&row->elements, node2) {
         packed_rect_el_t* el =
-            (packed_rect_el_t*)(((uint8_t*)node2) -
-                                offsetof(packed_rect_el_t, rb_node_base));
+            (packed_rect_el_t*) (((uint8_t*) node2) -
+                                 offsetof(packed_rect_el_t, rb_node_base));
         printf("\tFree rect: (%llu, %llu), %llu x %llu\n", el->lx, row->ly,
                el->w, row->h);
       }
     }
 
     packed_rect_row_t* terminal =
-        (packed_rect_row_t*)(((uint8_t*)&packing->row_freelist_start) +
-                             offsetof(packed_rect_row_t, next));
+        (packed_rect_row_t*) (((uint8_t*) &packing->row_freelist_start) +
+                              offsetof(packed_rect_row_t, next));
     for (packed_rect_row_t* row = packing->row_freelist_start; row != terminal;
          row = row->next) {
       printf("Empty Row: (0, %llu), h=%llu\n", row->ly, row->h);
@@ -217,8 +217,8 @@ static void _print(const rect_packing_t* packing, vector_t* els, bool verbose) {
       rb_node_t* node2;
       rb_for_each(&row->elements, node2) {
         packed_rect_el_t* el =
-            (packed_rect_el_t*)(((uint8_t*)node2) -
-                                offsetof(packed_rect_el_t, rb_node_base));
+            (packed_rect_el_t*) (((uint8_t*) node2) -
+                                 offsetof(packed_rect_el_t, rb_node_base));
         printf("\tFree rect: (%llu, %llu), %llu x %llu\n", el->lx, row->ly,
                el->w, row->h);
       }
@@ -226,8 +226,8 @@ static void _print(const rect_packing_t* packing, vector_t* els, bool verbose) {
   }
 
   printf("Utilization: %g\n",
-         (double)area / (double)(vector_size(&packing->bin_list) *
-                                 packing->bin_w * packing->bin_h));
+         (double) area / (double) (vector_size(&packing->bin_list) *
+                                   packing->bin_w * packing->bin_h));
 }
 
 DEFINE_CSORT_DEFAULT_FNS_NAMED_16(__uint128_t, wh, __default_sort_cmp,
@@ -238,7 +238,7 @@ static void _reshuffle_els(rect_packing_t* packing, vector_t* els) {
   uint64_t* wh = malloc(2 * n_els * sizeof(uint64_t));
 
   for (uint64_t i = 0; i < n_els; i++) {
-    el_info_t* info = (el_info_t*)vector_get(els, i);
+    el_info_t* info = (el_info_t*) vector_get(els, i);
     packed_rect_el_t* el = info->el;
 
     wh[2 * i + 0] = el->h;
@@ -248,7 +248,7 @@ static void _reshuffle_els(rect_packing_t* packing, vector_t* els) {
   }
   vector_clear(els);
 
-  csort_wh((__uint128_t*)wh, n_els);
+  csort_wh((__uint128_t*) wh, n_els);
 
   for (uint64_t i = n_els - 1; i < n_els; i--) {
     el_info_t info;
@@ -289,7 +289,7 @@ START_TEST(test_insert_one) {
   uint64_t remove_order[N_ELS] = { 1, 0, 6, 5, 1, 0, 2, 0, 0, 0, 0, 0 };
 
   for (uint64_t i = 0; i < N_ELS; i++) {
-    el_info_t* info = (el_info_t*)vector_get(&els, remove_order[i]);
+    el_info_t* info = (el_info_t*) vector_get(&els, remove_order[i]);
     rect_packing_remove(&packing, info->el);
     vector_remove(&els, remove_order[i]);
     _rect_packing_validate(&packing, &els);
@@ -304,7 +304,7 @@ END_TEST
 START_TEST(test_insert_many) {
 #define GEN_WH()                         \
   uint64_t w = 30 + 1 * gen_rand_r(100); \
-  uint64_t h = w + ((int64_t)gen_rand_r(51) - 25)
+  uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
 
 #define VERBOSE      false
 #define DO_RESHUFFLE true
@@ -345,7 +345,7 @@ START_TEST(test_insert_many) {
   for (uint64_t j = 0; j < size / 2; j++) {
     uint64_t i = gen_rand_r64(vector_size(&els));
 
-    el_info_t* info = (el_info_t*)vector_get(&els, i);
+    el_info_t* info = (el_info_t*) vector_get(&els, i);
     packed_rect_el_t* el = info->el;
     if (el == NULL) {
       j--;
@@ -365,7 +365,7 @@ START_TEST(test_insert_many) {
 
   uint64_t j = 0;
   for (uint64_t i = 0; i < vector_size(&els); i++) {
-    el_info_t* info = (el_info_t*)vector_get(&els, i);
+    el_info_t* info = (el_info_t*) vector_get(&els, i);
     if (info->el != NULL) {
       vector_set(&els, j, info);
       j++;
@@ -412,7 +412,7 @@ START_TEST(test_insert_many) {
 
   uint64_t els_size = vector_size(&els);
   for (uint64_t i = 0; i < els_size; i++) {
-    el_info_t* info = (el_info_t*)vector_get(&els, i);
+    el_info_t* info = (el_info_t*) vector_get(&els, i);
     packed_rect_el_free(info->el);
   }
   vector_free(&els);
@@ -449,7 +449,7 @@ START_TEST(test_insert_remove_many) {
 
       do {
         remove_idx = gen_rand_r64(2 * i / 3);
-        el_info_t* info = (el_info_t*)vector_get(&els, remove_idx);
+        el_info_t* info = (el_info_t*) vector_get(&els, remove_idx);
         el = info->el;
       } while (el == NULL);
 
@@ -488,7 +488,7 @@ START_TEST(test_insert_remove_many) {
 
   uint64_t j = 0;
   for (uint64_t i = 0; i < vector_size(&els); i++) {
-    el_info_t* info = (el_info_t*)vector_get(&els, i);
+    el_info_t* info = (el_info_t*) vector_get(&els, i);
     if (info->el != NULL) {
       vector_set(&els, j, info);
       j++;
@@ -533,7 +533,7 @@ START_TEST(test_insert_remove_many) {
 
   uint64_t els_size = vector_size(&els);
   for (uint64_t i = 0; i < els_size; i++) {
-    el_info_t* info = (el_info_t*)vector_get(&els, i);
+    el_info_t* info = (el_info_t*) vector_get(&els, i);
     packed_rect_el_free(info->el);
   }
   vector_free(&els);

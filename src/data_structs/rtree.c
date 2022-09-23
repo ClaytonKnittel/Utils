@@ -20,8 +20,8 @@
 
 static rtree_node_base_t* _new_inner_node(uint32_t m_max) {
   // TODO: test calloc vs clear first bit
-  rtree_node_t* n = (rtree_node_t*)malloc(sizeof(rtree_node_t) +
-                                          m_max * sizeof(rtree_node_base_t*));
+  rtree_node_t* n = (rtree_node_t*) malloc(sizeof(rtree_node_t) +
+                                           m_max * sizeof(rtree_node_base_t*));
 
   if (n == NULL) {
     return NULL;
@@ -32,8 +32,8 @@ static rtree_node_base_t* _new_inner_node(uint32_t m_max) {
 
 static rtree_node_base_t* _new_empty_leaf_node(uint32_t m_max) {
   // TODO: test calloc vs clear first bit
-  rtree_leaf_t* n =
-      (rtree_leaf_t*)malloc(sizeof(rtree_leaf_t) + m_max * sizeof(rtree_el_t*));
+  rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
+                                           m_max * sizeof(rtree_el_t*));
 
   if (n == NULL) {
     return NULL;
@@ -46,8 +46,8 @@ static rtree_node_base_t* _new_empty_leaf_node(uint32_t m_max) {
 
 static rtree_node_base_t* _new_leaf_node(uint32_t m_max) {
   // TODO: test calloc vs clear first bit
-  rtree_leaf_t* n =
-      (rtree_leaf_t*)malloc(sizeof(rtree_leaf_t) + m_max * sizeof(rtree_el_t*));
+  rtree_leaf_t* n = (rtree_leaf_t*) malloc(sizeof(rtree_leaf_t) +
+                                           m_max * sizeof(rtree_el_t*));
 
   if (n == NULL) {
     return NULL;
@@ -79,7 +79,7 @@ int rtree_init(rtree_t* tree, uint32_t m_min, uint32_t m_max) {
   tree->m_min = m_min;
   tree->m_max = m_max;
   tree->reinsert_p =
-      (uint32_t)nearbyintf((float)m_max * DEFAULT_REINSERT_P_PCT);
+      (uint32_t) nearbyintf((float) m_max * DEFAULT_REINSERT_P_PCT);
   tree->reinsert_p = MAX(tree->reinsert_p, 1);
   tree->depth = 0;
   return 0;
@@ -95,9 +95,9 @@ static void _rtree_leaf_free(rtree_leaf_t* leaf) {
 
 static void _rtree_node_free(rtree_node_base_t* node, uint64_t depth) {
   if (depth == 0) {
-    _rtree_leaf_free((rtree_leaf_t*)node);
+    _rtree_leaf_free((rtree_leaf_t*) node);
   } else {
-    rtree_node_t* inode = (rtree_node_t*)node;
+    rtree_node_t* inode = (rtree_node_t*) node;
     for (uint32_t i = 0; i < inode->base.n; i++) {
       _rtree_node_free(inode->children[i], depth - 1);
     }
@@ -410,7 +410,7 @@ static bool _determine_split(rtree_t* tree, uint32_t n, rtree_rect_t** x_sort,
 
   // first construct the higher-coordinate split rectangles in reverse
   uint32_t n_dists = n - 2 * m_min + 1;
-  rev_rects = (rtree_rect_t*)alloca(n_dists * sizeof(rtree_rect_t));
+  rev_rects = (rtree_rect_t*) alloca(n_dists * sizeof(rtree_rect_t));
   {
     rev_rects[n_dists - 1] = *x_sort[n - 1];
     uint32_t i = n - 2;
@@ -579,8 +579,8 @@ static rtree_node_base_t* _split_leaf(rtree_t* tree, rtree_leaf_t* node,
   rtree_el_t** y_sort;
   struct split_cost x_cost, y_cost;
 
-  x_sort = (rtree_el_t**)alloca((n + 1) * sizeof(rtree_el_t*));
-  y_sort = (rtree_el_t**)alloca((n + 1) * sizeof(rtree_el_t*));
+  x_sort = (rtree_el_t**) alloca((n + 1) * sizeof(rtree_el_t*));
+  y_sort = (rtree_el_t**) alloca((n + 1) * sizeof(rtree_el_t*));
 
   memcpy(x_sort, node->elements, n * sizeof(rtree_el_t*));
   memcpy(y_sort, node->elements, n * sizeof(rtree_el_t*));
@@ -588,11 +588,11 @@ static rtree_node_base_t* _split_leaf(rtree_t* tree, rtree_leaf_t* node,
   y_sort[n] = to_add;
   n++;
 
-  bool split_x = _determine_split(tree, n, (rtree_rect_t**)x_sort,
-                                  (rtree_rect_t**)y_sort, &x_cost, &y_cost);
+  bool split_x = _determine_split(tree, n, (rtree_rect_t**) x_sort,
+                                  (rtree_rect_t**) y_sort, &x_cost, &y_cost);
 
   // determine split axis
-  rtree_leaf_t* split_node = (rtree_leaf_t*)_new_leaf_node(tree->m_max);
+  rtree_leaf_t* split_node = (rtree_leaf_t*) _new_leaf_node(tree->m_max);
   if (split_node == NULL) {
     return NULL;
   }
@@ -632,7 +632,7 @@ static rtree_node_base_t* _split_leaf(rtree_t* tree, rtree_leaf_t* node,
     }
   }
 
-  return (rtree_node_base_t*)split_node;
+  return (rtree_node_base_t*) split_node;
 }
 
 static rtree_node_base_t* _split_node(rtree_t* tree, rtree_node_t* node,
@@ -643,8 +643,8 @@ static rtree_node_base_t* _split_node(rtree_t* tree, rtree_node_t* node,
   rtree_node_base_t** y_sort;
   struct split_cost x_cost, y_cost;
 
-  x_sort = (rtree_node_base_t**)alloca((n + 1) * sizeof(rtree_node_base_t*));
-  y_sort = (rtree_node_base_t**)alloca((n + 1) * sizeof(rtree_node_base_t*));
+  x_sort = (rtree_node_base_t**) alloca((n + 1) * sizeof(rtree_node_base_t*));
+  y_sort = (rtree_node_base_t**) alloca((n + 1) * sizeof(rtree_node_base_t*));
 
   memcpy(x_sort, node->children, n * sizeof(rtree_node_base_t*));
   memcpy(y_sort, node->children, n * sizeof(rtree_node_base_t*));
@@ -653,11 +653,11 @@ static rtree_node_base_t* _split_node(rtree_t* tree, rtree_node_t* node,
   y_sort[n] = to_add;
   n++;
 
-  bool split_x = _determine_split(tree, n, (rtree_rect_t**)x_sort,
-                                  (rtree_rect_t**)y_sort, &x_cost, &y_cost);
+  bool split_x = _determine_split(tree, n, (rtree_rect_t**) x_sort,
+                                  (rtree_rect_t**) y_sort, &x_cost, &y_cost);
 
   // determine split axis
-  rtree_node_t* split_node = (rtree_node_t*)_new_inner_node(tree->m_max);
+  rtree_node_t* split_node = (rtree_node_t*) _new_inner_node(tree->m_max);
   if (split_node == NULL) {
     return NULL;
   }
@@ -707,7 +707,7 @@ static rtree_node_base_t* _split_node(rtree_t* tree, rtree_node_t* node,
     }
   }
 
-  return (rtree_node_base_t*)split_node;
+  return (rtree_node_base_t*) split_node;
 }
 
 struct node_dist {
@@ -775,7 +775,7 @@ static int _do_reinsert_leaf(rtree_t* tree, rtree_leaf_t* parent,
   rtree_coord_t parent_yc = parent->base.bb.ly + parent->base.bb.uy;
 
   struct node_dist* dists =
-      (struct node_dist*)alloca((m_max + 1) * sizeof(struct node_dist));
+      (struct node_dist*) alloca((m_max + 1) * sizeof(struct node_dist));
   for (uint64_t i = 0; i < m_max; i++) {
     rtree_el_t* el = parent->elements[i];
     rtree_coord_t xc = el->bb.lx + el->bb.ux;
@@ -836,7 +836,7 @@ static void _do_reinsert(rtree_t* tree, rtree_node_t* parent,
   rtree_coord_t parent_yc = parent->base.bb.ly + parent->base.bb.uy;
 
   struct node_dist* dists =
-      (struct node_dist*)alloca((m_max + 1) * sizeof(struct node_dist));
+      (struct node_dist*) alloca((m_max + 1) * sizeof(struct node_dist));
   for (uint64_t i = 0; i < m_max; i++) {
     rtree_node_base_t* child = parent->children[i];
     rtree_coord_t xc = child->bb.lx + child->bb.ux;
@@ -902,7 +902,7 @@ static int __continue_split(rtree_t* tree, rtree_node_base_t* n,
     if (n == NULL) {
       // we have split the root! Make a new one, make n and the old root its
       // children
-      rtree_node_t* new_root = (rtree_node_t*)_new_inner_node(m_max);
+      rtree_node_t* new_root = (rtree_node_t*) _new_inner_node(m_max);
       if (new_root == NULL) {
         return -1;
       }
@@ -926,7 +926,7 @@ static int __continue_split(rtree_t* tree, rtree_node_base_t* n,
 
     if (n->n < m_max) {
       // we can accomodate split_child
-      rtree_node_t* node = (rtree_node_t*)n;
+      rtree_node_t* node = (rtree_node_t*) n;
       node->children[node->base.n] = split_child;
       split_child->parent_idx = node->base.n;
       node->base.n++;
@@ -944,7 +944,7 @@ static int __continue_split(rtree_t* tree, rtree_node_base_t* n,
       // perform reinsertion
       int_set_insert(reinserted_levels, depth);
 
-      _do_reinsert(tree, (rtree_node_t*)n, reinserted_levels, depth,
+      _do_reinsert(tree, (rtree_node_t*) n, reinserted_levels, depth,
                    split_child);
 
       // reinsert completes the operation, so don't continue splitting up the
@@ -952,7 +952,7 @@ static int __continue_split(rtree_t* tree, rtree_node_base_t* n,
       break;
     } else {
       // perform a split
-      split_child = _split_node(tree, (rtree_node_t*)n, split_child);
+      split_child = _split_node(tree, (rtree_node_t*) n, split_child);
     }
     depth--;
   }
@@ -972,7 +972,7 @@ static int _do_inner_insert(rtree_t* tree, rtree_node_base_t* n,
                             int_set_t reinserted_levels, uint64_t depth) {
   rtree_rect_t* rect = &n->bb;
   // inner insert cannot happen unless the root is an inner node
-  rtree_node_t* new_parent = (rtree_node_t*)tree->root;
+  rtree_node_t* new_parent = (rtree_node_t*) tree->root;
 
   dbg_assert(depth != 0);
 
@@ -982,7 +982,7 @@ static int _do_inner_insert(rtree_t* tree, rtree_node_base_t* n,
     rtree_node_t* node = new_parent;
     uint32_t c_idx =
         _min_area_increase_child(node->children, node->base.n, rect);
-    new_parent = (rtree_node_t*)node->children[c_idx];
+    new_parent = (rtree_node_t*) node->children[c_idx];
   }
 
   // set the parent of n so that n will be inserted into the new parent
@@ -1003,7 +1003,7 @@ static int _do_insert_under_node(rtree_t* tree, rtree_el_t* el_ptr,
     for (uint64_t i = 0; i < depth - 1; i++) {
       // this node's children are inner nodes, so we find the node
       // requiring the least area increase
-      rtree_node_t* node = (rtree_node_t*)n;
+      rtree_node_t* node = (rtree_node_t*) n;
       uint32_t c_idx =
           _min_area_increase_child(node->children, node->base.n, &el_ptr->bb);
       n = node->children[c_idx];
@@ -1011,14 +1011,14 @@ static int _do_insert_under_node(rtree_t* tree, rtree_el_t* el_ptr,
 
     // this node's children are leaves, so we find the minimum
     // overlap cost
-    rtree_node_t* node = (rtree_node_t*)n;
+    rtree_node_t* node = (rtree_node_t*) n;
     uint32_t c_idx =
         _min_overlap_cost_child(node->children, node->base.n, &el_ptr->bb);
     n = node->children[c_idx];
   }
 
   // insert into n, which is a leaf node
-  rtree_leaf_t* leaf = (rtree_leaf_t*)n;
+  rtree_leaf_t* leaf = (rtree_leaf_t*) n;
   // reinsertion/split methods assume leaf's parent is already assigned
   el_ptr->parent = leaf;
 
@@ -1232,7 +1232,7 @@ bool rtree_foreach(const rtree_t* tree, rtree_foreach_cb callback,
     }
 
     if (depth > 0) {
-      const rtree_node_t* inner_node = (rtree_node_t*)node;
+      const rtree_node_t* inner_node = (rtree_node_t*) node;
       node = inner_node->children[i];
       i = 0;
       n = node->n;
@@ -1240,7 +1240,7 @@ bool rtree_foreach(const rtree_t* tree, rtree_foreach_cb callback,
       continue;
     }
 
-    const rtree_leaf_t* leaf = (rtree_leaf_t*)node;
+    const rtree_leaf_t* leaf = (rtree_leaf_t*) node;
     for (; i < n; i++) {
       const rtree_el_t* el = leaf->elements[i];
       if (!callback(el, udata, tree)) {
@@ -1277,9 +1277,9 @@ static rtree_el_t* _rtree_find_exact(const rtree_node_t* node,
 
     rtree_el_t* q;
     if (depth == 0) {
-      q = _rtree_find_exact_leaf((const rtree_leaf_t*)node->children[i], rect);
+      q = _rtree_find_exact_leaf((const rtree_leaf_t*) node->children[i], rect);
     } else {
-      q = _rtree_find_exact((const rtree_node_t*)node->children[i], rect,
+      q = _rtree_find_exact((const rtree_node_t*) node->children[i], rect,
                             depth - 1);
     }
     if (q != NULL) {
@@ -1294,9 +1294,9 @@ rtree_el_t* rtree_find_exact(const rtree_t* tree, const rtree_rect_t* rect) {
   uint64_t depth = tree->depth;
 
   if (depth > 0) {
-    return _rtree_find_exact((const rtree_node_t*)n, rect, depth - 1);
+    return _rtree_find_exact((const rtree_node_t*) n, rect, depth - 1);
   } else {
-    return _rtree_find_exact_leaf((const rtree_leaf_t*)n, rect);
+    return _rtree_find_exact_leaf((const rtree_leaf_t*) n, rect);
   }
 }
 
@@ -1329,13 +1329,13 @@ static bool _rtree_intersects(const rtree_t* tree, const rtree_node_t* node,
     }
 
     if (depth == 0) {
-      if (!_rtree_intersects_leaf(tree, (const rtree_leaf_t*)node->children[i],
+      if (!_rtree_intersects_leaf(tree, (const rtree_leaf_t*) node->children[i],
                                   rect, callback, udata)) {
         return false;
       }
     } else {
-      if (!_rtree_intersects(tree, (const rtree_node_t*)node->children[i], rect,
-                             callback, udata, depth - 1)) {
+      if (!_rtree_intersects(tree, (const rtree_node_t*) node->children[i],
+                             rect, callback, udata, depth - 1)) {
         return false;
       }
     }
@@ -1350,10 +1350,10 @@ bool rtree_intersects_foreach(const rtree_t* tree, const rtree_rect_t* rect,
   uint64_t depth = tree->depth;
 
   if (depth > 0) {
-    return _rtree_intersects(tree, (const rtree_node_t*)n, rect, callback,
+    return _rtree_intersects(tree, (const rtree_node_t*) n, rect, callback,
                              udata, depth - 1);
   } else {
-    return _rtree_intersects_leaf(tree, (const rtree_leaf_t*)n, rect, callback,
+    return _rtree_intersects_leaf(tree, (const rtree_leaf_t*) n, rect, callback,
                                   udata);
   }
 }
@@ -1435,10 +1435,10 @@ static void rtree_print_leaf(const rtree_leaf_t* leaf, int depth) {
 
 static void rtree_print_node(const rtree_t* tree, const rtree_node_base_t* node,
                              int depth) {
-  if (depth == (int)tree->depth) {
-    rtree_print_leaf((rtree_leaf_t*)node, depth);
+  if (depth == (int) tree->depth) {
+    rtree_print_leaf((rtree_leaf_t*) node, depth);
   } else {
-    rtree_node_t* n = (rtree_node_t*)node;
+    rtree_node_t* n = (rtree_node_t*) node;
     printf("%*s[ ((%" PRId64 ", %" PRId64 "), (%" PRId64 ", %" PRId64 "))",
            2 * depth, "", n->base.bb.lx, n->base.bb.ly, n->base.bb.ux,
            n->base.bb.uy);
@@ -1498,9 +1498,9 @@ static void _rtree_validate_node(const rtree_t* tree,
   }
 
   if (depth == tree->depth) {
-    _rtree_validate_leaf(tree, (const rtree_leaf_t*)n, parent);
+    _rtree_validate_leaf(tree, (const rtree_leaf_t*) n, parent);
   } else {
-    const rtree_node_t* node = (const rtree_node_t*)n;
+    const rtree_node_t* node = (const rtree_node_t*) n;
     uint32_t n_children = node->base.n;
 
     dbg_assert(&node->base.parent->base == parent);
@@ -1513,7 +1513,7 @@ static void _rtree_validate_node(const rtree_t* tree,
     rtree_rect_t bb;
 
     for (uint32_t i = 0; i < n_children; i++) {
-      const rtree_node_t* child = (const rtree_node_t*)node->children[i];
+      const rtree_node_t* child = (const rtree_node_t*) node->children[i];
       dbg_assert(rtree_rect_contains(&node->base.bb, &child->base.bb));
       dbg_assert(child->base.parent_idx == i);
       _rtree_validate_node(tree, &child->base, n, depth + 1);

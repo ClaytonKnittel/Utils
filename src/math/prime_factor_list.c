@@ -18,7 +18,7 @@ static void _calc_factor_list(prime_factor_list_t* l) {
 }
 
 int prime_factor_list_init(prime_factor_list_t* l, uint64_t max) {
-  l->factors = (uint64_t*)calloc((max + 1), sizeof(uint64_t));
+  l->factors = (uint64_t*) calloc((max + 1), sizeof(uint64_t));
   if (l->factors == NULL) {
     return -1;
   }

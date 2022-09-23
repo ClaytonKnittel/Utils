@@ -82,24 +82,24 @@ struct __int_irb_tree {
 // mask covering all used bitfields in a pointer
 #define PTR_MASK (RED | BLACK | ROOT)
 
-#define ILEAF ((irb_node *)BLACK)
+#define ILEAF ((irb_node *) BLACK)
 
 static irb_node *irb_get_root(struct __int_irb_tree *t) {
   return t->root;
 }
 
 static void irb_set_parent(irb_node *n, irb_node *p) {
-  n->parent = (irb_node *)((((unsigned long)n->parent) & PTR_MASK) |
-                           ((unsigned long)p));
+  n->parent = (irb_node *) ((((unsigned long) n->parent) & PTR_MASK) |
+                            ((unsigned long) p));
 }
 
 static irb_node *irb_get_left(irb_node *n) {
-  return (irb_node *)(((unsigned long)n->left) & ~PTR_MASK);
+  return (irb_node *) (((unsigned long) n->left) & ~PTR_MASK);
 }
 
 static void irb_set_left(irb_node *n, irb_node *l) {
   n->left =
-      (irb_node *)((((unsigned long)n->left) & PTR_MASK) | (unsigned long)l);
+      (irb_node *) ((((unsigned long) n->left) & PTR_MASK) | (unsigned long) l);
   if (l != ILEAF) {
     irb_set_parent(l, n);
   }
@@ -248,7 +248,7 @@ void _irb_remove_helper(irb_node *node);
 #define IRB_DEFINE_REMOVE(name)                                                \
   static void irb_remove_##name(struct __int_irb_tree *tree, irb_node *node) { \
     IRB_DBG_ASSERT(irb_contains_##name(tree, node), tree);                     \
-    (void)tree;                                                                \
+    (void) tree;                                                               \
     _irb_remove_helper(node);                                                  \
   }
 
@@ -356,7 +356,7 @@ irb_node *irb_find_pred(irb_node *node);
 void irb_print(struct __int_irb_tree *tree);
 
 static int ptr_less(irb_node *a, irb_node *b) {
-  return ((uint64_t)a) < ((uint64_t)b);
+  return ((uint64_t) a) < ((uint64_t) b);
 }
 
 IRB_DEFINE_TYPE(ptr, ptr_less)

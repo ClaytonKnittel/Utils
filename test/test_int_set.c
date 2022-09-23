@@ -9,7 +9,7 @@ START_TEST(test_large) {
   uint64_t n = 1000;
   uint64_t max = 0x1000000;
 
-  uint64_t* nums = (uint64_t*)malloc(n * sizeof(uint64_t));
+  uint64_t* nums = (uint64_t*) malloc(n * sizeof(uint64_t));
   ck_assert(nums != NULL);
 
   int_set_t set;

@@ -34,7 +34,7 @@ START_TEST(test_basic) {
 
 #define N_TESTS 10
 
-  heap_node* nodes2 = (heap_node*)malloc(N_TESTS * sizeof(heap_node));
+  heap_node* nodes2 = (heap_node*) malloc(N_TESTS * sizeof(heap_node));
 
   for (int i = 0; i < N_TESTS; i++) {
     nodes2[i].key = i;
@@ -111,7 +111,7 @@ START_TEST(test_basic) {
 
   // test with heapsort
 
-  heap_node* nodes4 = (heap_node*)malloc(N_TESTS * sizeof(heap_node));
+  heap_node* nodes4 = (heap_node*) malloc(N_TESTS * sizeof(heap_node));
 
   for (int i = 0; i < N_TESTS; i++) {
     nodes4[i].key = i;

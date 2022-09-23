@@ -31,23 +31,23 @@ START_TEST(test_basic) {
     ck_assert(rb_find_pred(&nodes[i]) == &nodes[i - 1]);
   }
 
-  for (uint64_t addr = (uint64_t)&nodes[0]; addr < (uint64_t)&nodes[N_NODES];
+  for (uint64_t addr = (uint64_t) &nodes[0]; addr < (uint64_t) &nodes[N_NODES];
        addr += 8) {
     uint64_t upper_bound =
-        ((uint64_t)&nodes[0]) +
-        ((addr - ((uint64_t)&nodes[0])) / sizeof(rb_node_t)) *
+        ((uint64_t) &nodes[0]) +
+        ((addr - ((uint64_t) &nodes[0])) / sizeof(rb_node_t)) *
             sizeof(rb_node_t);
     uint64_t lower_bound =
-        addr > ((uint64_t)&nodes[N_NODES - 1])
+        addr > ((uint64_t) &nodes[N_NODES - 1])
             ? 0
-            : ((uint64_t)&nodes[0]) +
-                  ((addr - ((uint64_t)&nodes[0]) + sizeof(rb_node_t) - 1) /
+            : ((uint64_t) &nodes[0]) +
+                  ((addr - ((uint64_t) &nodes[0]) + sizeof(rb_node_t) - 1) /
                    sizeof(rb_node_t)) *
                       sizeof(rb_node_t);
-    ck_assert(rb_upper_bound_ptr(&tree, (rb_node_t*)addr) ==
-              (rb_node_t*)upper_bound);
-    ck_assert(rb_lower_bound_ptr(&tree, (rb_node_t*)addr) ==
-              (rb_node_t*)lower_bound);
+    ck_assert(rb_upper_bound_ptr(&tree, (rb_node_t*) addr) ==
+              (rb_node_t*) upper_bound);
+    ck_assert(rb_lower_bound_ptr(&tree, (rb_node_t*) addr) ==
+              (rb_node_t*) lower_bound);
   }
 
   // delete some nodes
@@ -67,7 +67,7 @@ START_TEST(test_basic) {
   }
 
   for (int i = 0; i < N_NODES; i++) {
-    inodes[i] = (rb_int_node_t*)rb_insert_int(&tree, vals[i]);
+    inodes[i] = (rb_int_node_t*) rb_insert_int(&tree, vals[i]);
     rb_validate_int(&tree);
   }
 
@@ -91,7 +91,7 @@ START_TEST(test_basic) {
   rb_node_t* _node;
   uint64_t idx = 0;
   rb_for_each(&tree, _node) {
-    rb_int_node_t* node = (rb_int_node_t*)_node;
+    rb_int_node_t* node = (rb_int_node_t*) _node;
     ck_assert(inodes[idx] == node);
     ck_assert(vals[idx] == node->val);
 
@@ -101,7 +101,7 @@ START_TEST(test_basic) {
   for (int i = 0; i < N_NODES; i++) {
     rb_node_t* res = rb_find_int(&tree, vals[i]);
     ck_assert(res == &inodes[i]->base);
-    ck_assert(((rb_int_node_t*)res)->val == vals[i]);
+    ck_assert(((rb_int_node_t*) res)->val == vals[i]);
 
     rb_node_t* pred = rb_upper_bound_int(&tree, vals[i]);
     ck_assert(pred == &inodes[i]->base);
@@ -130,7 +130,7 @@ START_TEST(test_basic) {
 
   idx = 0;
   rb_for_each_mod(&tree, _node) {
-    rb_int_node_t* node = (rb_int_node_t*)_node;
+    rb_int_node_t* node = (rb_int_node_t*) _node;
 
     uint64_t true_idx = idx + (idx + 1) / 2;
     ck_assert(inodes[true_idx] == node);

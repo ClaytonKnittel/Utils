@@ -17,7 +17,7 @@ struct union_node {
 };
 
 int uf_init(union_find *uf, uint64_t size) {
-  union_node *arr = (union_node *)malloc(size * sizeof(union_node));
+  union_node *arr = (union_node *) malloc(size * sizeof(union_node));
 
   if (arr == NULL) {
     printerr(stderr, "Unable to malloc %" PRIu64 " bytes\n",
@@ -47,7 +47,7 @@ void uf_destroy(union_find *uf) {
 int uf_copy(union_find *dst, const union_find *src) {
   dst->size = src->size;
   dst->num_sets = src->num_sets;
-  dst->arr = (union_node *)malloc(dst->size * sizeof(union_node));
+  dst->arr = (union_node *) malloc(dst->size * sizeof(union_node));
 
   if (dst->arr == NULL) {
     printerr(stderr, "Unable to malloc %" PRIu64 " bytes\n",

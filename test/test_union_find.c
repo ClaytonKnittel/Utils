@@ -13,7 +13,7 @@
 double test_alg_1(uint32_t w, uint32_t h) {
   union_find uf;
 
-  char* board = (char*)malloc(w * h * sizeof(char));
+  char* board = (char*) malloc(w * h * sizeof(char));
 
   for (uint32_t y = 0; y < h; y++) {
     for (uint32_t x = 0; x < w; x++) {
@@ -133,7 +133,7 @@ START_TEST(test_basic) {
 
   for (int i = 0; i < NUM_TRIALS; i++) {
     times[i] = test_alg_1(widths[i], heights[i]);
-    (void)times[i];
+    (void) times[i];
   }
 
   /*

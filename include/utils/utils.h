@@ -36,7 +36,7 @@
   } while (0)
 
 #else
-#define dbg_assert(expr) (void)(expr)
+#define dbg_assert(expr) (void) (expr)
 #endif
 
 #define printerr(f, fmt, ...) \
@@ -71,7 +71,7 @@ constexpr int ffs_unsafe(const T& val) {
   if constexpr (sizeof(val) > sizeof(uint32_t)) {
     return 1 + __builtin_ctzl(val);
   } else {
-    return 1 + __builtin_ctz((uint32_t)val);
+    return 1 + __builtin_ctz((uint32_t) val);
   }
 }
 
@@ -83,7 +83,7 @@ constexpr int ffs(const T& val) {
   if constexpr (sizeof(val) > sizeof(uint32_t)) {
     return __builtin_ffsl(val);
   } else {
-    return __builtin_ffs((int32_t)val);
+    return __builtin_ffs((int32_t) val);
   }
 }
 
@@ -95,7 +95,7 @@ constexpr T fls_unsafe(const T& val) {
   if constexpr (sizeof(val) > sizeof(uint32_t)) {
     return 8 * sizeof(uint64_t) - __builtin_clzl(val);
   } else {
-    return 8 * sizeof(uint32_t) - __builtin_clz((uint32_t)val);
+    return 8 * sizeof(uint32_t) - __builtin_clz((uint32_t) val);
   }
 }
 
@@ -151,8 +151,8 @@ constexpr T ceil_log10(const T& val) {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
-#define ALIGN_UP(val, algn)   (((val) + ((algn)-1)) & ~((algn)-1))
-#define ALIGN_DOWN(val, algn) ((val) & ~((algn)-1))
+#define ALIGN_UP(val, algn)   (((val) + ((algn) -1)) & ~((algn) -1))
+#define ALIGN_DOWN(val, algn) ((val) & ~((algn) -1))
 
 /*
  * returns 1 + index of the first set bit of val, or undefined if val is 0

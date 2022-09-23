@@ -11,24 +11,24 @@
 #define color_proxy parent
 
 static int is_red(irb_node *n) {
-  return (n != ILEAF) && (((unsigned long)n->color_proxy) & COLOR_MASK) == RED;
+  return (n != ILEAF) && (((unsigned long) n->color_proxy) & COLOR_MASK) == RED;
 }
 static int is_black(irb_node *n) {
   return (n == ILEAF) ||
-         (((unsigned long)n->color_proxy) & COLOR_MASK) == BLACK;
+         (((unsigned long) n->color_proxy) & COLOR_MASK) == BLACK;
 }
 
 static void set_red(irb_node *n) {
-  n->color_proxy = (irb_node *)(((unsigned long)n->color_proxy) | RED);
+  n->color_proxy = (irb_node *) (((unsigned long) n->color_proxy) | RED);
 }
 static void set_black(irb_node *n) {
-  n->color_proxy = (irb_node *)(((unsigned long)n->color_proxy) & ~RED);
+  n->color_proxy = (irb_node *) (((unsigned long) n->color_proxy) & ~RED);
 }
 
 static void copy_color(irb_node *dst, irb_node *src) {
   dst->color_proxy =
-      (irb_node *)((((unsigned long)dst->color_proxy) & ~COLOR_MASK) |
-                   (((unsigned long)src->color_proxy) & COLOR_MASK));
+      (irb_node *) ((((unsigned long) dst->color_proxy) & ~COLOR_MASK) |
+                    (((unsigned long) src->color_proxy) & COLOR_MASK));
 }
 
 /*
@@ -36,27 +36,27 @@ static void copy_color(irb_node *dst, irb_node *src) {
  */
 
 static int is_root(irb_node *n) {
-  return (((unsigned long)n->left) & ROOT) == ROOT;
+  return (((unsigned long) n->left) & ROOT) == ROOT;
 }
 
 static void mark_as_root(irb_node *n) {
-  n->left = (irb_node *)(((unsigned long)n->left) | ROOT);
+  n->left = (irb_node *) (((unsigned long) n->left) | ROOT);
 }
 
 static void set_root(struct __int_irb_tree *t, irb_node *node) {
   mark_as_root(node);
   t->root = node;
-  node->parent = (irb_node *)t;
+  node->parent = (irb_node *) t;
 }
 
 static irb_node *get_parent(irb_node *n) {
-  return (irb_node *)(((unsigned long)n->parent) & ~PTR_MASK);
+  return (irb_node *) (((unsigned long) n->parent) & ~PTR_MASK);
 }
 
 // sets left child to node known not to be a leaf
 static void set_left_noleaf(irb_node *n, irb_node *l) {
   n->left =
-      (irb_node *)((((unsigned long)n->left) & PTR_MASK) | (unsigned long)l);
+      (irb_node *) ((((unsigned long) n->left) & PTR_MASK) | (unsigned long) l);
   set_parent(l, n);
 }
 
@@ -72,9 +72,9 @@ static void set_right_noleaf(irb_node *n, irb_node *r) {
  * old_root was the root, otherwise it will do nothing
  */
 static void transfer_root_mark(irb_node *new_root, irb_node *old_root) {
-  size_t root_mark = ((size_t)old_root->left) & ROOT;
-  old_root->left = (irb_node *)(((unsigned long)old_root->left) ^ root_mark);
-  new_root->left = (irb_node *)(((unsigned long)new_root->left) | root_mark);
+  size_t root_mark = ((size_t) old_root->left) & ROOT;
+  old_root->left = (irb_node *) (((unsigned long) old_root->left) ^ root_mark);
+  new_root->left = (irb_node *) (((unsigned long) new_root->left) | root_mark);
 }
 
 // sets n to be the new child of the parent of par (gp)
@@ -645,7 +645,7 @@ void _irb_validate_helper(struct __int_irb_tree *tree) {
 
   if (root != ILEAF) {
     IRB_DBG_ASSERT(is_root(root), tree);
-    IRB_DBG_ASSERT(get_parent(root) == (irb_node *)tree, tree);
+    IRB_DBG_ASSERT(get_parent(root) == (irb_node *) tree, tree);
     IRB_DBG_ASSERT(
         no_other_roots(get_left(root)) && no_other_roots(get_right(root)),
         tree);

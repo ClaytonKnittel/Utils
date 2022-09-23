@@ -60,8 +60,8 @@ RB_DEFINE_TYPE(packed_rect_row_ly, _rb_cmp_packed_rect_row_ly)
  **********************************************************/
 
 static packed_rect_el_t* _node_base_to_el(const rb_node_t* rb_node_base) {
-  return (packed_rect_el_t*)(((uint8_t*)rb_node_base) -
-                             offsetof(packed_rect_el_t, rb_node_base));
+  return (packed_rect_el_t*) (((uint8_t*) rb_node_base) -
+                              offsetof(packed_rect_el_t, rb_node_base));
 }
 
 /*
@@ -71,7 +71,7 @@ static packed_rect_el_t* _node_base_to_el(const rb_node_t* rb_node_base) {
  */
 static packed_rect_el_t* _alloc_empty_el(packed_rect_coord_t lx,
                                          packed_rect_coord_t w) {
-  packed_rect_el_t* el = (packed_rect_el_t*)malloc(sizeof(packed_rect_el_t));
+  packed_rect_el_t* el = (packed_rect_el_t*) malloc(sizeof(packed_rect_el_t));
   if (el == NULL) {
     return NULL;
   }
@@ -89,7 +89,7 @@ static packed_rect_el_t* _alloc_el(packed_rect_coord_t lx,
                                    packed_rect_coord_t ly,
                                    packed_rect_coord_t w, packed_rect_coord_t h,
                                    bool rotated) {
-  packed_rect_el_t* el = (packed_rect_el_t*)malloc(sizeof(packed_rect_el_t));
+  packed_rect_el_t* el = (packed_rect_el_t*) malloc(sizeof(packed_rect_el_t));
   if (el == NULL) {
     return NULL;
   }
@@ -110,7 +110,7 @@ void packed_rect_el_free(packed_rect_el_t* el) {
 static uint64_t _calc_el_loss(packed_rect_coord_t dst_w,
                               packed_rect_coord_t dst_h, packed_rect_coord_t w,
                               packed_rect_coord_t h) {
-  (void)dst_w;
+  (void) dst_w;
   return w * dst_h - w * h;
 }
 
@@ -120,13 +120,14 @@ static uint64_t _calc_el_loss(packed_rect_coord_t dst_w,
 
 static packed_rect_row_t* _node_base_height_to_row(
     const rb_node_t* rb_node_base) {
-  return (packed_rect_row_t*)(((uint8_t*)rb_node_base) -
-                              offsetof(packed_rect_row_t, rb_node_base_height));
+  return (
+      packed_rect_row_t*) (((uint8_t*) rb_node_base) -
+                           offsetof(packed_rect_row_t, rb_node_base_height));
 }
 
 static packed_rect_row_t* _node_base_ly_to_row(const rb_node_t* rb_node_base) {
-  return (packed_rect_row_t*)(((uint8_t*)rb_node_base) -
-                              offsetof(packed_rect_row_t, rb_node_base_ly));
+  return (packed_rect_row_t*) (((uint8_t*) rb_node_base) -
+                               offsetof(packed_rect_row_t, rb_node_base_ly));
 }
 
 /*
@@ -135,8 +136,8 @@ static packed_rect_row_t* _node_base_ly_to_row(const rb_node_t* rb_node_base) {
  * end pointer should be).
  */
 static packed_rect_el_t* _el_freelist_terminal(const packed_rect_row_t* row) {
-  return (packed_rect_el_t*)(((uint8_t*)&row->freelist_start) -
-                             offsetof(packed_rect_el_t, next));
+  return (packed_rect_el_t*) (((uint8_t*) &row->freelist_start) -
+                              offsetof(packed_rect_el_t, next));
 }
 
 /*
@@ -171,7 +172,7 @@ static packed_rect_row_t* _alloc_row(packed_rect_coord_t ly,
   packed_rect_el_t* freelist_terminal;
 
   packed_rect_row_t* row =
-      (packed_rect_row_t*)malloc(sizeof(packed_rect_row_t));
+      (packed_rect_row_t*) malloc(sizeof(packed_rect_row_t));
   if (row == NULL) {
     return NULL;
   }
@@ -383,7 +384,7 @@ static int _alloc_bin(rect_packing_t* packing) {
     return -1;
   }
 
-  bin = (packed_rect_bin_t*)vector_reserve(&packing->bin_list);
+  bin = (packed_rect_bin_t*) vector_reserve(&packing->bin_list);
   if (bin == NULL) {
     return -1;
   }
@@ -423,8 +424,8 @@ static void _free_bin(packed_rect_bin_t* bin) {
 static uint32_t _calc_bin_idx(const rect_packing_t* packing,
                               const packed_rect_bin_t* bin) {
   const packed_rect_bin_t* first_el =
-      (const packed_rect_bin_t*)vector_get((vector_t*)&packing->bin_list, 0);
-  return (uint32_t)(bin - first_el);
+      (const packed_rect_bin_t*) vector_get((vector_t*) &packing->bin_list, 0);
+  return (uint32_t) (bin - first_el);
 }
 
 /*
@@ -488,8 +489,8 @@ static packed_rect_row_t* _merge_empty_row(rect_packing_t* packing,
  */
 static packed_rect_row_t* _row_freelist_terminal(
     const rect_packing_t* packing) {
-  return (packed_rect_row_t*)(((uint8_t*)&packing->row_freelist_start) -
-                              offsetof(packed_rect_row_t, next));
+  return (packed_rect_row_t*) (((uint8_t*) &packing->row_freelist_start) -
+                               offsetof(packed_rect_row_t, next));
 }
 
 /*
@@ -557,7 +558,7 @@ void rect_packing_free(rect_packing_t* packing) {
   uint64_t n_bins = vector_size(&packing->bin_list);
   for (uint64_t i = 0; i < n_bins; i++) {
     packed_rect_bin_t* bin =
-        (packed_rect_bin_t*)vector_get(&packing->bin_list, i);
+        (packed_rect_bin_t*) vector_get(&packing->bin_list, i);
     _free_bin(bin);
   }
   vector_free(&packing->bin_list);
@@ -574,7 +575,7 @@ packed_rect_el_t* rect_packing_insert(rect_packing_t* packing,
   }
 
   packed_rect_row_t* pseudo_row =
-      (packed_rect_row_t*)(((uint8_t*)&h) - offsetof(packed_rect_row_t, h));
+      (packed_rect_row_t*) (((uint8_t*) &h) - offsetof(packed_rect_row_t, h));
   rb_node_t* candidate_row_base = rb_lower_bound_packed_rect_row_height(
       &packing->rows_height, &pseudo_row->rb_node_base_height);
 
@@ -602,7 +603,7 @@ packed_rect_el_t* rect_packing_insert(rect_packing_t* packing,
   // heuristic to determine if we should try placing the rect facing down.
   if (w != h && (best_fit == NULL || best_loss > w * h / 16)) {
     pseudo_row =
-        (packed_rect_row_t*)(((uint8_t*)&w) - offsetof(packed_rect_row_t, h));
+        (packed_rect_row_t*) (((uint8_t*) &w) - offsetof(packed_rect_row_t, h));
     candidate_row_base = rb_lower_bound_packed_rect_row_height(
         &packing->rows_height, &pseudo_row->rb_node_base_height);
     row = _node_base_height_to_row(candidate_row_base);
@@ -693,7 +694,7 @@ void rect_packing_validate(const rect_packing_t* packing) {
   uint64_t bin_rows = 0;
   uint64_t prev_h = 0;
   rb_node_t* node;
-  rb_for_each((rb_tree_t*)&packing->rows_height, node) {
+  rb_for_each((rb_tree_t*) &packing->rows_height, node) {
     packed_rect_row_t* row = _node_base_height_to_row(node);
 
     dbg_assert(!_row_is_empty(packing, row));
@@ -714,15 +715,15 @@ void rect_packing_validate(const rect_packing_t* packing) {
 
   for (uint64_t bin_idx = 0; bin_idx < vector_size(&packing->bin_list);
        bin_idx++) {
-    packed_rect_bin_t* bin =
-        (packed_rect_bin_t*)vector_get((vector_t*)&packing->bin_list, bin_idx);
+    packed_rect_bin_t* bin = (packed_rect_bin_t*) vector_get(
+        (vector_t*) &packing->bin_list, bin_idx);
     uint64_t prev_endpos = -1lu;
     bool prev_row_is_empty = false;
 
-    rb_for_each((rb_tree_t*)&bin->rows_ly, node) {
+    rb_for_each((rb_tree_t*) &bin->rows_ly, node) {
       packed_rect_row_t* row = _node_base_ly_to_row(node);
 
-      dbg_assert((int64_t)prev_endpos <= (int64_t)row->ly);
+      dbg_assert((int64_t) prev_endpos <= (int64_t) row->ly);
 
       if (prev_endpos == row->ly) {
         // There can't be two adjacent free rows, else they should have
@@ -733,23 +734,23 @@ void rect_packing_validate(const rect_packing_t* packing) {
       rb_node_t* el_node;
       uint64_t n_tree_elements = 0;
       uint64_t prev_el_endpos = -1lu;
-      rb_for_each((rb_tree_t*)&row->elements, el_node) {
+      rb_for_each((rb_tree_t*) &row->elements, el_node) {
         packed_rect_el_t* el = _node_base_to_el(el_node);
 
-        dbg_assert((int64_t)el->w > 0);
-        dbg_assert((int64_t)prev_el_endpos < (int64_t)el->lx);
+        dbg_assert((int64_t) el->w > 0);
+        dbg_assert((int64_t) prev_el_endpos < (int64_t) el->lx);
         prev_el_endpos = el->lx + el->w;
         n_tree_elements++;
       }
 
-      dbg_assert((int64_t)prev_el_endpos <= (int64_t)packing->bin_w);
+      dbg_assert((int64_t) prev_el_endpos <= (int64_t) packing->bin_w);
 
       uint64_t n_list_elements = 0;
       uint64_t prev_el_w = 0;
       packed_rect_el_t* el_terminal = _el_freelist_terminal(row);
       for (packed_rect_el_t* el = row->freelist_start; el != el_terminal;
            el = el->next) {
-        dbg_assert(((int64_t)el->lx) >= 0);
+        dbg_assert(((int64_t) el->lx) >= 0);
         dbg_assert(el->w > 0);
         dbg_assert(el->lx + el->w <= packing->bin_w);
 

@@ -55,7 +55,7 @@ typedef struct heap_node {
 } heap_node;
 
 // initialize heap node with key value k
-#define HEAP_NODE_SET(heap_node, k) ((heap_node)->key = ((heap_key_t)k))
+#define HEAP_NODE_SET(heap_node, k) ((heap_node)->key = ((heap_key_t) k))
 
 typedef struct min_heap {
   // points to the root of the tree. Aliases lchild field of heap_node, so
