@@ -206,7 +206,8 @@ static void irb_init(struct __int_irb_tree *tree) {
 #define IRB_DEFINE_CONTAINS_HELPER(name, less_fn)                            \
   static int _irb_contains_##name##_helper(irb_node *root, irb_node *node) { \
     while (root != ILEAF) {                                                  \
-      if (root == node) return 1;                                            \
+      if (root == node)                                                      \
+        return 1;                                                            \
       if (!less_fn(root, node) && !less_fn(node, root)) {                    \
         return _irb_contains_##name##_helper(irb_get_left(root), node) ||    \
                _irb_contains_##name##_helper(irb_get_right(root), node);     \

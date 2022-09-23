@@ -9,9 +9,9 @@ START_TEST(test_basic) {
   heap_t h;
 
   heap_node nodes[3] = {
-      {.key = 5},
-      {.key = 3},
-      {.key = 7},
+    { .key = 5 },
+    { .key = 3 },
+    { .key = 7 },
   };
 
   heap_init(&h);
@@ -61,8 +61,8 @@ START_TEST(test_basic) {
 #define N_TESTS 8
 
   heap_node nodes3[N_TESTS] = {
-      {.key = 1}, {.key = 5}, {.key = 8}, {.key = 10},
-      {.key = 2}, {.key = 4}, {.key = 6}, {.key = 3},
+    { .key = 1 }, { .key = 5 }, { .key = 8 }, { .key = 10 },
+    { .key = 2 }, { .key = 4 }, { .key = 6 }, { .key = 3 },
   };
 
   heap_init(&h);

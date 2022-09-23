@@ -215,9 +215,9 @@ class RTreeRect {
  public:
   explicit RTreeRect(rtree_coord_t lx, rtree_coord_t ly, rtree_coord_t ux,
                      rtree_coord_t uy)
-      : rect({lx, ly, ux, uy}) {}
+      : rect({ lx, ly, ux, uy }) {}
   explicit RTreeRect(const rtree_rect_t& rect)
-      : rect({rect.lx, rect.ly, rect.ux, rect.uy}) {}
+      : rect({ rect.lx, rect.ly, rect.ux, rect.uy }) {}
   virtual ~RTreeRect() {}
 
   rtree_coord_t lx() const {

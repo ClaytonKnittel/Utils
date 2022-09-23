@@ -15,8 +15,8 @@ struct rand_state {
  * strong declaration of __seed (default to 0)
  */
 __thread struct rand_state __state = {
-    .state = 0LU,
-    .seq_num = 1LU,
+  .state = 0LU,
+  .seq_num = 1LU,
 };
 
 uint32_t __rand_hash(uint32_t seed) {

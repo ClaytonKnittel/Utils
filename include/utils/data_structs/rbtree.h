@@ -188,7 +188,8 @@ void rb_free_node(rb_node_t *node);
                                              rb_node_t *node) { \
     while (root != LEAF) {                                      \
       int cmp = cmp_fn(root, node);                             \
-      if (cmp == 0) return root;                                \
+      if (cmp == 0)                                             \
+        return root;                                            \
       root = cmp < 0 ? rb_get_right(root) : rb_get_left(root);  \
     }                                                           \
     return NULL;                                                \
@@ -430,7 +431,8 @@ void rb_print(struct __int_rb_tree *tree);
                                                  s_type val) {        \
     while (root != LEAF) {                                            \
       s_type root_val = rb_##name##_val(root);                        \
-      if (root_val == val) return root;                               \
+      if (root_val == val)                                            \
+        return root;                                                  \
       root = root_val < val ? rb_get_right(root) : rb_get_left(root); \
     }                                                                 \
     return NULL;                                                      \

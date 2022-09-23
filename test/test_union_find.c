@@ -124,10 +124,10 @@ START_TEST(test_basic) {
   uf_destroy(&uf);
 
 #define NUM_TRIALS 10
-  uint32_t widths[NUM_TRIALS] = {1000, 1000, 1500, 2000, 2000,
-                                 2000, 2500, 2500, 3000, 2500};
-  uint32_t heights[NUM_TRIALS] = {1000, 2000, 2000, 2000, 2500,
-                                  3000, 2800, 3200, 3000, 4000};
+  uint32_t widths[NUM_TRIALS] = { 1000, 1000, 1500, 2000, 2000,
+                                  2000, 2500, 2500, 3000, 2500 };
+  uint32_t heights[NUM_TRIALS] = { 1000, 2000, 2000, 2000, 2500,
+                                   3000, 2800, 3200, 3000, 4000 };
 
   double times[NUM_TRIALS];
 

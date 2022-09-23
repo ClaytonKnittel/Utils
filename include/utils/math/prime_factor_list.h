@@ -76,7 +76,7 @@ class PrimeFactorList {
 
     // used only for factor_end()
     constexpr factor_iterator(const uint64_t n)
-        : i(n), factor_repeats({1, 0}), factors(nullptr) {}
+        : i(n), factor_repeats({ 1, 0 }), factors(nullptr) {}
 
     factor_iterator& operator++() {
       _calc_next_factor();

@@ -524,8 +524,9 @@ rb_node_t *rb_find_pred(rb_node_t *node) {
 }
 
 static void _rb_print(rb_node_t *node, int depth, int l) {
-  static const char *colstr[2] = {"black", "red"};
-  if (!node) return;
+  static const char *colstr[2] = { "black", "red" };
+  if (!node)
+    return;
 
   const char *pref;
   if (depth == 0)
@@ -551,16 +552,19 @@ void rb_print(struct __int_rb_tree *tree) {
  */
 
 static size_t black_depth(rb_node_t *node) {
-  if (node == LEAF) return 0;
+  if (node == LEAF)
+    return 0;
   size_t l, r;
   l = black_depth(get_left(node));
   r = black_depth(get_right(node));
-  if (l == -1LU || r == -1LU || l != r) return -1LU;
+  if (l == -1LU || r == -1LU || l != r)
+    return -1LU;
   return l + (is_black(node) ? 1 : 0);
 }
 
 static char no_red_red(rb_node_t *node) {
-  if (node == LEAF) return 1;
+  if (node == LEAF)
+    return 1;
   if (is_red(node)) {
     if (is_red(get_left(node)) || is_red(get_right(node))) {
       return 0;
@@ -570,14 +574,19 @@ static char no_red_red(rb_node_t *node) {
 }
 
 static char parents_valid(rb_node_t *node) {
-  if (node == LEAF) return 1;
+  if (node == LEAF)
+    return 1;
   if (get_left(node) != LEAF) {
-    if (get_parent(get_left(node)) != node) return 0;
-    if (!parents_valid(get_left(node))) return 0;
+    if (get_parent(get_left(node)) != node)
+      return 0;
+    if (!parents_valid(get_left(node)))
+      return 0;
   }
   if (get_right(node) != LEAF) {
-    if (get_parent(get_right(node)) != node) return 0;
-    if (!parents_valid(get_right(node))) return 0;
+    if (get_parent(get_right(node)) != node)
+      return 0;
+    if (!parents_valid(get_right(node)))
+      return 0;
   }
   return 1;
 }
@@ -597,8 +606,10 @@ static uint64_t tree_size(rb_node_t *node) {
 }
 
 static char no_other_roots(rb_node_t *node) {
-  if (node == LEAF) return 1;
-  if (is_root(node)) return 0;
+  if (node == LEAF)
+    return 1;
+  if (is_root(node))
+    return 0;
   return no_other_roots(get_left(node)) && no_other_roots(get_right(node));
 }
 

@@ -9,7 +9,8 @@
 #include "test_utils.h"
 
 static constexpr uint64_t factorial(uint64_t n) {
-  if (n == 0) return 1;
+  if (n == 0)
+    return 1;
   return n * factorial(n - 1);
 }
 

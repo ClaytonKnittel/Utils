@@ -286,7 +286,7 @@ START_TEST(test_insert_one) {
     _rect_packing_validate(&packing, &els);
   }
 
-  uint64_t remove_order[N_ELS] = {1, 0, 6, 5, 1, 0, 2, 0, 0, 0, 0, 0};
+  uint64_t remove_order[N_ELS] = { 1, 0, 6, 5, 1, 0, 2, 0, 0, 0, 0, 0 };
 
   for (uint64_t i = 0; i < N_ELS; i++) {
     el_info_t* info = (el_info_t*)vector_get(&els, remove_order[i]);
@@ -359,7 +359,7 @@ START_TEST(test_insert_many) {
 
     rect_packing_remove(&packing, el);
 
-    el_info_t zero = {.el = NULL, .w = 0, .h = 0};
+    el_info_t zero = { .el = NULL, .w = 0, .h = 0 };
     vector_set(&els, i, &zero);
   }
 
@@ -459,7 +459,7 @@ START_TEST(test_insert_remove_many) {
       }
 
       rect_packing_remove(&packing, el);
-      el_info_t zero = {.el = NULL, .w = 0, .h = 0};
+      el_info_t zero = { .el = NULL, .w = 0, .h = 0 };
       vector_set(&els, remove_idx, &zero);
     } else {
       GEN_WH();
