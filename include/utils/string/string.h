@@ -32,6 +32,17 @@ static void to_lower(char* s, uint64_t len) {
 
 #endif /* AVX_SUPPORTED */
 
+#ifdef __APPLE__
+
+/*
+ * The strchrnul() function returns a pointer to the matched character, or a
+ * pointer to the null byte at the end of s (i.e., s+strlen(s)) if the character
+ * is not found.
+ */
+char* strchrnul(const char* s, int c);
+
+#endif /* __APPLE__ */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

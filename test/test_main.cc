@@ -6,6 +6,7 @@
 // clang-format off
 extern "C" {
 
+Suite* test_dircntl();
 Suite* test_int_set();
 Suite* test_irbtree();
 Suite* test_min_heap();
@@ -33,7 +34,8 @@ int main() {
   int number_failed;
   SRunner* sr;
 
-  sr = srunner_create(test_int_set());
+  sr = srunner_create(test_dircntl());
+  srunner_add_suite(sr, test_int_set());
   srunner_add_suite(sr, test_irbtree());
   srunner_add_suite(sr, test_min_heap());
   srunner_add_suite(sr, test_prime_factor_list());
