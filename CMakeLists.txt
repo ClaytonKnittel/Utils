@@ -95,7 +95,7 @@ else()
 endif()
 
 target_compile_options(utils PRIVATE
-	$<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Wpedantic -Wall -Wextra
+  $<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Werror -Wpedantic -Wall -Wextra
 	-Wno-unused-function -Wno-format -Wno-format-pedantic
 	-march=native -mtune=native>
 )
