@@ -4,6 +4,11 @@
 
 #include <stdint.h>
 
+#ifndef __APPLE__
+// For strchrnul on Linux
+#include <string.h>
+#endif /* __APPLE__ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

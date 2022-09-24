@@ -555,6 +555,8 @@ Suite* test_rect_packing() {
   tcase_add_test(tc_insert, test_insert_one);
   tcase_add_test(tc_insert, test_insert_many);
   tcase_add_test(tc_insert, test_insert_remove_many);
+  // Disable test timeout
+  tcase_set_timeout(tc_insert, 0);
   suite_add_tcase(s, tc_insert);
 
   return s;

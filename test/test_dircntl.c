@@ -13,7 +13,7 @@
  * value.
  */
 static void random_file_name(char* path) {
-  const static char alphanum[] =
+  static const char alphanum[] =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
   size_t path_len = strlen(path);
 

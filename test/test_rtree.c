@@ -936,6 +936,8 @@ Suite* test_rtree() {
   tcase_add_test(tc_delete, test_delete_10000_random);
   tcase_add_test(tc_delete, test_delete_100000_random);
   tcase_add_test(tc_delete, test_delete_1000000_random);
+  // Disable test timeout
+  tcase_set_timeout(tc_delete, 0);
   suite_add_tcase(s, tc_delete);
 
   tc_intersects = tcase_create("Intersects");
@@ -944,6 +946,8 @@ Suite* test_rtree() {
   tcase_add_test(tc_intersects, test_intersects_grid_single_10000);
   tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_100);
   tcase_add_test(tc_intersects, test_intersects_grid_all_neighbors_10000);
+  // Disable test timeout
+  tcase_set_timeout(tc_intersects, 0);
   suite_add_tcase(s, tc_intersects);
 
   tc_move = tcase_create("Move");

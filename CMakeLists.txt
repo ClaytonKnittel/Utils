@@ -104,6 +104,13 @@ target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi -
 
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:ASM>:${ASM_OPTIONS}>)
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+  # Enable strchrnul on Linux
+  target_compile_definitions(utils
+    PUBLIC _GNU_SOURCE
+  )
+endif()
+
 if (${ENABLE_TESTING})
 	target_compile_definitions(utils
 		PRIVATE DO_TESTING

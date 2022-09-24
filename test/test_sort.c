@@ -296,9 +296,11 @@ Suite* test_sort() {
   suite_add_tcase(s, tc_const);
 
   tc_large = tcase_create("Large");
-  tcase_add_test(tc_const, test_64);
-  tcase_add_test(tc_const, test_1024);
-  tcase_add_test(tc_const, test_10000);
+  tcase_add_test(tc_large, test_64);
+  tcase_add_test(tc_large, test_1024);
+  tcase_add_test(tc_large, test_10000);
+  // Disable test timeout
+  tcase_set_timeout(tc_large, 0);
   suite_add_tcase(s, tc_large);
 
   return s;

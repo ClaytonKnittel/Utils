@@ -156,6 +156,8 @@ Suite* test_union_find() {
 
   tc_basic = tcase_create("Basic");
   tcase_add_test(tc_basic, test_basic);
+  // Disable test timeout
+  tcase_set_timeout(tc_basic, 0);
   suite_add_tcase(s, tc_basic);
 
   return s;
