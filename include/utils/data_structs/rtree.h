@@ -335,7 +335,7 @@ class RTree {
 
     while (true) {
       if (i == n) {
-      ascent_parent:
+ascent_parent:
         i = node->parent_idx + 1;
         node = &node->parent->base;
 
