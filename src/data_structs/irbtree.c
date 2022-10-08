@@ -464,7 +464,7 @@ irb_idx_t irb_get_idx_unsafe(struct irb_node *node) {
 
   for (;;) {
     idx += get_right(node) == prev ? node->r_off : 0;
-  cond:
+cond:
     if (is_root(node)) {
       break;
     }

@@ -1218,7 +1218,7 @@ bool rtree_foreach(const rtree_t* tree, rtree_foreach_cb callback,
 
   while (true) {
     if (i == n) {
-    ascent_parent:
+ascent_parent:
       i = node->parent_idx + 1;
       node = &node->parent->base;
 
