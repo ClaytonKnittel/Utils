@@ -7,6 +7,8 @@
 
 namespace util {
 
+namespace math {
+
 namespace group {
 
 template <uint32_t N>
@@ -71,6 +73,8 @@ bool operator!=(const Cyclic<N>& e1, const Cyclic<N>& e2) {
 }
 
 }  // namespace group
+
+}  // namespace math
 
 }  // namespace util
 

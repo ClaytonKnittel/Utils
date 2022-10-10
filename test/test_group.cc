@@ -5,7 +5,7 @@
 
 #include "test_utils.h"
 
-using namespace util::group;
+using namespace util::math::group;
 
 typedef Cyclic<1> C1;
 typedef Cyclic<2> C2;

@@ -7,6 +7,8 @@
 
 namespace util {
 
+namespace math {
+
 namespace group {
 
 template <uint32_t N>
@@ -168,6 +170,8 @@ Dihedral<N>::genTable() {
 }
 
 }  // namespace group
+
+}  // namespace math
 
 }  // namespace util
 

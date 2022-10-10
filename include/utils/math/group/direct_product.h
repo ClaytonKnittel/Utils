@@ -5,6 +5,8 @@
 
 namespace util {
 
+namespace math {
+
 namespace group {
 
 template <class... T>
@@ -146,6 +148,8 @@ DirectProduct<T...>::genTable() {
 }
 
 }  // namespace group
+
+}  // namespace math
 
 }  // namespace util
 
