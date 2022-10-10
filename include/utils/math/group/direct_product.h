@@ -54,7 +54,7 @@ class DirectProduct {
 
  private:
   template <class SubgroupT>
-  std::pair<encoding_t, encoding_t> unpack(SubgroupT subg) {
+  static constexpr std::pair<encoding_t, encoding_t> unpack(SubgroupT subg) {
     return { subg.ordinal(), subg.order() };
   }
 
