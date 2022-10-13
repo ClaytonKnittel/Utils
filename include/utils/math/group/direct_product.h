@@ -11,6 +11,16 @@ namespace group {
 
 template <class... T>
 class DirectProduct {
+  template <class... T_>
+  friend constexpr bool operator==(const DirectProduct<T_...>& e1,
+                                   const DirectProduct<T_...>& e2);
+  template <class... T_>
+  friend constexpr bool operator==(const DirectProduct<T_...>& e1,
+                                   const DirectProduct<T_...>& e2);
+  template <class... T_>
+  friend constexpr DirectProduct<T_...> operator*(
+      const DirectProduct<T_...>& e1, const DirectProduct<T_...>& e2);
+
  public:
   static constexpr uint64_t order() {
     return (... * T::order());
@@ -81,7 +91,7 @@ class DirectProduct {
     return (SubgroupT(e1) * SubgroupT(e2)).ordinal();
   }
 
-  template <class SubgroupT, class... SubgroupTs>
+  template <class SubgroupT, class SubgroupTNext, class... SubgroupTs>
   static constexpr encoding_t slowCompose(encoding_t e1, encoding_t e2) {
     SubgroupT o1 = SubgroupT(e1 % SubgroupT::order());
     SubgroupT o2 = SubgroupT(e2 % SubgroupT::order());
@@ -90,7 +100,9 @@ class DirectProduct {
     e2 /= SubgroupT::order();
 
     encoding_t ord = (o1 * o2).ordinal();
-    return SubgroupT::order() * slowCompose<SubgroupTs...>(e1, e2) + ord;
+    return SubgroupT::order() *
+               slowCompose<SubgroupTNext, SubgroupTs...>(e1, e2) +
+           ord;
   }
 
   template <class SubgroupT>
@@ -116,18 +128,25 @@ class DirectProduct {
       genTable();
 };
 
-// TODO
-/*
-template <uint32_t N>
-bool operator==(const Dihedral<N>& e1, const Dihedral<N>& e2) {
+template <class... T>
+constexpr bool operator==(const DirectProduct<T...>& e1,
+                          const DirectProduct<T...>& e2) {
   return e1.e_ == e2.e_;
 }
 
-template <uint32_t N>
-bool operator!=(const Dihedral<N>& e1, const Dihedral<N>& e2) {
+template <class... T>
+constexpr bool operator!=(const DirectProduct<T...>& e1,
+                          const DirectProduct<T...>& e2) {
   return e1.e_ != e2.e_;
 }
-*/
+
+template <class... T>
+constexpr DirectProduct<T...> operator*(const DirectProduct<T...>& e1,
+                                        const DirectProduct<T...>& e2) {
+  return DirectProduct<T...>(
+      DirectProduct<T...>::compose_table[e1.e_ * DirectProduct<T...>::order() +
+                                         e2.e_]);
+}
 
 template <class... T>
 constexpr std::array<typename DirectProduct<T...>::encoding_t,

@@ -148,6 +148,44 @@ START_TEST(test_direct_ords) {
 }
 END_TEST
 
+START_TEST(test_direct_prods) {
+  typedef DirectProduct<D2, C3, D1> DP;
+
+  ck_assert_int_eq(DP::order(), D2::order() * C3::order() * D1::order());
+
+  for (uint64_t i1 = 0; i1 < D2::order(); i1++) {
+    for (uint64_t i2 = 0; i2 < D2::order(); i2++) {
+      D2 d2a(i1);
+      D2 d2b(i2);
+      for (uint64_t j1 = 0; j1 < C3::order(); j1++) {
+        for (uint64_t j2 = 0; j2 < C3::order(); j2++) {
+          C3 c3a(j1);
+          C3 c3b(j2);
+          for (uint64_t k1 = 0; k1 < D1::order(); k1++) {
+            for (uint64_t k2 = 0; k2 < D1::order(); k2++) {
+              D1 d1a(k1);
+              D1 d1b(k2);
+
+              DP dpa(d2a, c3a, d1a);
+              DP dpb(d2b, c3b, d1b);
+
+              DP dp_prod = dpa * dpb;
+
+              D2 d2_prod = d2a * d2b;
+              C3 c3_prod = c3a * c3b;
+              D1 d1_prod = d1a * d1b;
+              DP dp_prod_ex(d2_prod, c3_prod, d1_prod);
+
+              ck_assert(dp_prod == dp_prod_ex);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+END_TEST
+
 Suite* test_group_cc() {
   TCase* tc_cyclic;
   TCase* tc_dihedral;
@@ -183,6 +221,7 @@ Suite* test_group_cc() {
   tc_direct_product = tcase_create("Direct Product");
   tcase_add_test(tc_dihedral, test_direct_identity_ord);
   tcase_add_test(tc_dihedral, test_direct_ords);
+  tcase_add_test(tc_dihedral, test_direct_prods);
   suite_add_tcase(s, tc_direct_product);
 
   return s;
