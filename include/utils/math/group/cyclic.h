@@ -14,11 +14,12 @@ namespace group {
 template <uint32_t N>
 class Cyclic {
   template <uint32_t N_>
-  friend Cyclic<N_> operator*(const Cyclic<N_>& e1, const Cyclic<N_>& e2);
+  constexpr friend Cyclic<N_> operator*(const Cyclic<N_>& e1,
+                                        const Cyclic<N_>& e2);
   template <uint32_t N_>
-  friend bool operator==(const Cyclic<N_>& e1, const Cyclic<N_>& e2);
+  constexpr friend bool operator==(const Cyclic<N_>& e1, const Cyclic<N_>& e2);
   template <uint32_t N_>
-  friend bool operator!=(const Cyclic<N_>& e1, const Cyclic<N_>& e2);
+  constexpr friend bool operator!=(const Cyclic<N_>& e1, const Cyclic<N_>& e2);
 
  public:
   typedef uint8_t encoding_t;
@@ -44,7 +45,7 @@ class Cyclic {
     return e_;
   }
 
-  Cyclic<N> inverse() const {
+  constexpr Cyclic<N> inverse() const {
     return Cyclic<N>((N - e_) % N);
   }
 
@@ -57,18 +58,18 @@ class Cyclic {
 };
 
 template <uint32_t N>
-Cyclic<N> operator*(const Cyclic<N>& e1, const Cyclic<N>& e2) {
+constexpr Cyclic<N> operator*(const Cyclic<N>& e1, const Cyclic<N>& e2) {
   return Cyclic<N>(
       static_cast<typename Cyclic<N>::encoding_t>((e1.e_ + e2.e_) % N));
 }
 
 template <uint32_t N>
-bool operator==(const Cyclic<N>& e1, const Cyclic<N>& e2) {
+constexpr bool operator==(const Cyclic<N>& e1, const Cyclic<N>& e2) {
   return e1.e_ == e2.e_;
 }
 
 template <uint32_t N>
-bool operator!=(const Cyclic<N>& e1, const Cyclic<N>& e2) {
+constexpr bool operator!=(const Cyclic<N>& e1, const Cyclic<N>& e2) {
   return e1.e_ != e2.e_;
 }
 

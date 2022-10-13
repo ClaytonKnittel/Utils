@@ -14,11 +14,14 @@ namespace group {
 template <uint32_t N>
 class Dihedral {
   template <uint32_t N_>
-  friend Dihedral<N_> operator*(const Dihedral<N_>& e1, const Dihedral<N_>& e2);
+  constexpr friend Dihedral<N_> operator*(const Dihedral<N_>& e1,
+                                          const Dihedral<N_>& e2);
   template <uint32_t N_>
-  friend bool operator==(const Dihedral<N_>& e1, const Dihedral<N_>& e2);
+  constexpr friend bool operator==(const Dihedral<N_>& e1,
+                                   const Dihedral<N_>& e2);
   template <uint32_t N_>
-  friend bool operator!=(const Dihedral<N_>& e1, const Dihedral<N_>& e2);
+  constexpr friend bool operator!=(const Dihedral<N_>& e1,
+                                   const Dihedral<N_>& e2);
 
  public:
   // An encoding_t is equal to <n> + (rfl ? N : 0), where <n> is the number of
@@ -65,15 +68,15 @@ class Dihedral {
     return e_;
   }
 
-  Action action() const {
+  constexpr Action action() const {
     return action(e_);
   }
 
-  uint32_t degree() const {
+  constexpr uint32_t degree() const {
     return degree(e_);
   }
 
-  Dihedral<N> inverse() const {
+  constexpr Dihedral<N> inverse() const {
     if (e_ < N) {
       return Dihedral<N>((N - e_) % N);
     } else {
@@ -101,18 +104,18 @@ class Dihedral {
 };
 
 template <uint32_t N>
-Dihedral<N> operator*(const Dihedral<N>& e1, const Dihedral<N>& e2) {
+constexpr Dihedral<N> operator*(const Dihedral<N>& e1, const Dihedral<N>& e2) {
   return Dihedral<N>(
       Dihedral<N>::compose_table[e1.e_ * Dihedral<N>::order() + e2.e_]);
 }
 
 template <uint32_t N>
-bool operator==(const Dihedral<N>& e1, const Dihedral<N>& e2) {
+constexpr bool operator==(const Dihedral<N>& e1, const Dihedral<N>& e2) {
   return e1.e_ == e2.e_;
 }
 
 template <uint32_t N>
-bool operator!=(const Dihedral<N>& e1, const Dihedral<N>& e2) {
+constexpr bool operator!=(const Dihedral<N>& e1, const Dihedral<N>& e2) {
   return e1.e_ != e2.e_;
 }
 
