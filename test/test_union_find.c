@@ -11,13 +11,16 @@
 
 // returns time taken to execute test
 double test_alg_1(uint32_t w, uint32_t h) {
+  rand_state_t r_state;
+  rand_init(&r_state);
+
   union_find uf;
 
   char* board = (char*) malloc(w * h * sizeof(char));
 
   for (uint32_t y = 0; y < h; y++) {
     for (uint32_t x = 0; x < w; x++) {
-      uint32_t rand = gen_rand_r(4);
+      uint32_t rand = gen_rand_r(&r_state, 4);
       switch (rand) {
         case 0:
           board[y * w + x] = ' ';

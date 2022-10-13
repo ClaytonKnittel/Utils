@@ -302,9 +302,9 @@ START_TEST(test_insert_one) {
 END_TEST
 
 START_TEST(test_insert_many) {
-#define GEN_WH()                         \
-  uint64_t w = 30 + 1 * gen_rand_r(100); \
-  uint64_t h = w + ((int64_t) gen_rand_r(51) - 25)
+#define GEN_WH()                                   \
+  uint64_t w = 30 + 1 * gen_rand_r(&r_state, 100); \
+  uint64_t h = w + ((int64_t) gen_rand_r(&r_state, 51) - 25)
 
 #define VERBOSE      false
 #define DO_RESHUFFLE true
@@ -315,7 +315,8 @@ START_TEST(test_insert_many) {
   rect_packing_t packing;
   ck_assert_int_eq(rect_packing_init(&packing, 8192, 8192, 8), 0);
 
-  seed_rand(0, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, 0, 0);
 
   for (uint64_t i = 0; i < N_ELS; i++) {
     GEN_WH();
@@ -343,7 +344,7 @@ START_TEST(test_insert_many) {
 
   // random removal order
   for (uint64_t j = 0; j < size / 2; j++) {
-    uint64_t i = gen_rand_r64(vector_size(&els));
+    uint64_t i = gen_rand_r64(&r_state, vector_size(&els));
 
     el_info_t* info = (el_info_t*) vector_get(&els, i);
     packed_rect_el_t* el = info->el;
@@ -426,9 +427,9 @@ START_TEST(test_insert_many) {
 END_TEST
 
 START_TEST(test_insert_remove_many) {
-#define GEN_WH()                   \
-  uint64_t w = 1 + gen_rand_r(10); \
-  uint64_t h = 1 + gen_rand_r(10)
+#define GEN_WH()                             \
+  uint64_t w = 1 + gen_rand_r(&r_state, 10); \
+  uint64_t h = 1 + gen_rand_r(&r_state, 10)
 
 #define VERBOSE      false
 #define DO_RESHUFFLE true
@@ -440,7 +441,8 @@ START_TEST(test_insert_remove_many) {
   ck_assert_int_eq(rect_packing_init(&packing, 64, 64, 2), 0);
   _rect_packing_validate(&packing, &els);
 
-  seed_rand(7, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, 7, 0);
 
   for (uint64_t i = 0; i < N_ELS; i++) {
     if (i % 3 == 2) {
@@ -448,7 +450,7 @@ START_TEST(test_insert_remove_many) {
       packed_rect_el_t* el;
 
       do {
-        remove_idx = gen_rand_r64(2 * i / 3);
+        remove_idx = gen_rand_r64(&r_state, 2 * i / 3);
         el_info_t* info = (el_info_t*) vector_get(&els, remove_idx);
         el = info->el;
       } while (el == NULL);

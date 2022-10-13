@@ -117,17 +117,18 @@ START_TEST(test_insert_100) {
 END_TEST
 
 START_TEST(test_insert_10000_random) {
-  seed_rand(15, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, 15, 0);
   INIT_RTREE(10, 30);
 
   rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < 10000; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
 
     els[i] =
         (rtree_el_t){ .bb = { .lx = x, .ly = y, .ux = x + wx, .uy = y + wy } };
@@ -299,17 +300,18 @@ static bool _foreach_10000_cb(const rtree_el_t* el, void* udata,
 }
 
 START_TEST(test_foreach_10000_random) {
-  seed_rand(157, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, 157, 0);
   INIT_RTREE(10, 30);
 
   rtree_el_t* els = (rtree_el_t*) malloc(10000 * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < 10000; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
 
     els[i] =
         (rtree_el_t){ .bb = { .lx = x, .ly = y, .ux = x + wx, .uy = y + wy } };
@@ -404,30 +406,31 @@ END_TEST
 
 static void _run_randomized_find_test(uint64_t n_rects, uint32_t m_min,
                                       uint32_t m_max, uint64_t seed) {
-  seed_rand(seed, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, seed, 0);
   INIT_RTREE(m_min, m_max);
 
   rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
     els[i].bb = (rtree_rect_t){ .lx = x, .ly = y, .ux = x + wx, .uy = y + wy };
     ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
   }
   rtree_validate(&tree);
 
   // reset the seed so we see the same sequence of rectangles
-  seed_rand(seed, 0);
+  seed_rand(&r_state, seed, 0);
   for (uint32_t i = 0; i < n_rects; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
     rtree_rect_t rect = { .lx = x, .ly = y, .ux = x + wx, .uy = y + wy };
     rtree_el_t* el = rtree_find_exact(&tree, &rect);
     ck_assert_ptr_eq(el, &els[i]);
@@ -470,18 +473,19 @@ END_TEST
 static void _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min,
                                         uint32_t m_max, uint64_t seed,
                                         bool full_check) {
-  seed_rand(seed, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, seed, 0);
   INIT_RTREE(m_min, m_max);
 
   rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
   uint32_t* delete_order = (uint32_t*) malloc(n_rects * sizeof(uint32_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
 
     els[i] =
         (rtree_el_t){ .bb = { .lx = x, .ly = y, .ux = x + wx, .uy = y + wy } };
@@ -493,7 +497,7 @@ static void _run_randomized_delete_test(uint64_t n_rects, uint32_t m_min,
     delete_order[i] = i;
   }
   for (uint32_t i = 1; i < n_rects; i++) {
-    uint32_t loc = gen_rand_r(i + 1);
+    uint32_t loc = gen_rand_r(&r_state, i + 1);
     uint32_t tmp = delete_order[loc];
     delete_order[loc] = delete_order[i];
     delete_order[i] = tmp;
@@ -824,17 +828,18 @@ END_TEST
 
 static void _run_randomized_wiggle_test(uint64_t n_rects, uint32_t m_min,
                                         uint32_t m_max, uint64_t seed) {
-  seed_rand(seed, 0);
+  rand_state_t r_state;
+  seed_rand(&r_state, seed, 0);
   INIT_RTREE(m_min, m_max);
 
   rtree_el_t* els = (rtree_el_t*) malloc(n_rects * sizeof(rtree_el_t));
 
   for (uint32_t i = 0; i < n_rects; i++) {
-    uint64_t x = gen_rand_r(65536);
-    uint64_t y = gen_rand_r(65536);
+    uint64_t x = gen_rand_r(&r_state, 65536);
+    uint64_t y = gen_rand_r(&r_state, 65536);
 
-    uint64_t wx = gen_rand_r(32);
-    uint64_t wy = gen_rand_r(32);
+    uint64_t wx = gen_rand_r(&r_state, 32);
+    uint64_t wy = gen_rand_r(&r_state, 32);
     els[i].bb = (rtree_rect_t){ .lx = x, .ly = y, .ux = x + wx, .uy = y + wy };
     ck_assert_int_eq(rtree_insert(&tree, &els[i]), 0);
   }
@@ -842,8 +847,8 @@ static void _run_randomized_wiggle_test(uint64_t n_rects, uint32_t m_min,
 
   for (uint32_t i = 0; i < n_rects; i++) {
     // dx, dy are chosen from {-1, 0, 1}
-    uint64_t dx = gen_rand_r(3) - 1;
-    uint64_t dy = gen_rand_r(3) - 1;
+    uint64_t dx = gen_rand_r(&r_state, 3) - 1;
+    uint64_t dy = gen_rand_r(&r_state, 3) - 1;
 
     rtree_rect_t new_rect = {
       .lx = els[i].bb.lx + dx,
