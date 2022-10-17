@@ -18,6 +18,9 @@ class Trivial {
   }
 
   constexpr Trivial() {}
+  explicit constexpr Trivial(uint32_t ordinal) {
+    (void) ordinal;
+  }
 
   constexpr uint32_t ordinal() const {
     return 0;
