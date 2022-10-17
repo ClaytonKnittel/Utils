@@ -35,6 +35,24 @@ class Trivial {
   }
 };
 
+constexpr Trivial operator*(const Trivial& e1, const Trivial& e2) {
+  (void) e1;
+  (void) e2;
+  return Trivial();
+}
+
+constexpr bool operator==(const Trivial& e1, const Trivial& e2) {
+  (void) e1;
+  (void) e2;
+  return true;
+}
+
+constexpr bool operator!=(const Trivial& e1, const Trivial& e2) {
+  (void) e1;
+  (void) e2;
+  return false;
+}
+
 }  // namespace group
 }  // namespace math
 }  // namespace util
