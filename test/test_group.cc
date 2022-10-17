@@ -1,7 +1,5 @@
 
-#include <utils/math/group/cyclic.h>
-#include <utils/math/group/dihedral.h>
-#include <utils/math/group/direct_product.h>
+#include <utils/math/group/group.h>
 
 #include "test_utils.h"
 
