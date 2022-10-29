@@ -35,6 +35,7 @@ class ArenaPtr {
  public:
   explicit constexpr ArenaPtr(uint32_t ptr_val) : ptr_val_(ptr_val) {}
   constexpr ArenaPtr(const ArenaPtr& ptr) = default;
+  constexpr ArenaPtr() : ArenaPtr(null()) {}
 
   bool operator==(const ArenaPtr<T>& other) {
     return ptr_val_ == other.ptr_val_;
@@ -47,7 +48,7 @@ class ArenaPtr {
   T* get(const Arena<T>& arena) const;
 
   static constexpr ArenaPtr<T> null() {
-    return ArenaPtr<T>(0);
+    return ArenaPtr<T>(-1u);
   }
 
  private:
