@@ -7,7 +7,7 @@
 #include "test_utils.h"
 
 using namespace util::memory;
-using util::Random;
+using util::math::Random;
 
 START_TEST(test_uint64_one) {
   Arena<uint64_t> a;
