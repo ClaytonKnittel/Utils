@@ -135,6 +135,8 @@ CXX_CONSTEXPR static uint64_t gen_rand_r64(rand_state_t* state, uint64_t max) {
 
 namespace util {
 
+namespace math {
+
 class Random {
  public:
   Random() {
@@ -164,6 +166,8 @@ class Random {
  private:
   rand_state_t state_;
 };
+
+}  // namespace math
 
 }  // namespace util
 
