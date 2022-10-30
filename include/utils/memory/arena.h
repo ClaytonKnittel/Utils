@@ -117,7 +117,7 @@ class Arena {
   }
 
   template <typename... Args>
-  ArenaPtr<T, ptr_size> malloc(Args... args) {
+  ArenaPtr<T, ptr_size> alloc(Args... args) {
     if (next_ + 1 > end_) {
       void* res = SystemMemMapExtend(end_, arena_size_);
       if (res == nullptr) {

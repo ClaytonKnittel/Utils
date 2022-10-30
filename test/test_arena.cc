@@ -13,7 +13,7 @@ START_TEST(test_uint64_one) {
   Arena<uint64_t> a;
   uint64_t* start = a.start();
 
-  ArenaPtr<uint64_t> ptr = a.malloc(100);
+  ArenaPtr<uint64_t> ptr = a.alloc(100);
   ck_assert(ptr != ArenaPtr<uint64_t>::null());
   ck_assert_ptr_eq(ptr.get(a), start);
   ck_assert_uint_eq(*ptr.get(a), 100);
@@ -30,7 +30,7 @@ static void test_uint64_pages(uint32_t n_pages) {
   ptr_list.reserve(n_ptrs);
 
   for (uint64_t i = 0; i < n_ptrs; i++) {
-    ArenaPtr<T> ptr = a.malloc(i);
+    ArenaPtr<T> ptr = a.alloc(i);
     ck_assert(ptr != ArenaPtr<T>::null());
     ck_assert_ptr_eq(ptr.get(a), start + i);
     ck_assert(*ptr.get(a) == T(i));
