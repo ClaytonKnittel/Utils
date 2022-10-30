@@ -69,8 +69,10 @@ class Arena {
   static constexpr int MMAP_FLAGS =
 #ifdef __APPLE__
       MAP_PRIVATE | MAP_ANONYMOUS | VM_FLAGS_SUPERPAGE_SIZE_2MB
-#else
+#elif defined(MAP_HUGE_2MB)
       MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_HUGE_2MB
+#else
+      MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB
 #endif
       ;
 
