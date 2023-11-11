@@ -39,9 +39,12 @@ RB_DEFINE_TYPE(packed_rect_el, _rb_cmp_packed_rect_el)
 
 static int _rb_cmp_packed_rect_row_height(const rb_node_t* a_ptr,
                                           const rb_node_t* b_ptr) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
   const packed_rect_row_t* a = _node_base_height_to_row(a_ptr);
   const packed_rect_row_t* b = _node_base_height_to_row(b_ptr);
   return a->h < b->h ? -1 : a->h == b->h ? 0 : 1;
+#pragma GCC diagnostic pop
 }
 
 RB_DEFINE_TYPE(packed_rect_row_height, _rb_cmp_packed_rect_row_height)
@@ -252,6 +255,8 @@ static packed_rect_el_t* _split_el(rect_packing_t* packing,
                                    packed_rect_row_t* row, packed_rect_el_t* el,
                                    packed_rect_coord_t w, packed_rect_coord_t h,
                                    bool was_rotated) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   packed_rect_el_t* new_el;
 
   packed_rect_el_t* terminal = _el_freelist_terminal(row);
@@ -318,6 +323,7 @@ adjust_row:
   }
 
   return new_el;
+#pragma GCC diagnostic pop
 }
 
 /*
