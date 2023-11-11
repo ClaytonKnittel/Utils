@@ -94,7 +94,55 @@ class Dihedral {
     return order() * order();
   }
 
-  static constexpr std::array<encoding_t, composeTableSize()> genTable();
+  static constexpr std::array<encoding_t, composeTableSize()> genTable() {
+    std::array<encoding_t, composeTableSize()> table{ 0 };
+
+    for (encoding_t i = 0; i < static_cast<encoding_t>(order()); i++) {
+      for (encoding_t j = 0; j < static_cast<encoding_t>(order()); j++) {
+        // calculates the effect of the operation e(i) * e(j)
+        encoding_t& el = table[i * order() + j];
+
+        switch (action(i)) {
+          case Dihedral<N>::Action::ROT: {
+            switch (action(j)) {
+              case Dihedral<N>::Action::ROT: {
+                el = Dihedral<N>(Dihedral<N>::Action::ROT,
+                                 (degree(i) + degree(j)) % N)
+                         .e_;
+                break;
+              }
+              case Dihedral<N>::Action::REFL: {
+                el = Dihedral<N>(Dihedral<N>::Action::REFL,
+                                 (degree(i) + degree(j)) % N)
+                         .e_;
+                break;
+              }
+            }
+            break;
+          }
+          case Dihedral<N>::Action::REFL: {
+            switch (action(j)) {
+              case Dihedral<N>::Action::ROT: {
+                el = Dihedral<N>(Dihedral<N>::Action::REFL,
+                                 (N + degree(i) - degree(j)) % N)
+                         .e_;
+                break;
+              }
+              case Dihedral<N>::Action::REFL: {
+                el = Dihedral<N>(Dihedral<N>::Action::ROT,
+                                 (N + degree(i) - degree(j)) % N)
+                         .e_;
+                break;
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    return table;
+  }
 
  private:
   encoding_t e_;
@@ -117,59 +165,6 @@ constexpr bool operator==(const Dihedral<N>& e1, const Dihedral<N>& e2) {
 template <uint32_t N>
 constexpr bool operator!=(const Dihedral<N>& e1, const Dihedral<N>& e2) {
   return e1.e_ != e2.e_;
-}
-
-template <uint32_t N>
-constexpr std::array<typename Dihedral<N>::encoding_t,
-                     Dihedral<N>::composeTableSize()>
-Dihedral<N>::genTable() {
-  std::array<encoding_t, composeTableSize()> table{ 0 };
-
-  for (encoding_t i = 0; i < static_cast<encoding_t>(order()); i++) {
-    for (encoding_t j = 0; j < static_cast<encoding_t>(order()); j++) {
-      // calculates the effect of the operation e(i) * e(j)
-      encoding_t& el = table[i * order() + j];
-
-      switch (action(i)) {
-        case Dihedral<N>::Action::ROT: {
-          switch (action(j)) {
-            case Dihedral<N>::Action::ROT: {
-              el = Dihedral<N>(Dihedral<N>::Action::ROT,
-                               (degree(i) + degree(j)) % N)
-                       .e_;
-              break;
-            }
-            case Dihedral<N>::Action::REFL: {
-              el = Dihedral<N>(Dihedral<N>::Action::REFL,
-                               (degree(i) + degree(j)) % N)
-                       .e_;
-              break;
-            }
-          }
-          break;
-        }
-        case Dihedral<N>::Action::REFL: {
-          switch (action(j)) {
-            case Dihedral<N>::Action::ROT: {
-              el = Dihedral<N>(Dihedral<N>::Action::REFL,
-                               (N + degree(i) - degree(j)) % N)
-                       .e_;
-              break;
-            }
-            case Dihedral<N>::Action::REFL: {
-              el = Dihedral<N>(Dihedral<N>::Action::ROT,
-                               (N + degree(i) - degree(j)) % N)
-                       .e_;
-              break;
-            }
-          }
-          break;
-        }
-      }
-    }
-  }
-
-  return table;
 }
 
 }  // namespace group

@@ -119,7 +119,20 @@ class DirectProduct {
            toStringComposer<SubgroupNextT, SubgroupTs...>(e);
   }
 
-  static constexpr std::array<encoding_t, composeTableSize()> genTable();
+  static constexpr std::array<encoding_t, composeTableSize()> genTable() {
+    std::array<encoding_t, DirectProduct<T...>::composeTableSize()> table{ 0 };
+
+    for (encoding_t i = 0;
+         i < static_cast<encoding_t>(DirectProduct<T...>::order()); i++) {
+      for (encoding_t j = 0;
+           j < static_cast<encoding_t>(DirectProduct<T...>::order()); j++) {
+        // calculates the effect of the operation e(i) * e(j)
+        table[i * DirectProduct<T...>::order() + j] = slowCompose<T...>(i, j);
+      }
+    }
+
+    return table;
+  }
 
  private:
   encoding_t e_;
@@ -146,24 +159,6 @@ constexpr DirectProduct<T...> operator*(const DirectProduct<T...>& e1,
   return DirectProduct<T...>(
       DirectProduct<T...>::compose_table[e1.e_ * DirectProduct<T...>::order() +
                                          e2.e_]);
-}
-
-template <class... T>
-constexpr std::array<typename DirectProduct<T...>::encoding_t,
-                     DirectProduct<T...>::composeTableSize()>
-DirectProduct<T...>::genTable() {
-  std::array<encoding_t, DirectProduct<T...>::composeTableSize()> table{ 0 };
-
-  for (encoding_t i = 0;
-       i < static_cast<encoding_t>(DirectProduct<T...>::order()); i++) {
-    for (encoding_t j = 0;
-         j < static_cast<encoding_t>(DirectProduct<T...>::order()); j++) {
-      // calculates the effect of the operation e(i) * e(j)
-      table[i * DirectProduct<T...>::order() + j] = slowCompose<T...>(i, j);
-    }
-  }
-
-  return table;
 }
 
 }  // namespace group
