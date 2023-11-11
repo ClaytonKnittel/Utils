@@ -39,7 +39,7 @@ class DirectProduct {
 
   explicit constexpr DirectProduct(encoding_t e) : e_(e) {}
 
-  constexpr DirectProduct(T... subg) {
+  constexpr DirectProduct(T... subg) : e_(0) {
     encoding_t basis = 1;
     encoding_t total = 0;
     for (auto [subg_ordinal, subg_order] : { unpack(subg)... }) {
