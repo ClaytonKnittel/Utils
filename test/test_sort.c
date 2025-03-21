@@ -54,6 +54,9 @@ static void naive_sort(uint32_t* els, uint32_t N) {
 }
 
 static int run_csort_test(int N) {
+  rand_state_t r_state;
+  rand_init(&r_state);
+
   uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 
   for (uint64_t i = 0; i < 128; i++) {
@@ -62,7 +65,7 @@ static int run_csort_test(int N) {
     }
 
     for (uint32_t j = 1; j < (uint32_t) N; j++) {
-      uint32_t rand_idx = gen_rand_r(j + 1);
+      uint32_t rand_idx = gen_rand_r(&r_state, j + 1);
 
       uint32_t tmp = vals[j];
       vals[j] = vals[rand_idx];
@@ -124,6 +127,9 @@ static inline uint64_t bench_insert_sort(int N, void (*sort_alg)(uint32_t*,size_
 #endif
 
 static void run_const_sort_test(int N) {
+  rand_state_t r_state;
+  rand_init(&r_state);
+
   uint32_t* vals = (uint32_t*) malloc(N * sizeof(uint32_t));
 
   uint64_t n_fact = factorial(N);
@@ -150,7 +156,7 @@ static void run_const_sort_test(int N) {
     for (uint64_t i = 0; i < 512; i++) {
       uint16_t mask = 0xffffu;
 
-      uint64_t perm = gen_rand_r64(n_fact);
+      uint64_t perm = gen_rand_r64(&r_state, n_fact);
       for (int j = 0; j < N; j++) {
         int idx = N - 1 - j;
         uint64_t fact = factorial(idx);

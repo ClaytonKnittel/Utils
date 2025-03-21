@@ -25,6 +25,8 @@ Suite* test_mat();
 }
 // clang-format on
 
+Suite* test_arena_cc();
+Suite* test_group_cc();
 Suite* test_prime_factor_list_cc();
 Suite* test_rbtree_cc();
 Suite* test_rtree_cc();
@@ -49,6 +51,8 @@ int main() {
   srunner_add_suite(sr, test_vector());
   srunner_add_suite(sr, test_vec());
   srunner_add_suite(sr, test_mat());
+  srunner_add_suite(sr, test_arena_cc());
+  srunner_add_suite(sr, test_group_cc());
   srunner_add_suite(sr, test_prime_factor_list_cc());
   srunner_add_suite(sr, test_rbtree_cc());
   srunner_add_suite(sr, test_rtree_cc());

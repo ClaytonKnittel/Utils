@@ -12,14 +12,14 @@
  * Generates a random file name, changing every 'X' to a random alphanumeric
  * value.
  */
-static void random_file_name(char* path) {
+static void random_file_name(char* path, rand_state_t* r_state) {
   static const char alphanum[] =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
   size_t path_len = strlen(path);
 
   for (size_t i = 0; i < path_len; i++) {
     if (path[i] == 'X') {
-      path[i] = alphanum[gen_rand_r(sizeof(alphanum) - 1)];
+      path[i] = alphanum[gen_rand_r(r_state, sizeof(alphanum) - 1)];
     }
   }
 }
@@ -60,9 +60,11 @@ START_TEST(test_mkdirp_exists) {
 END_TEST
 
 START_TEST(test_mkdirp_tmp_one_lvl) {
-  seed_rand(13, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 13, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRUSR | S_IWUSR), 0);
   assert_is_dir(tmp_dir);
@@ -70,9 +72,11 @@ START_TEST(test_mkdirp_tmp_one_lvl) {
 END_TEST
 
 START_TEST(test_mkdirp_tmp_two_lvls) {
-  seed_rand(17, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 17, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRWXU), 0);
   assert_is_dir(tmp_dir);
@@ -80,9 +84,11 @@ START_TEST(test_mkdirp_tmp_two_lvls) {
 END_TEST
 
 START_TEST(test_mkdirp_tmp_three_lvls) {
-  seed_rand(19, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 19, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX/XXXXXX/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRWXU), 0);
   assert_is_dir(tmp_dir);
@@ -97,9 +103,11 @@ START_TEST(test_rmdirp_empty) {
 END_TEST
 
 START_TEST(test_rmdirp_nonempty) {
-  seed_rand(23, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 23, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   char tmp_file[sizeof(tmp_dir) + 1 + 8];
   memcpy(tmp_file, tmp_dir, sizeof(tmp_dir) - 1);
@@ -118,9 +126,11 @@ START_TEST(test_rmdirp_nonempty) {
 END_TEST
 
 START_TEST(test_rmdirp_nonempty_multi_intact) {
-  seed_rand(27, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 27, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   char tmp_file[sizeof(tmp_dir) + 1 + 8];
   memcpy(tmp_file, tmp_dir, sizeof(tmp_dir) - 1);
@@ -129,7 +139,7 @@ START_TEST(test_rmdirp_nonempty_multi_intact) {
   char tmp_dir1[sizeof(tmp_dir) + 1 + 6];
   memcpy(tmp_dir1, tmp_dir, sizeof(tmp_dir) - 1);
   strcpy(tmp_dir1 + sizeof(tmp_dir) - 1, "/XXXXXX");
-  random_file_name(tmp_dir1 + sizeof(tmp_dir) - 1);
+  random_file_name(tmp_dir1 + sizeof(tmp_dir) - 1, &state);
 
   ck_assert_int_eq(mkdir(tmp_dir, S_IRWXU), 0);
   ck_assert_int_eq(mkdir(tmp_dir1, S_IRWXU), 0);
@@ -147,9 +157,11 @@ START_TEST(test_rmdirp_nonempty_multi_intact) {
 END_TEST
 
 START_TEST(test_rmdirp_tmp_one_lvl) {
-  seed_rand(29, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 29, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRUSR | S_IWUSR), 0);
   assert_is_dir(tmp_dir);
@@ -160,9 +172,11 @@ START_TEST(test_rmdirp_tmp_one_lvl) {
 END_TEST
 
 START_TEST(test_rmdirp_tmp_two_lvls) {
-  seed_rand(31, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 31, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRWXU), 0);
   assert_is_dir(tmp_dir);
@@ -174,9 +188,11 @@ START_TEST(test_rmdirp_tmp_two_lvls) {
 END_TEST
 
 START_TEST(test_rmdirp_tmp_three_lvls) {
-  seed_rand(37, time(NULL));
+  rand_state_t state;
+  seed_rand(&state, 37, time(NULL));
+
   char tmp_dir[] = "/tmp/XXXXXX/XXXXXX/XXXXXX";
-  random_file_name(tmp_dir);
+  random_file_name(tmp_dir, &state);
 
   ck_assert_int_eq(mkdirp(tmp_dir, S_IRWXU), 0);
   assert_is_dir(tmp_dir);
