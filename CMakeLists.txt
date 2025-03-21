@@ -96,8 +96,8 @@ endif()
 
 target_compile_options(utils PRIVATE
   $<$<NOT:$<COMPILE_LANGUAGE:ASM>>:-Werror -Wpedantic -Wall -Wextra
-	-Wno-unused-function -Wno-format -Wno-format-pedantic
-	-march=native -mtune=native>
+	-Wno-unused-function -Wno-format -Wno-format-pedantic -Wno-array-bounds
+	-Wno-maybe-uninitialized -march=native -mtune=native>
 )
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:C>:-std=gnu11>)
 target_compile_options(utils PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-extra-semi -Wno-c99-extensions>)
